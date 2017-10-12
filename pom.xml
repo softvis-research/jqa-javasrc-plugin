@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.buschmais.jqassistant</groupId>
+        <artifactId>jqassistant.plugin.plugin-parent</artifactId>
+        <version>1.3.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>com.buschmais.jqassistant.plugin</groupId>
+    <artifactId>parser</artifactId>
+    <version>1.3-SNAPSHOT</version>
+
+    <name>jQAssistant Parser Plugin</name>
+    <url>http://jqassistant.org/</url>
+
+    <description>
+        Plugin for jQAssistant to be able to scan and to
+        analyze Source Code artifacts (currently Java).
+    </description>
+
+
+    <licenses>
+        <license>
+            <name>GNU General Public License, v3</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+        </license>
+    </licenses>
+
+    <properties>
+        <jqa-plugin-common.version>1.3-SNAPSHOT</jqa-plugin-common.version>
+    </properties>
+
+    <build>
+        <plugins>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!--
+         ! I M P O R T A N T
+         !
+         ! The declaration of this dependency is required as Maven if
+         ! not able to download declared dependencies of plugins.
+         ! Oliver B. Fischer, 2017-04-11
+         ! todo Check if this hack is still required
+         !
+         ! Try the following to check if this is still required
+         ! - mvn - - version
+         ! - Remove the dependency com.buschmais.jqassistant:asciidoctor-utilities
+         ! - mvn -Dmaven.repo.local=<somepath> clean install
+         !-->
+        <dependency>
+            <groupId>com.buschmais.jqassistant</groupId>
+            <artifactId>asciidoctor-utilities</artifactId>
+            <version>${jqa-asciidoctor-utilities.version}</version>
+            <!-- The scope must be provided otherwise it will be part of the distribution -->
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.buschmais.jqassistant.plugin</groupId>
+            <artifactId>common</artifactId>
+            <version>${jqa-plugin-common.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>shared</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>scanner</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>report</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>plugin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.plugin</groupId>
+            <artifactId>common</artifactId>
+            <type>test-jar</type>
+            <version>${jqa-plugin-common.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>store</artifactId>
+            <type>test-jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>analysis</artifactId>
+            <type>test-jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>java-hamcrest</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+    </repositories>
+
+</project>

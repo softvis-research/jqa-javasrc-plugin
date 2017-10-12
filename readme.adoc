@@ -1,0 +1,5 @@
+= jQAssistant Parser Plugin
+
+This is a Parser Plugin of https://www.jqassistant.org[jQAssistant^].
+
+(Work in Progress)

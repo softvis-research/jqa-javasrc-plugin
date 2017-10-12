@@ -1,0 +1,6 @@
+
+= jQAssistant Parser Plugin Release Notes
+
+include::1.3.adoc[]
+
+
