@@ -1,4 +1,4 @@
-package com.buschmais.jqassistant.plugin.parser.api.scanner;
+package org.unileipzig.jqassistant.plugin.parser.api.scanner;
 
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.ScannerPlugin.Requires;
@@ -6,7 +6,7 @@ import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
-import com.buschmais.jqassistant.plugin.parser.api.model.SourceCodeDescriptor;
+import org.unileipzig.jqassistant.plugin.parser.api.model.SourceCodeDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

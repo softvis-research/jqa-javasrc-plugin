@@ -1,4 +1,4 @@
-package com.buschmais.jqassistant.plugin.parser.api.model;
+package org.unileipzig.jqassistant.plugin.parser.api.model;
 
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 

@@ -1,10 +1,10 @@
-package com.buschmais.jqassistant.plugin.parser.test;
+package org.unileipzig.jqassistant.plugin.parser.test;
 
 import com.buschmais.jqassistant.core.scanner.api.DefaultScope;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
 import com.buschmais.jqassistant.plugin.common.test.scanner.MapBuilder;
-import com.buschmais.jqassistant.plugin.parser.impl.scanner.SourceCodeScannerPlugin;
+import org.unileipzig.jqassistant.plugin.parser.impl.scanner.SourceCodeScannerPlugin;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;

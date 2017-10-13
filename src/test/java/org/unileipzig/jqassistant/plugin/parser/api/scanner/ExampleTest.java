@@ -1,4 +1,4 @@
-package com.buschmais.jqassistant.plugin.parser.api.scanner;
+package org.unileipzig.jqassistant.plugin.parser.api.scanner;
 
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
 import org.junit.Test;

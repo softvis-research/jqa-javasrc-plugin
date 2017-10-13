@@ -2,9 +2,9 @@
                                name="XML">
     <description>Provides scanners for Source Code (currently Java).</description>
     <model>
-        <class>com.buschmais.jqassistant.plugin.parser.api.model.SourceCodeDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.SourceCodeDescriptor</class>
     </model>
     <scanner>
-        <class>com.buschmais.jqassistant.plugin.parser.impl.scanner.SourceCodeScannerPlugin</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.impl.scanner.SourceCodeScannerPlugin</class>
     </scanner>
 </jqa-plugin:jqassistant-plugin>

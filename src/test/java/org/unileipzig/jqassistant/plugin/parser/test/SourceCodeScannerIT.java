@@ -1,9 +1,9 @@
-package com.buschmais.jqassistant.plugin.parser.test;
+package org.unileipzig.jqassistant.plugin.parser.test;
 
 import com.buschmais.jqassistant.core.scanner.api.DefaultScope;
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
-import com.buschmais.jqassistant.plugin.parser.api.model.SourceCodeDescriptor;
+import org.unileipzig.jqassistant.plugin.parser.api.model.SourceCodeDescriptor;
 import org.junit.Test;
 
 import javax.xml.transform.Source;
