@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class LexerTest {
@@ -14,7 +15,7 @@ public class LexerTest {
             new Symbol("HEX", "x[0-9]+(\\.[0-9]+)?"),
             new Symbol("FLOAT", "[0-9]+\\.[0-9]+"),
             new Symbol("INTEGER", "[0-9]+")
-        ));
+        ), (Collections.<Symbol>emptyList()));
         List<Token> tokens = l.tokenize("x5.0 0.9 192");
         Assert.assertEquals("HEX", tokens.get(0).symbol.id);
         Assert.assertEquals("x5.0", tokens.get(0).value);
@@ -36,5 +37,30 @@ public class LexerTest {
         Assert.assertEquals("192", tokens.get(4).value);
         Assert.assertEquals(9, tokens.get(4).from);
         Assert.assertEquals(12, tokens.get(4).to);
+    }
+
+    @Test
+    public void simpleCase2() {
+        Lexer l = new Lexer(Arrays.asList(
+            new Symbol("HEX", "x[0-9]+(\\.[0-9]+)?"),
+            new Symbol("FLOAT", "[0-9]+\\.[0-9]+"),
+            new Symbol("INTEGER", "[0-9]+")
+        ), Arrays.asList(
+            new Symbol("WS", "[ \t\r\n\f]"),
+            new Symbol("WS2", "[ ]")
+        ));
+        List<Token> tokens = l.tokenize("x5.0 0.9 192");
+        Assert.assertEquals("HEX", tokens.get(0).symbol.id);
+        Assert.assertEquals("x5.0", tokens.get(0).value);
+        Assert.assertEquals(0, tokens.get(0).from);
+        Assert.assertEquals(4, tokens.get(0).to);
+        Assert.assertEquals("FLOAT", tokens.get(1).symbol.id);
+        Assert.assertEquals("0.9", tokens.get(1).value);
+        Assert.assertEquals(5, tokens.get(1).from);
+        Assert.assertEquals(8, tokens.get(1).to);
+        Assert.assertEquals("INTEGER", tokens.get(2).symbol.id);
+        Assert.assertEquals("192", tokens.get(2).value);
+        Assert.assertEquals(9, tokens.get(2).from);
+        Assert.assertEquals(12, tokens.get(2).to);
     }
 }

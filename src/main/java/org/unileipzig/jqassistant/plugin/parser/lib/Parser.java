@@ -1,6 +1,7 @@
 package org.unileipzig.jqassistant.plugin.parser.lib;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -9,6 +10,7 @@ import java.util.function.Supplier;
 
 public class Parser {
     private Map<String, Symbol> symbols = new LinkedHashMap<>();
+    private List<Symbol> skipped = new LinkedList<>();
     private List<Token> tokens;
     private int pos;
 
@@ -31,6 +33,10 @@ public class Parser {
 
     public void literal(String re, Function<Object, Object> f) throws Exception {
         define(re, 0, () -> f.apply(tokens.get(pos - 1).value), null);
+    }
+
+    public void skip(String re) {
+        skipped.add(new Symbol(re, 0, null, null));
     }
 
     public void binaryLeftAssociative(String re, int bp, BiFunction<Object, Object, Object> f) throws Exception {
@@ -59,7 +65,7 @@ public class Parser {
 
     public Object parse(String input) {
         pos = 0;
-        tokens = (new Lexer(symbols.values())).tokenize(input);
+        tokens = (new Lexer(symbols.values(), skipped)).tokenize(input);
         return parseExpression(0);
     }
 }

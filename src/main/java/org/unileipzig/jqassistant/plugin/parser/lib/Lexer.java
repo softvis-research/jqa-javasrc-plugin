@@ -1,10 +1,13 @@
 package org.unileipzig.jqassistant.plugin.parser.lib;
 
+import com.google.common.collect.Iterables;
+
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Lexer aka Scanner aka Tokenizer
@@ -12,19 +15,21 @@ import java.util.regex.Pattern;
 public class Lexer {
     private Pattern regex;
     private Collection<Symbol> symbols;
+    private Collection<Symbol> skipped;
 
     /**
      * Create a Lexer Instance by providing Token Definitions ("Types")
      *
      * @param types mapping of identifiers to regular expressions
      */
-    public Lexer(Collection<Symbol> types) {
+    public Lexer(Collection<Symbol> types, Collection<Symbol> skipped) {
+        this.symbols = types;
+        this.skipped = skipped;
         StringBuilder b = new StringBuilder();
-        for (Symbol symbol : types) {
+        for (Symbol symbol : Iterables.concat(skipped, types)) {
             b.append(String.format("|(?<%s>%s)", symbol.id, symbol.re)); // doesn't work with numbers as IDs (!!)
         }
-        regex = Pattern.compile(b.substring(1));
-        symbols = types;
+        this.regex = Pattern.compile(b.substring(1));
     }
 
     /**
@@ -37,7 +42,13 @@ public class Lexer {
         Matcher matcher = regex.matcher(str);
         List<Token> tokens = new LinkedList<>();
         String match;
+        outer:
         while (matcher.find()) {
+            for (Symbol skipped : skipped) {
+                if (matcher.group(skipped.id) != null) {
+                    continue outer;
+                }
+            }
             for (Symbol symbol : symbols) {
                 match = matcher.group(symbol.id);
                 if (match != null) {
