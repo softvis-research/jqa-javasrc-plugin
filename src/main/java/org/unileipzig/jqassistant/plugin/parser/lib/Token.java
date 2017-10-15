@@ -1,31 +1,15 @@
 package org.unileipzig.jqassistant.plugin.parser.lib;
 
 class Token {
-    private String name;
-    private String value;
-    private int from;
-    private int to;
+    public Symbol symbol;
+    public String value;
+    public int from;
+    public int to;
 
-    Token(String name, String value, int from, int to) {
-        this.name = name;
+    Token(Symbol symbol, String value, int from, int to) {
+        this.symbol = symbol;
         this.value = value;
         this.from = from;
         this.to = to;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public int getFrom() {
-        return from;
-    }
-
-    public int getTo() {
-        return to;
     }
 }

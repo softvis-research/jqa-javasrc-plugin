@@ -3,3 +3,12 @@
 This is a Parser Plugin of https://www.jqassistant.org[jQAssistant^].
 
 (Work in Progress)
+
+== Notes
+
+- on Functions/Lambdas as Parameters
+    - https://dzone.com/articles/why-theres-interface
+    - chose Supplier instead of Callable, since it is more similar to Function (especially: doesn't throw Exception)
+- on Matcher::group(): seams so that int as parameter doesn't work the same as named parameter (String)
+    - maybe will need String-Identifier for every Symbol
+    - TODO: try more variants to see if that's avoidable

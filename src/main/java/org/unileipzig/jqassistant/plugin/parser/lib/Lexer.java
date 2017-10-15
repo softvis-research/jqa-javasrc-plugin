@@ -1,6 +1,6 @@
 package org.unileipzig.jqassistant.plugin.parser.lib;
 
-import java.util.LinkedHashMap;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -10,21 +10,21 @@ import java.util.regex.Pattern;
  * Lexer aka Scanner aka Tokenizer
  */
 public class Lexer {
-    private LinkedHashMap<String, String> types;
     private Pattern regex;
+    private Collection<Symbol> symbols;
 
     /**
      * Create a Lexer Instance by providing Token Definitions ("Types")
      *
-     * @param tokenDefinitions mapping of identifiers to regular expressions
+     * @param types mapping of identifiers to regular expressions
      */
-    public Lexer(LinkedHashMap<String, String> tokenDefinitions) {
-        StringBuffer s = new StringBuffer();
-        types = tokenDefinitions;
-        types.forEach((identifier, pattern) -> {
-            s.append(String.format("|(?<%s>%s)", identifier, pattern));
-        });
-        regex = Pattern.compile(s.substring(1));
+    public Lexer(Collection<Symbol> types) {
+        StringBuilder b = new StringBuilder();
+        for (Symbol symbol : types) {
+            b.append(String.format("|(?<%s>%s)", symbol.id, symbol.re)); // doesn't work with numbers as IDs (!!)
+        }
+        regex = Pattern.compile(b.substring(1));
+        symbols = types;
     }
 
     /**
@@ -38,10 +38,10 @@ public class Lexer {
         List<Token> tokens = new LinkedList<>();
         String match;
         while (matcher.find()) {
-            for (String identifier : types.keySet()) {
-                match = matcher.group(identifier);
+            for (Symbol symbol : symbols) {
+                match = matcher.group(symbol.id);
                 if (match != null) {
-                    tokens.add(new Token(identifier, match, matcher.start(), matcher.end()));
+                    tokens.add(symbol.instantiate(match, matcher.start(), matcher.end()));
                     break;
                 }
             }
