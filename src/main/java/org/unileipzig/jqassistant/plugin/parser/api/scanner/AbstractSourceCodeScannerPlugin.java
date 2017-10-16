@@ -6,9 +6,9 @@ import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
-import org.unileipzig.jqassistant.plugin.parser.api.model.SourceCodeDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.unileipzig.jqassistant.plugin.parser.api.model.SourceCodeDescriptor;
 
 import java.io.IOException;
 

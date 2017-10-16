@@ -2,8 +2,8 @@ package org.unileipzig.jqassistant.plugin.parser.lib;
 
 import com.google.common.collect.Iterables;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,7 +19,8 @@ public class Lexer {
     /**
      * Create a Lexer Instance by providing Token Definitions ("Types")
      *
-     * @param types mapping of identifiers to regular expressions
+     * @param types   Descriptions of Tokens that should end up in the list of lexed Tokens
+     * @param skipped Descriptions of Tokens that should NOT end up in the list of lexed Tokens
      */
     public Lexer(Collection<Symbol> types, Collection<Symbol> skipped) {
         this.symbols = types;
@@ -39,7 +40,7 @@ public class Lexer {
      */
     public List<Token> tokenize(String str) throws Exception {
         Matcher matcher = regex.matcher(str);
-        List<Token> tokens = new LinkedList<>();
+        List<Token> tokens = new ArrayList<>();
         String match;
         int pos = 0;
         outer:
@@ -60,7 +61,7 @@ public class Lexer {
             }
         }
         if (pos < str.length()) {
-            throw new Exception("No suitable Token Definition for Input at " + pos + ": " + str.substring(pos));
+            throw new Exception("No suitable Token Definition for Input at " + pos + ": '" + str.substring(pos) + "'");
         }
         return tokens;
     }

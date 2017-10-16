@@ -34,12 +34,17 @@ public class ExampleLanguageParser extends Parser {
             unaryPrefix("[-]", 130, (operand) -> new UnaryOperator(UnaryOperatorType.PREFIXMINUS, operand));
             unaryPrefix("[+][+]", 130, (operand) -> new UnaryOperator(UnaryOperatorType.PREFIXINCREMENT, operand));
             unaryPrefix("[-][-]", 130, (operand) -> new UnaryOperator(UnaryOperatorType.PREFIXDECREMENT, operand));
+            unaryPostfix("[+][+]", 130, (operand) -> new UnaryOperator(UnaryOperatorType.POSTFIXINCREMENT, operand));
+            unaryPostfix("[-][-]", 130, (operand) -> new UnaryOperator(UnaryOperatorType.POSTFIXDECREMENT, operand));
+            // Literals
+            literal("[0-9]+", Integer::parseInt); // INTEGER
+            skip("[ \t\r\n\f]");
         } catch (Exception e) {
             System.out.println("Error when constructing Parser: " + e.getMessage());
         }
     }
 
     public static void main(final String[] args) throws Exception { // need a main() for debugging
-        (new ExampleLanguageParser()).parse("1+1");
+        System.out.println((new ExampleLanguageParser()).parse("1 + 1 * 1"));
     }
 }

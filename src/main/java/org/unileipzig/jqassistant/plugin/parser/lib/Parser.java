@@ -1,7 +1,7 @@
 package org.unileipzig.jqassistant.plugin.parser.lib;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -10,9 +10,10 @@ import java.util.function.Supplier;
 
 public class Parser {
     public Map<String, Symbol> symbols = new LinkedHashMap<>();
-    public List<Symbol> skipped = new LinkedList<>();
+    public List<Symbol> skipped = new ArrayList<>();
     public List<Token> tokens;
-    private int pos;
+    private int i;
+    private int n;
 
     private void define(String re, int bp, Supplier<Object> nud, Function<Object, Object> led) throws Exception {
         Symbol s = symbols.get(re);
@@ -31,8 +32,8 @@ public class Parser {
         }
     }
 
-    public void literal(String re, Function<Object, Object> f) throws Exception {
-        define(re, 0, () -> f.apply(tokens.get(pos - 1).value), null);
+    public void literal(String re, Function<String, Object> f) throws Exception {
+        define(re, 0, () -> f.apply(tokens.get(i - 1).value), null);
     }
 
     public void skip(String re) {
@@ -56,16 +57,17 @@ public class Parser {
     }
 
     private Object parseExpression(int bp) {
-        Object left = tokens.get(pos++).symbol.nud.get();
-        while (bp < tokens.get(pos).symbol.bp) {
-            left = tokens.get(pos++).symbol.led.apply(left);
+        Object left = tokens.get(i++).symbol.nud.get();
+        while (i < n && bp < tokens.get(i).symbol.bp) {
+            left = tokens.get(i++).symbol.led.apply(left);
         }
         return left;
     }
 
     public Object parse(String input) throws Exception {
-        pos = 0;
         tokens = (new Lexer(symbols.values(), skipped)).tokenize(input);
+        i = 0;
+        n = tokens.size();
         return parseExpression(0);
     }
 }
