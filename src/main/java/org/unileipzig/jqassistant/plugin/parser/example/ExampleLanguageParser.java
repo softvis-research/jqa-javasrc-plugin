@@ -34,9 +34,12 @@ public class ExampleLanguageParser extends Parser {
             unaryPrefix("[-]", 130, (operand) -> new UnaryOperator(UnaryOperatorType.PREFIXMINUS, operand));
             unaryPrefix("[+][+]", 130, (operand) -> new UnaryOperator(UnaryOperatorType.PREFIXINCREMENT, operand));
             unaryPrefix("[-][-]", 130, (operand) -> new UnaryOperator(UnaryOperatorType.PREFIXDECREMENT, operand));
-
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error when constructing Parser: " + e.getMessage());
         }
+    }
+
+    public static void main(final String[] args) throws Exception { // need a main() for debugging
+        (new ExampleLanguageParser()).parse("1+1");
     }
 }

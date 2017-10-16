@@ -9,9 +9,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Parser {
-    private Map<String, Symbol> symbols = new LinkedHashMap<>();
-    private List<Symbol> skipped = new LinkedList<>();
-    private List<Token> tokens;
+    public Map<String, Symbol> symbols = new LinkedHashMap<>();
+    public List<Symbol> skipped = new LinkedList<>();
+    public List<Token> tokens;
     private int pos;
 
     private void define(String re, int bp, Supplier<Object> nud, Function<Object, Object> led) throws Exception {
@@ -63,7 +63,7 @@ public class Parser {
         return left;
     }
 
-    public Object parse(String input) {
+    public Object parse(String input) throws Exception {
         pos = 0;
         tokens = (new Lexer(symbols.values(), skipped)).tokenize(input);
         return parseExpression(0);

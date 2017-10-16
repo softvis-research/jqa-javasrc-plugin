@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /**
  * Lexer aka Scanner aka Tokenizer
@@ -38,24 +37,30 @@ public class Lexer {
      * @param str Input
      * @return List of Token Objects
      */
-    public List<Token> tokenize(String str) {
+    public List<Token> tokenize(String str) throws Exception {
         Matcher matcher = regex.matcher(str);
         List<Token> tokens = new LinkedList<>();
         String match;
+        int pos = 0;
         outer:
         while (matcher.find()) {
             for (Symbol skipped : skipped) {
                 if (matcher.group(skipped.id) != null) {
+                    pos = matcher.end();
                     continue outer;
                 }
             }
             for (Symbol symbol : symbols) {
                 match = matcher.group(symbol.id);
                 if (match != null) {
+                    pos = matcher.end();
                     tokens.add(symbol.instantiate(match, matcher.start(), matcher.end()));
                     break;
                 }
             }
+        }
+        if (pos < str.length()) {
+            throw new Exception("No suitable Token Definition for Input at " + pos + ": " + str.substring(pos));
         }
         return tokens;
     }

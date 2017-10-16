@@ -32,6 +32,7 @@
     </properties>
 
     <build>
+        <defaultGoal>exec:java</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -39,6 +40,14 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <configuration>
+                    <mainClass>org.unileipzig.jqassistant.plugin.parser.example.ExampleLanguageParser</mainClass>
                 </configuration>
             </plugin>
         </plugins>
