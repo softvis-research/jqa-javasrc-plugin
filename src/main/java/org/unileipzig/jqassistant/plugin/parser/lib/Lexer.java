@@ -14,19 +14,19 @@ import java.util.regex.Pattern;
 public class Lexer {
     private Pattern regex;
     private Collection<Symbol> symbols;
-    private Collection<Symbol> skipped;
+    private Collection<Symbol> skip;
 
     /**
      * Create a Lexer Instance by providing Token Definitions ("Types")
      *
-     * @param types   Descriptions of Tokens that should end up in the list of lexed Tokens
-     * @param skipped Descriptions of Tokens that should NOT end up in the list of lexed Tokens
+     * @param types Descriptions of Tokens that should end up in the list of lexed Tokens
+     * @param skip  Descriptions of Tokens that should NOT end up in the list of lexed Tokens
      */
-    public Lexer(Collection<Symbol> types, Collection<Symbol> skipped) {
+    public Lexer(Collection<Symbol> types, Collection<Symbol> skip) {
         this.symbols = types;
-        this.skipped = skipped;
+        this.skip = skip;
         StringBuilder b = new StringBuilder();
-        for (Symbol symbol : Iterables.concat(skipped, types)) {
+        for (Symbol symbol : Iterables.concat(skip, types)) {
             b.append(String.format("|(?<%s>%s)", symbol.id, symbol.re)); // doesn't work with numbers as IDs (!!)
         }
         this.regex = Pattern.compile(b.substring(1));
@@ -45,8 +45,11 @@ public class Lexer {
         int pos = 0;
         outer:
         while (matcher.find()) {
-            for (Symbol skipped : skipped) {
-                if (matcher.group(skipped.id) != null) {
+            if (matcher.start() > pos) {
+                throw new SyntaxError(str, pos, matcher.start());
+            }
+            for (Symbol symbol : skip) {
+                if (matcher.group(symbol.id) != null) {
                     pos = matcher.end();
                     continue outer;
                 }
@@ -61,7 +64,7 @@ public class Lexer {
             }
         }
         if (pos < str.length()) {
-            throw new Exception("No suitable Token Definition for Input at " + pos + ": '" + str.substring(pos) + "'");
+            throw new SyntaxError(str, pos, str.length());
         }
         return tokens;
     }

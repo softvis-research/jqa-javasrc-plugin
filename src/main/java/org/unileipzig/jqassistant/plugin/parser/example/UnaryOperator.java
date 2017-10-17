@@ -11,6 +11,6 @@ public class UnaryOperator extends Expression {
 
     @Override
     public String toString() {
-        return String.format("{type: %s, operand: %s}", type, operand);
+        return String.format("(%s %s)", type, operand);
     }
 }

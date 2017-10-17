@@ -14,6 +14,8 @@ public class BinaryOperator extends Expression {
 
     @Override
     public String toString() {
-        return String.format("{type: %s, operands: %s}", type, operands);
+        String s = operands.toString();
+        s = s.substring(1, s.length() - 1);
+        return String.format("(%s %s)", type, s);
     }
 }

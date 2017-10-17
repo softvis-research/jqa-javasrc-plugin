@@ -11,7 +11,7 @@ public class ExampleLanguageParser extends Parser {
             // Binary Operators - Mathematical
             binaryLeftAssociative("[+]", 110, (left, right) -> new BinaryOperator(BinaryOperatorType.ADD, left, right));
             binaryLeftAssociative("[-]", 110, (left, right) -> new BinaryOperator(BinaryOperatorType.SUBTRACT, left, right));
-            binaryLeftAssociative("[*]", 120, (left, right) -> new BinaryOperator(BinaryOperatorType.MULTIPY, left, right));
+            binaryLeftAssociative("[\\*]", 120, (left, right) -> new BinaryOperator(BinaryOperatorType.MULTIPLY, left, right));
             binaryLeftAssociative("[/]", 120, (left, right) -> new BinaryOperator(BinaryOperatorType.DIVIDE, left, right));
             binaryLeftAssociative("[%]", 120, (left, right) -> new BinaryOperator(BinaryOperatorType.MODULO, left, right));
             // Binary Operators - Comparison
@@ -25,7 +25,7 @@ public class ExampleLanguageParser extends Parser {
             binaryRightAssociative("[=]", 10, (left, right) -> new BinaryOperator(BinaryOperatorType.ASSIGN, left, right));
             binaryRightAssociative("[+][=]", 10, (left, right) -> new BinaryOperator(BinaryOperatorType.ADDASSIGN, left, right));
             binaryRightAssociative("[-][=]", 10, (left, right) -> new BinaryOperator(BinaryOperatorType.SUBTRACTASSIGN, left, right));
-            binaryRightAssociative("[*][=]", 10, (left, right) -> new BinaryOperator(BinaryOperatorType.MULTIPLYASSIGN, left, right));
+            binaryRightAssociative("[\\*][=]", 10, (left, right) -> new BinaryOperator(BinaryOperatorType.MULTIPLYASSIGN, left, right));
             binaryRightAssociative("[/][=]", 10, (left, right) -> new BinaryOperator(BinaryOperatorType.DIVIDEASSIGN, left, right));
             binaryRightAssociative("[%][=]", 10, (left, right) -> new BinaryOperator(BinaryOperatorType.MODULOASSIGN, left, right));
             // Unary Operators
@@ -45,6 +45,6 @@ public class ExampleLanguageParser extends Parser {
     }
 
     public static void main(final String[] args) throws Exception { // need a main() for debugging
-        System.out.println((new ExampleLanguageParser()).parse("1 + 1 * 1"));
+        System.out.println((new ExampleLanguageParser()).parse("1+invalid1"));
     }
 }
