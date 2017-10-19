@@ -15,7 +15,7 @@ public class LexerTest {
             new Symbol("HEX", "x[0-9]+(\\.[0-9]+)?"),
             new Symbol("FLOAT", "[0-9]+\\.[0-9]+"),
             new Symbol("INTEGER", "[0-9]+")
-        ), (Collections.emptyList()));
+        ));
         List<Token> tokens = l.tokenize("x5.0 0.9 192");
         Assert.assertEquals("HEX", tokens.get(0).symbol.id);
         Assert.assertEquals("x5.0", tokens.get(0).value);
@@ -42,12 +42,10 @@ public class LexerTest {
     @Test
     public void simpleCase2() throws Exception {
         Lexer l = new Lexer(Arrays.asList(
+            new Symbol("WS", "[ \t\r\n\f]", true),
             new Symbol("HEX", "x[0-9]+(\\.[0-9]+)?"),
             new Symbol("FLOAT", "[0-9]+\\.[0-9]+"),
             new Symbol("INTEGER", "[0-9]+")
-        ), Arrays.asList(
-            new Symbol("WS", "[ \t\r\n\f]"),
-            new Symbol("WS2", "[ ]")
         ));
         List<Token> tokens = l.tokenize("x5.0 0.9 192");
         Assert.assertEquals("HEX", tokens.get(0).symbol.id);

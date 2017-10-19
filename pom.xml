@@ -47,7 +47,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <configuration>
-                    <mainClass>org.unileipzig.jqassistant.plugin.parser.example.ExampleLanguageParser</mainClass>
+                    <mainClass>org.unileipzig.jqassistant.plugin.parser.example.ExampleLanguagePrattParser</mainClass>
                 </configuration>
             </plugin>
         </plugins>
