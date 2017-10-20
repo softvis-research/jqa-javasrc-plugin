@@ -1,6 +1,6 @@
-package org.unileipzig.jqassistant.plugin.parser.example;
+package org.unileipzig.jqassistant.plugin.parser.custom.example;
 
-import org.unileipzig.jqassistant.plugin.parser.lib.PrattParser;
+import org.unileipzig.jqassistant.plugin.parser.custom.PrattParser;
 
 public class ExampleLanguagePrattParser extends PrattParser {
     public ExampleLanguagePrattParser() {

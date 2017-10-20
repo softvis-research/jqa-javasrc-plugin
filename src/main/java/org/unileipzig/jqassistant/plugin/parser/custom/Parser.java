@@ -1,4 +1,4 @@
-package org.unileipzig.jqassistant.plugin.parser.lib;
+package org.unileipzig.jqassistant.plugin.parser.custom;
 
 /**
  * Implementation of a Parsing Strategy outlined in [Pratt, 1973]

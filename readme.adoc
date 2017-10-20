@@ -4,7 +4,7 @@ This is a Parser Plugin of https://www.jqassistant.org[jQAssistant^].
 
 (Work in Progress)
 
-== Notes
+== Notes on Custom Parsers
 
 - on Functions/Lambdas as Parameters
     - https://dzone.com/articles/why-theres-interface
@@ -12,3 +12,9 @@ This is a Parser Plugin of https://www.jqassistant.org[jQAssistant^].
 - on Matcher::group(): seams so that int as parameter doesn't work the same as named parameter (String)
     - maybe will need String-Identifier for every Symbol
     - TODO: try more variants to see if that's avoidable
+
+== Notes on ANTLR4
+
+- ANTLR Setup / Maven
+    - https://codevomit.wordpress.com/2015/03/15/antlr4-project-with-maven-tutorial-episode-1/
+    - potentially more Grammars: https://github.com/antlr/grammars-v4

@@ -1,4 +1,4 @@
-package org.unileipzig.jqassistant.plugin.parser.lib;
+package org.unileipzig.jqassistant.plugin.parser.custom;
 
 import java.util.List;
 

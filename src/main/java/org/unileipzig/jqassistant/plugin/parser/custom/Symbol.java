@@ -1,4 +1,4 @@
-package org.unileipzig.jqassistant.plugin.parser.lib;
+package org.unileipzig.jqassistant.plugin.parser.custom;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;

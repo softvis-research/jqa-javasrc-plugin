@@ -1,4 +1,4 @@
-package org.unileipzig.jqassistant.plugin.parser.example;
+package org.unileipzig.jqassistant.plugin.parser.custom.example;
 
 public enum BinaryOperatorType {
     /* Logical */ AND, OR,

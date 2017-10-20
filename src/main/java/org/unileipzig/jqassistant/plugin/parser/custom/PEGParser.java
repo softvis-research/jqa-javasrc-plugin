@@ -1,6 +1,4 @@
-package org.unileipzig.jqassistant.plugin.parser.lib;
-
-import java.util.*;
+package org.unileipzig.jqassistant.plugin.parser.custom;
 
 /**
  * Implementation of the PEG/PackRat Parsing Strategy
