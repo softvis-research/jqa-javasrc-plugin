@@ -6,7 +6,11 @@ import com.buschmais.xo.neo4j.api.annotation.Relation;
 import java.util.List;
 
 @Label("Method")
-public interface MethodDescriptor extends PropertyDescriptor {
+public interface MethodDescriptor extends DeclarationDescriptor {
+    boolean getIsWritable();
+    boolean setIsWritable(boolean b);
+    boolean getIsStatic();
+    boolean setIsStatic(boolean b);
     boolean getIsAbstract();
     boolean setIsAbstract(boolean b);
 

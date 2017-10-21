@@ -7,14 +7,25 @@ import java.util.List;
 
 
 @Label("Attribute")
-public interface AttributeDescriptor extends PropertyDescriptor {
+public interface AttributeDescriptor extends DeclarationDescriptor {
+    boolean getIsWritable();
+    boolean setIsWritable(boolean b);
+
+    boolean getIsStatic();
+    boolean setIsStatic(boolean b);
+
     boolean getIsNullable();
     boolean setIsNullable(boolean b);
 
     Class getType();
     void setType(Class c);
 
+    /**
+     * Template-Parameters
+     * e.g. List<Object>
+     * e.g. Map<String,String>
+     */
     @Relation.Outgoing
-    List<ClassDescriptor> getParameters();
-    void setParameters(List<ClassDescriptor> l);
+    List<ClassDescriptor> getTypeParameters();
+    void settTypeParameters(List<ClassDescriptor> l);
 }

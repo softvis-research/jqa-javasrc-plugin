@@ -15,7 +15,10 @@ public interface ClassDescriptor extends DeclarationDescriptor {
     void setSuperClasses(List<ClassDescriptor> l);
 
     @Relation.Outgoing
-    List<PropertyDescriptor> getProperties();
-    void getProperties(List<PropertyDescriptor> l);
+    List<MethodDescriptor> getMethods();
+    void getMethods(List<MethodDescriptor> l);
 
+    @Relation.Outgoing
+    List<AttributeDescriptor> getAttributes();
+    void getAttributes(List<AttributeDescriptor> l);
 }
