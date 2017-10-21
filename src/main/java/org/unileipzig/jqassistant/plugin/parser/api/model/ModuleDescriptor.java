@@ -7,7 +7,11 @@ import com.buschmais.xo.neo4j.api.annotation.Relation;
 import java.util.List;
 
 @Label("SourceFile")
-public interface SourceFileDescriptor extends FileDescriptor {
+public interface ModuleDescriptor extends FileDescriptor {
+    @Relation.Outgoing
+    List<ImportDescriptor> getImports();
+    void getImports(List<ImportDescriptor> l);
+
     @Relation.Outgoing
     List<StatementDescriptor> getStatements();
     void getStatements(List<StatementDescriptor> l);

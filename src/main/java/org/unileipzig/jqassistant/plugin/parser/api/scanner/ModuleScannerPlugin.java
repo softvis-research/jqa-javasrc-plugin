@@ -6,12 +6,14 @@ import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.unileipzig.jqassistant.plugin.parser.api.model.StatementDescriptor;
-import org.unileipzig.jqassistant.plugin.parser.api.model.SourceFileDescriptor;
+import org.unileipzig.jqassistant.plugin.parser.api.model.ModuleDescriptor;
 
+import javax.xml.transform.stream.StreamSource;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 
 /**
  * Abstract base class for Source Code File scanners
@@ -19,11 +21,7 @@ import java.io.IOException;
  * @param <D> The descriptor type.
  */
 @Requires(FileDescriptor.class)
-public abstract class SourceFileScannerPlugin<D extends SourceFileDescriptor> extends
-    AbstractScannerPlugin<FileResource, D> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(StatementDescriptor.class);
-
+public abstract class ModuleScannerPlugin<D extends ModuleDescriptor> extends AbstractScannerPlugin<FileResource, D> {
     @Override
     public Class<? extends FileResource> getType() {
         return FileResource.class;
@@ -31,17 +29,19 @@ public abstract class SourceFileScannerPlugin<D extends SourceFileDescriptor> ex
 
     @Override
     public Class<D> getDescriptorType() {
-        return getTypeParameter(SourceFileScannerPlugin.class, 0);
+        return getTypeParameter(ModuleScannerPlugin.class, 0);
     }
 
     @Override
     public D scan(FileResource item, String path, Scope scope, Scanner scanner) throws IOException {
         FileDescriptor fileDescriptor = scanner.getContext().getCurrentDescriptor();
         Class<D> descriptorType = getDescriptorType();
-        D sourceFileDescriptor = scanner.getContext().getStore().addDescriptorType(fileDescriptor, descriptorType);
-        System.out.println("SCAN: " + sourceFileDescriptor);
-        return sourceFileDescriptor;
+        D descriptor = scanner.getContext().getStore().addDescriptorType(fileDescriptor, descriptorType);
+        scanner.getContext().push(ModuleDescriptor.class, descriptor); // ?
+        scanner.scan(new String(Files.readAllBytes(new File(path).toPath()), Charset.forName("UTF-8")), path, scope);
+        scanner.getContext().pop(ModuleDescriptor.class); // ?
+        return descriptor;
     }
 
-    public abstract D scan(FileResource item, D descriptor, String path, Scope scope, Scanner scanner) throws IOException;
+    public abstract D scan(String input, D descriptor, Scope scope, Scanner scanner) throws IOException;
 }

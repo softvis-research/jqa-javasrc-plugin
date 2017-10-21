@@ -4,7 +4,7 @@ import com.buschmais.jqassistant.core.scanner.api.DefaultScope;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
 import com.buschmais.jqassistant.plugin.common.test.scanner.MapBuilder;
-import org.unileipzig.jqassistant.plugin.parser.impl.scanner.JavaFileScannerPlugin;
+import org.unileipzig.jqassistant.plugin.parser.impl.scanner.JavaModuleScannerPlugin;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -25,7 +25,7 @@ public class SourceFileScannerTest {
     @Mock
     private FileResource fileResource;
 
-    private JavaFileScannerPlugin scannerPlugin = new JavaFileScannerPlugin();
+    private JavaModuleScannerPlugin scannerPlugin = new JavaModuleScannerPlugin();
 
     @Test
     public void includeFilePattern() throws IOException {
@@ -42,8 +42,8 @@ public class SourceFileScannerTest {
     }
 
     private void configure(String includes, String excludes) {
-        Map<String, Object> properties = MapBuilder.<String, Object>create(JavaFileScannerPlugin.PROPERTY_INCLUDE, includes)
-            .put(JavaFileScannerPlugin.PROPERTY_EXCLUDE, excludes).get();
+        Map<String, Object> properties = MapBuilder.<String, Object>create(JavaModuleScannerPlugin.PROPERTY_INCLUDE, includes)
+            .put(JavaModuleScannerPlugin.PROPERTY_EXCLUDE, excludes).get();
         scannerPlugin.configure(context, properties);
     }
 }

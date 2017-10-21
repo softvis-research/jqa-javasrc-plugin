@@ -4,7 +4,7 @@ import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
 import com.buschmais.jqassistant.plugin.common.test.scanner.MapBuilder;
 import org.junit.Test;
-import org.unileipzig.jqassistant.plugin.parser.api.model.SourceFileDescriptor;
+import org.unileipzig.jqassistant.plugin.parser.api.model.ModuleDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
 
 import java.io.File;
@@ -21,9 +21,9 @@ public class SourceFileScannerIT extends AbstractPluginIT {
     @Test
     public void validOutput() throws IOException {
         File f = new File(getClassesDirectory(SourceFileScannerIT.class), "/HelloWorld.java");
-        System.out.println(f.getAbsolutePath());
+        //System.out.println(f.getAbsolutePath());
         store.beginTransaction();
-        SourceFileDescriptor descriptor = getJavaFileScanner().scan(f, f.getAbsolutePath(), JavaScope.CLASSPATH);
+        ModuleDescriptor descriptor = getJavaFileScanner().scan(f, f.getAbsolutePath(), JavaScope.CLASSPATH);
         //verifyDocument(descriptor);
         store.commitTransaction();
     }

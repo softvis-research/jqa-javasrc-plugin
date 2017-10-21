@@ -7,6 +7,8 @@ import java.util.List;
 
 @Label("Class")
 public interface ClassDescriptor extends DeclarationDescriptor {
+    boolean getIsInterface();
+    boolean setIsInterface(boolean b);
     boolean getIsAbstract();
     boolean setIsAbstract(boolean b);
 

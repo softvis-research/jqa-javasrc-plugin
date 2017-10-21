@@ -20,4 +20,14 @@ public interface MethodDescriptor extends DeclarationDescriptor {
     @Relation.Outgoing
     List<ClassDescriptor> getParameters();
     void setParameters(List<ClassDescriptor> l);
+
+    /*
+     * Statements in the "Body" part of the Class
+     * For Abstract Methods, this List must be empty.
+     * (TODO for later)
+     */
+    /*@Relation.Outgoing
+    List<StatementDescriptor> getStatements();
+    void setStatements(List<StatementDescriptor> l);*/
+
 }

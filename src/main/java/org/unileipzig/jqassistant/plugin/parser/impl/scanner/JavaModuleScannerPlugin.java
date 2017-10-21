@@ -6,13 +6,13 @@ import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FilePatternMatcher;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
-import org.unileipzig.jqassistant.plugin.parser.api.model.SourceFileDescriptor;
-import org.unileipzig.jqassistant.plugin.parser.api.scanner.SourceFileScannerPlugin;
+import org.unileipzig.jqassistant.plugin.parser.api.model.ModuleDescriptor;
+import org.unileipzig.jqassistant.plugin.parser.api.scanner.ModuleScannerPlugin;
 
 import java.io.IOException;
 
 @Requires(FileDescriptor.class)
-public class JavaFileScannerPlugin extends SourceFileScannerPlugin<SourceFileDescriptor> {
+public class JavaModuleScannerPlugin extends ModuleScannerPlugin<ModuleDescriptor> {
 
     public static final String PROPERTY_INCLUDE = "java.file.include";
     public static final String PROPERTY_EXCLUDE = "java.file.exclude";
@@ -31,7 +31,7 @@ public class JavaFileScannerPlugin extends SourceFileScannerPlugin<SourceFileDes
     }
 
     @Override
-    public SourceFileDescriptor scan(FileResource item, SourceFileDescriptor descriptor, String path, Scope scope, Scanner scanner) throws IOException {
+    public ModuleDescriptor scan(String input, ModuleDescriptor descriptor, Scope scope, Scanner scanner) throws IOException {
         return descriptor;
     }
 }

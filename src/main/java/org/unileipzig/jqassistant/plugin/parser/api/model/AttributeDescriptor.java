@@ -27,5 +27,5 @@ public interface AttributeDescriptor extends DeclarationDescriptor {
      */
     @Relation.Outgoing
     List<ClassDescriptor> getTypeParameters();
-    void settTypeParameters(List<ClassDescriptor> l);
+    void setTypeParameters(List<ClassDescriptor> l);
 }
