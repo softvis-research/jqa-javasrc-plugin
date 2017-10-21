@@ -1,0 +1,147 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
+
+<rdf:RDF xmlns="http://se-on.org/ontologies/system-specific/2012/02/java.owl#"
+     xml:base="http://se-on.org/ontologies/system-specific/2012/02/java.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="http://se-on.org/ontologies/system-specific/2012/02/java.owl">
+        <rdfs:comment>This ontology is part of SEON. It represents Java code.</rdfs:comment>
+        <owl:imports rdf:resource="http://se-on.org/ontologies/domain-specific/2012/02/code.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Datatypes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://se-on.org/ontologies/system-specific/2012/02/java.owl#hasJavaDoc -->
+
+    <owl:DatatypeProperty rdf:about="http://se-on.org/ontologies/system-specific/2012/02/java.owl#hasJavaDoc">
+        <rdfs:comment>Java knows a special syntax for adding comments to classes, methods, fields, etc.</rdfs:comment>
+        <rdfs:range rdf:resource="&xsd;string"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://se-on.org/ontologies/domain-specific/2012/02/code.owl#ComplexType"/>
+                    <rdf:Description rdf:about="http://se-on.org/ontologies/domain-specific/2012/02/code.owl#Constructor"/>
+                    <rdf:Description rdf:about="http://se-on.org/ontologies/domain-specific/2012/02/code.owl#Field"/>
+                    <rdf:Description rdf:about="http://se-on.org/ontologies/domain-specific/2012/02/code.owl#Method"/>
+                    <rdf:Description rdf:about="http://se-on.org/ontologies/system-specific/2012/02/java.owl#JavaPackage"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://se-on.org/ontologies/system-specific/2012/02/java.owl#JavaPackage -->
+
+    <owl:Class rdf:about="http://se-on.org/ontologies/system-specific/2012/02/java.owl#JavaPackage">
+        <rdfs:subClassOf rdf:resource="http://se-on.org/ontologies/domain-specific/2012/02/code.owl#Namespace"/>
+        <rdfs:comment>Packages are usually defined using a hierarchical naming pattern, with levels in the hierarchy separated by periods (.) (pronounced &quot;dot&quot;). Although packages lower in the naming hierarchy are often referred to as &quot;subpackages&quot; of the corresponding packages higher in the hierarchy, there is no semantic relationship between packages. Therefore, we cannot make statements, like &quot;Package a contains Package a.b.&quot;</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://se-on.org/ontologies/system-specific/2012/02/java.owl#default -->
+
+    <owl:NamedIndividual rdf:about="http://se-on.org/ontologies/system-specific/2012/02/java.owl#default">
+        <rdf:type rdf:resource="http://se-on.org/ontologies/domain-specific/2012/02/code.owl#AccessModifier"/>
+        <rdfs:label>default</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://se-on.org/ontologies/system-specific/2012/02/java.owl#private -->
+
+    <owl:NamedIndividual rdf:about="http://se-on.org/ontologies/system-specific/2012/02/java.owl#private">
+        <rdf:type rdf:resource="http://se-on.org/ontologies/domain-specific/2012/02/code.owl#AccessModifier"/>
+        <rdfs:label>private</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://se-on.org/ontologies/system-specific/2012/02/java.owl#protected -->
+
+    <owl:NamedIndividual rdf:about="http://se-on.org/ontologies/system-specific/2012/02/java.owl#protected">
+        <rdf:type rdf:resource="http://se-on.org/ontologies/domain-specific/2012/02/code.owl#AccessModifier"/>
+        <rdfs:label>protected</rdfs:label>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://se-on.org/ontologies/system-specific/2012/02/java.owl#public -->
+
+    <owl:NamedIndividual rdf:about="http://se-on.org/ontologies/system-specific/2012/02/java.owl#public">
+        <rdf:type rdf:resource="http://se-on.org/ontologies/domain-specific/2012/02/code.owl#AccessModifier"/>
+        <rdfs:label>public</rdfs:label>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.2.5.1912) http://owlapi.sourceforge.net -->
+

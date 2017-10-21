@@ -6,16 +6,16 @@ import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FilePatternMatcher;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
-import org.unileipzig.jqassistant.plugin.parser.api.model.SourceCodeDescriptor;
-import org.unileipzig.jqassistant.plugin.parser.api.scanner.AbstractSourceCodeScannerPlugin;
+import org.unileipzig.jqassistant.plugin.parser.api.model.SourceFileDescriptor;
+import org.unileipzig.jqassistant.plugin.parser.api.scanner.SourceFileScannerPlugin;
 
 import java.io.IOException;
 
 @Requires(FileDescriptor.class)
-public class SourceCodeScannerPlugin extends AbstractSourceCodeScannerPlugin<SourceCodeDescriptor> {
+public class JavaFileScannerPlugin extends SourceFileScannerPlugin<SourceFileDescriptor> {
 
-    public static final String PROPERTY_INCLUDE = "xml.file.include";
-    public static final String PROPERTY_EXCLUDE = "xml.file.exclude";
+    public static final String PROPERTY_INCLUDE = "java.file.include";
+    public static final String PROPERTY_EXCLUDE = "java.file.exclude";
 
     private FilePatternMatcher filePatternMatcher;
 
@@ -31,8 +31,7 @@ public class SourceCodeScannerPlugin extends AbstractSourceCodeScannerPlugin<Sou
     }
 
     @Override
-    public SourceCodeDescriptor scan(FileResource item, SourceCodeDescriptor descriptor, String path, Scope scope, Scanner scanner) throws IOException {
+    public SourceFileDescriptor scan(FileResource item, SourceFileDescriptor descriptor, String path, Scope scope, Scanner scanner) throws IOException {
         return descriptor;
     }
-
 }

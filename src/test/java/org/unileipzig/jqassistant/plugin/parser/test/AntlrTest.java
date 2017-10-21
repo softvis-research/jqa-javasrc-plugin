@@ -18,6 +18,6 @@ public class AntlrTest {
         TokenStream inputTokenStream = new CommonTokenStream(tokenSource);
         Java8Parser parser = new Java8Parser(inputTokenStream);
         Java8Parser.CompilationUnitContext c = parser.compilationUnit();
-        System.out.println(c);
+        //System.out.println(c);
     }
 }

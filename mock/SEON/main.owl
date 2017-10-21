@@ -1,0 +1,429 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
+
+<rdf:RDF xmlns="http://se-on.org/ontologies/general/2012/2/main.owl#"
+     xml:base="http://se-on.org/ontologies/general/2012/2/main.owl"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <owl:Ontology rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl">
+        <rdfs:comment>This ontology is part of SEON. It defines generic concepts.</rdfs:comment>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Datatypes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#belongsToRelease -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#belongsToRelease">
+        <rdfs:comment>One or several milestones can lie in between two releases. A milestone is usually associated with an upcoming release.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/domain-spanning/2012/02/main.owl#Milestone"/>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/02/main.owl#Release"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#carriesOutActivity -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#carriesOutActivity">
+        <rdfs:comment>A stakeholder carries out an activity.</rdfs:comment>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Activity"/>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Stakeholder"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#containsFile -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#containsFile">
+        <rdfs:comment>A directory can contain other directories and/or files.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Directory"/>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#File"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#hasMilestone -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#hasMilestone">
+        <rdfs:comment>One or several milestones can lie in between two releases. A milestone is usually associated with an upcoming release.</rdfs:comment>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/domain-spanning/2012/02/main.owl#Milestone"/>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/02/main.owl#Release"/>
+        <owl:inverseOf rdf:resource="http://se-on.org/ontologies/general/2012/02/main.owl#belongsToRelease"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#hasRelease -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#hasRelease">
+        <rdfs:comment>Products can have one or several releases (or none at all).</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/02/main.owl#Product"/>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/02/main.owl#Release"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#hasSibling -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#hasSibling">
+        <rdf:type rdf:resource="&owl;SymmetricProperty"/>
+        <rdfs:comment>This property denotes that two entities are at the same hierarchical level.</rdfs:comment>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#isBasedOn -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#isBasedOn">
+        <rdfs:comment>This property denotes that one artifact was derived from another.</rdfs:comment>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Artifact"/>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Artifact"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#isCarriedOutBy -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#isCarriedOutBy">
+        <rdfs:comment>Activities are carried out by stakeholders.</rdfs:comment>
+        <owl:inverseOf rdf:resource="http://se-on.org/ontologies/general/2012/02/main.owl#carriesOutActivity"/>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Activity"/>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Stakeholder"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#isReleaseOf -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#isReleaseOf">
+        <rdfs:comment>Products can have one or several releases (or none at all).</rdfs:comment>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/02/main.owl#Product"/>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/02/main.owl#Release"/>
+        <owl:inverseOf rdf:resource="http://se-on.org/ontologies/general/2012/02/main.owl#hasRelease"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#isSimilar -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#isSimilar">
+        <rdf:type rdf:resource="&owl;SymmetricProperty"/>
+        <rdfs:comment>Two artifacts can have similar attributes.</rdfs:comment>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/2/main.owl#dependsOn -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/2/main.owl#dependsOn">
+        <rdfs:comment>Two artifacts, activities, etc. can depend on each other.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/2/main.owl#hasAuthor -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/2/main.owl#hasAuthor">
+        <rdfs:comment>An artifact has an author, unless it is generated by some application automatically.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Artifact"/>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Stakeholder"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/2/main.owl#hasChild -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/2/main.owl#hasChild">
+        <rdfs:comment>This property denotes one direction of a parent-child relationship between things.</rdfs:comment>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/2/main.owl#hasParent -->
+
+    <owl:ObjectProperty rdf:about="http://se-on.org/ontologies/general/2012/2/main.owl#hasParent">
+        <rdfs:comment>This property denotes a parent-child relationship between things.</rdfs:comment>
+        <rdfs:range rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+        <owl:inverseOf rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#hasChild"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#activityEnd -->
+
+    <owl:DatatypeProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#activityEnd">
+        <rdfs:comment>The date at which a long-running activity ends.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Activity"/>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#activityStart -->
+
+    <owl:DatatypeProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#activityStart">
+        <rdfs:comment>The date when an activity starts.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Activity"/>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#hasDescription -->
+
+    <owl:DatatypeProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#hasDescription">
+        <rdfs:comment>A brief description of an entity.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#hasEmail -->
+
+    <owl:DatatypeProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#hasEmail">
+        <rdfs:comment>An email adress.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Stakeholder"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#hasIdentifier -->
+
+    <owl:DatatypeProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#hasIdentifier">
+        <rdfs:comment>Identifiers uniquely identify an entity in its domain of discourse.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#hasName -->
+
+    <owl:DatatypeProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#hasName">
+        <rdfs:comment>Many things are attributed a name, which does not need to be unique.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Stakeholder"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#hasPath -->
+
+    <owl:DatatypeProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#hasPath">
+        <rdfs:comment>A path to retrieve an artifact. Does not necessarily denote an URI, but can also be context-specific.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Artifact"/>
+        <rdfs:range rdf:resource="&xsd;string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#hasReleaseDate -->
+
+    <owl:DatatypeProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#hasReleaseDate">
+        <rdfs:comment>Actual date on which a software system has been released (as opposed to the originally planned targed date, which might differ).</rdfs:comment>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#hasTargetDate -->
+
+    <owl:DatatypeProperty rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#hasTargetDate">
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://se-on.org/ontologies/domain-spanning/2012/02/main.owl#Milestone"/>
+                    <rdf:Description rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#Release"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/2/main.owl#hasCreationDate -->
+
+    <owl:DatatypeProperty rdf:about="http://se-on.org/ontologies/general/2012/2/main.owl#hasCreationDate">
+        <rdfs:comment>The date on which an artifact has been created.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Artifact"/>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/2/main.owl#hasModificationDate -->
+
+    <owl:DatatypeProperty rdf:about="http://se-on.org/ontologies/general/2012/2/main.owl#hasModificationDate">
+        <rdfs:comment>The data of modification of an entity.</rdfs:comment>
+        <rdfs:domain rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Artifact"/>
+        <rdfs:range rdf:resource="&xsd;dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://se-on.org/ontologies/domain-spanning/2012/02/main.owl#Milestone -->
+
+    <owl:Class rdf:about="http://se-on.org/ontologies/domain-spanning/2012/02/main.owl#Milestone">
+        <rdfs:subClassOf rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+        <rdfs:comment>One or several milestones can lie in between two releases. A milestone is usually associated with an upcoming release.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#Developer -->
+
+    <owl:Class rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#Developer">
+        <rdfs:subClassOf rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Stakeholder"/>
+        <rdfs:comment>A stakeholder that develops program code.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#Product -->
+
+    <owl:Class rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#Product">
+        <rdfs:subClassOf rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+        <rdfs:comment>A product is a thing produced by labor or effort. In SEON it describes software systems or components.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/02/main.owl#Release -->
+
+    <owl:Class rdf:about="http://se-on.org/ontologies/general/2012/02/main.owl#Release">
+        <rdfs:subClassOf rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+        <rdfs:comment>A public or interal release of a software system, which denotes a consistent snapshot of a system at a given time. It is often made available to the public somehow.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/2/main.owl#Activity -->
+
+    <owl:Class rdf:about="http://se-on.org/ontologies/general/2012/2/main.owl#Activity">
+        <rdfs:subClassOf rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+        <rdfs:comment>An activity is an action carried out by a stakeholder.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/2/main.owl#Artifact -->
+
+    <owl:Class rdf:about="http://se-on.org/ontologies/general/2012/2/main.owl#Artifact">
+        <rdfs:subClassOf rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+        <rdfs:comment>Common superclass for things produced by stakeholders and tools.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/2/main.owl#Directory -->
+
+    <owl:Class rdf:about="http://se-on.org/ontologies/general/2012/2/main.owl#Directory">
+        <rdfs:subClassOf rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#File"/>
+        <rdfs:comment>A directory on a file system.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/2/main.owl#File -->
+
+    <owl:Class rdf:about="http://se-on.org/ontologies/general/2012/2/main.owl#File">
+        <rdfs:subClassOf rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#Artifact"/>
+        <rdfs:comment>A file on a filesystem.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing -->
+
+    <owl:Class rdf:about="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing">
+        <rdfs:comment>Common superclass for concepts in SEON.</rdfs:comment>
+    </owl:Class>
+    
+
+
+    <!-- http://se-on.org/ontologies/general/2012/2/main.owl#Stakeholder -->
+
+    <owl:Class rdf:about="http://se-on.org/ontologies/general/2012/2/main.owl#Stakeholder">
+        <rdfs:subClassOf rdf:resource="http://se-on.org/ontologies/general/2012/2/main.owl#SeonThing"/>
+        <rdfs:comment>A person involved in the software engineering process</rdfs:comment>
+    </owl:Class>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.3.1957) http://owlapi.sourceforge.net -->
+
