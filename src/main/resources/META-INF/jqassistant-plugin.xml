@@ -3,6 +3,12 @@
     <description>Provides scanners for Source Code (currently Java).</description>
     <model>
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.ModuleDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.StatementDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ImportDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.DeclarationDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ClassDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.AttributeDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.MethodDescriptor</class>
     </model>
     <scanner>
         <class>org.unileipzig.jqassistant.plugin.parser.impl.scanner.JavaModuleScannerPlugin</class>
