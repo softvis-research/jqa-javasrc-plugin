@@ -9,8 +9,20 @@
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.ClassDescriptor</class>
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.AttributeDescriptor</class>
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.MethodDescriptor</class>
+        <!-- added by DM -->
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.JavaDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.SourceDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceDirectoryDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor</class>
     </model>
     <scanner>
+        <!--
         <class>org.unileipzig.jqassistant.plugin.parser.impl.scanner.JavaModuleScannerPlugin</class>
+        -->
+        <!-- added by DM -->
+        <class>org.unileipzig.jqassistant.plugin.parser.impl.scanner.JavaSourceDirectoryScannerPlugin</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.impl.scanner.JavaSourceFileScannerPlugin</class>
     </scanner>
 </jqa-plugin:jqassistant-plugin>
