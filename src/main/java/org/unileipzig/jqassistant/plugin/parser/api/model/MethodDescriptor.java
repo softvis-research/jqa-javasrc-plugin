@@ -6,7 +6,7 @@ import com.buschmais.xo.neo4j.api.annotation.Relation;
 import java.util.List;
 
 @Label("Method")
-public interface MethodDescriptor extends DeclarationDescriptor {
+public interface MethodDescriptor {
     boolean getIsWritable();
     boolean setIsWritable(boolean b);
     boolean getIsStatic();
@@ -17,9 +17,9 @@ public interface MethodDescriptor extends DeclarationDescriptor {
     Class getReturnType();
     void setReturnType(Class c);
 
-    @Relation.Outgoing
+    /*@Relation.Outgoing
     List<ClassDescriptor> getParameters();
-    void setParameters(List<ClassDescriptor> l);
+    void setParameters(List<ClassDescriptor> l);*/
 
     /*
      * Statements in the "Body" part of the Class
