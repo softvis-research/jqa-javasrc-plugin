@@ -2,25 +2,42 @@
                                name="XML">
     <description>Provides scanners for Source Code (currently Java).</description>
     <model>
-        <!--<class>org.unileipzig.jqassistant.plugin.parser.api.model.ModuleDescriptor</class>
-        <class>org.unileipzig.jqassistant.plugin.parser.api.model.StatementDescriptor</class>
-        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ImportDescriptor</class>
-        <class>org.unileipzig.jqassistant.plugin.parser.api.model.DeclarationDescriptor</class>
-        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ClassDescriptor</class>
-        <class>org.unileipzig.jqassistant.plugin.parser.api.model.AttributeDescriptor</class>
-        <class>org.unileipzig.jqassistant.plugin.parser.api.model.MethodDescriptor</class>-->
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.PackageDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.TypeDependsOnDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.InterfaceTypeDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.EnumTypeDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.AnnotationTypeDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.FieldDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.MethodDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.InvokesDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ReadsDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.WritesDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ConstructorDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ParameterDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ClassValueDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.AnnotationValueDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.PrimitiveValueDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.EnumValueDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.PropertyFileDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ManifestFileDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ManifestSectionDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ManifestEntryDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ServiceLoaderDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.JarArchiveDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.JavaClassesDirectoryDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.VariableDescriptor</class>
+        <!--<class>org.unileipzig.jqassistant.plugin.parser.api.model.XmlPropertyFileDescriptor</class>-->
         <!-- added by DM -->
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.JavaDescriptor</class>
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.SourceDescriptor</class>
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceDirectoryDescriptor</class>
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor</class>
-        <class>org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor</class>
-        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor</class>
+        <!--<class>org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor</class>
+        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor</class>-->
     </model>
     <scanner>
-        <!--
-        <class>org.unileipzig.jqassistant.plugin.parser.impl.scanner.JavaModuleScannerPlugin</class>
-        -->
         <!-- added by DM -->
         <class>org.unileipzig.jqassistant.plugin.parser.impl.scanner.JavaSourceDirectoryScannerPlugin</class>
         <class>org.unileipzig.jqassistant.plugin.parser.impl.scanner.JavaSourceFileScannerPlugin</class>

@@ -35,13 +35,13 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         ScannerContext context = scanner.getContext();
         FileDescriptor fileDescriptor = context.getCurrentDescriptor();
         JavaSourceFileDescriptor javaSourceFileDescriptor = context.getStore().addDescriptorType(fileDescriptor, JavaSourceFileDescriptor.class);
-
         // parse files and determine concrete types (i.e. class, interface, annotation
         // or
         // enum)
         TypeResolver typeResolver = context.peek(TypeResolver.class);
         try (InputStream in = item.createStream()) {
             CompilationUnit cu = JavaParser.parse(in);
+            System.out.println("CU: " + cu);
             Optional<PackageDeclaration> packageDeclaration = cu.getPackageDeclaration();
             String packageName = packageDeclaration.isPresent() ? packageDeclaration.get().getNameAsString() : "";
             for (TypeDeclaration<?> typeDeclaration : cu.getTypes()) {
