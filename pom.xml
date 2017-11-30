@@ -127,11 +127,10 @@
             <version>23.0</version>
         </dependency>
         <dependency>
-            <groupId>com.github.javaparser</groupId>
-            <artifactId>javaparser-core</artifactId>
-            <version>3.5.4</version>
-        </dependency>
-        <dependency>
+            <!-- From the book "JavaParser: Visited" (p. 40):
+                "If you add the JavaSymbolSolver it will automatically add a dependency the correct version of
+                 JavaParser, without the need for you to figure out that JavaSymbolSolver 0.5.1 depends
+                 on JavaParser 3.1.1."-->
             <groupId>com.github.javaparser</groupId>
             <artifactId>java-symbol-solver-core</artifactId>
             <version>0.6.2</version>

@@ -1,11 +1,19 @@
 package org.unileipzig.jqassistant.plugin.parser.impl.scanner;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
+import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor;
+import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.TypeResolver;
 
@@ -35,23 +43,30 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         ScannerContext context = scanner.getContext();
         FileDescriptor fileDescriptor = context.getCurrentDescriptor();
         JavaSourceFileDescriptor javaSourceFileDescriptor = context.getStore().addDescriptorType(fileDescriptor, JavaSourceFileDescriptor.class);
-        // parse files and determine concrete types (i.e. class, interface, annotation
-        // or
-        // enum)
-        TypeResolver typeResolver = context.peek(TypeResolver.class);
+        // parse files and determine concrete types (i.e. class, interface, annotation or enum)
+        TypeResolver typeResolver = context.peek(TypeResolver.class); // JQA (probably redundant)
+        TypeSolver typeSolver = new CombinedTypeSolver( // JavaSymbolResolver
+            new JavaParserTypeSolver(new File("/")), // resolves types in the same path (FIXME: configure path)
+            new ReflectionTypeSolver() // resolves builtin types, e.g. java.lang.Object
+        );
+        JavaParser.setStaticConfiguration(new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver(typeSolver)));
         try (InputStream in = item.createStream()) {
             CompilationUnit cu = JavaParser.parse(in);
             System.out.println("CU: " + cu);
             Optional<PackageDeclaration> packageDeclaration = cu.getPackageDeclaration();
             String packageName = packageDeclaration.isPresent() ? packageDeclaration.get().getNameAsString() : "";
             for (TypeDeclaration<?> typeDeclaration : cu.getTypes()) {
-                String fqn = packageName + typeDeclaration.getNameAsString();
-                ClassTypeDescriptor typeDescriptor = typeResolver.createType(fqn, javaSourceFileDescriptor, ClassTypeDescriptor.class, context);
+                ClassTypeDescriptor typeDescriptor = typeResolver.createType(packageName + typeDeclaration.getNameAsString(), javaSourceFileDescriptor, ClassTypeDescriptor.class, context);
                 if (typeDeclaration.isClassOrInterfaceDeclaration()) {
                     for (ClassOrInterfaceType superClassType : typeDeclaration.asClassOrInterfaceDeclaration().getExtendedTypes()) {
-                        // TypeDescriptor superClassDescriptor =
-                        // typeResolver.resolveType("com.acme.MySuperClass", context);
-                        // typeDescriptor.setExtends(superClassDescriptor);
+                        try {
+                            System.out.println(superClassType.resolve());
+                        } catch (Exception e) { // FIXME: where to import UnsolvedSymbolException from?
+                            System.out.println(e);
+                        }
+                        //String fqn = superClassType.();
+                        //TypeDescriptor superClassDescriptor = typeResolver.resolveType("com.acme.MySuperClass", context);
+                        //typeDescriptor.setExtends(superClassDescriptor);
                     }
                 }
 
