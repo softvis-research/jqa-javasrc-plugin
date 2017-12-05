@@ -77,11 +77,12 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                     // get superclasses / implemented interfaces
                     for (ClassOrInterfaceType superClassType : typeDeclaration.asClassOrInterfaceDeclaration().getExtendedTypes()) {
                         try {
-                            System.out.println(superClassType.resolve());
+                            System.out.println("Superclass: " + superClassType.resolve());
                         } catch (UnsolvedSymbolException e) {
                             System.out.println("correctly catching " + e);
                         } catch (RuntimeException e) {
                             System.out.println("should've been catching UnsolvedSymbolException " + e);
+                            System.out.println("could not resolve " + superClassType.getName());
                         }
                         //String fqn = superClassType.();
                         //TypeDescriptor superClassDescriptor = typeResolver.resolveType("com.acme.MySuperClass", context);

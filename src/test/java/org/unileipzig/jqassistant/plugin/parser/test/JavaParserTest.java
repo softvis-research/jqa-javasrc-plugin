@@ -15,7 +15,7 @@ public class JavaParserTest {
     @Test
     public void parseHelloWorld() throws IOException {
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-        CompilationUnit root = JavaParser.parse(classloader.getResourceAsStream("HelloWorld.java"));
+        CompilationUnit root = JavaParser.parse(classloader.getResourceAsStream("samples/HelloWorld.java"));
         for (ImportDeclaration iD : root.getImports()) {
             System.out.println("ImportDeclaration: " + iD);
         }

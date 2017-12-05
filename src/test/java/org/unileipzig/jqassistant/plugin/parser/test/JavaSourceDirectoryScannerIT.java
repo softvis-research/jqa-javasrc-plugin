@@ -12,7 +12,7 @@ public class JavaSourceDirectoryScannerIT extends com.buschmais.jqassistant.plug
 
     @Test
     public void scanTestJava() {
-        File srcTestJava = new File("src/test/java");
+        File srcTestJava = new File("src/test/java/samples");
         store.beginTransaction();
         JavaSourceDirectoryDescriptor sourceDirectoryDescriptor = getScanner().scan(srcTestJava, "src/test/java", JavaScope.CLASSPATH);
         store.commitTransaction();
