@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class JavaParserTest {
+    Object exampleField;
     @Test
     public void parseHelloWorld() throws IOException {
         ClassLoader classloader = Thread.currentThread().getContextClassLoader();
