@@ -19,14 +19,9 @@ import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
@@ -46,22 +41,15 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         Store store = context.getStore();
         JavaSourceFileDescriptor javaSourceFileDescriptor = store.addDescriptorType(fileDescriptor, JavaSourceFileDescriptor.class);
         // parse files and determine concrete types (i.e. class, interface, annotation or enum)
-        TypeSolver typeSolver = new CombinedTypeSolver( // JavaSymbolResolver
-            new JavaParserTypeSolver(new File("src/test/java/samples")), // resolves types in the same path (FIXME: configure path)
-            new JavaParserTypeSolver(new File("src/test/java")),
-            //new JavaParserTypeSolver(new File("src/test")),
-            //new JavaParserTypeSolver(new File("src")),
-            new ReflectionTypeSolver() // resolves builtin types, e.g. java.lang.Object
-        );
-        System.out.println("JavaParserTypeSolver should be looking inside " + (new File("src")).getAbsolutePath());
-        JavaParser.setStaticConfiguration(new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver(typeSolver)));
+        Resolver resolver = context.peek(Resolver.class); // get it from context, it should be the same object throughout
+        JavaParser.setStaticConfiguration(new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver(resolver.typeSolver)));
         try (InputStream in = item.createStream()) {
             CompilationUnit cu = JavaParser.parse(in);
-            System.out.println("CU: " + cu);
+            //System.out.println("CU: " + cu);
             Optional<PackageDeclaration> packageDeclaration = cu.getPackageDeclaration();
             String packageName = packageDeclaration.isPresent() ? packageDeclaration.get().getNameAsString() : "";
             for (TypeDeclaration<?> typeDeclaration : cu.getTypes()) {
-                //ClassTypeDescriptor typeDescriptor = typeResolver.createType(packageName + typeDeclaration.getNameAsString(), javaSourceFileDescriptor, ClassTypeDescriptor.class, context);
+                //ClassTypeDescriptor typeDescriptor = resolver.createType(packageName + typeDeclaration.getNameAsString(), javaSourceFileDescriptor, ClassTypeDescriptor.class, context);
                 if (typeDeclaration.isClassOrInterfaceDeclaration()) {
                     // get methods and fields
                     for (MethodDeclaration mD : typeDeclaration.getMethods()) {
@@ -86,7 +74,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                             System.out.println("could not resolve " + superClassType.getName());
                         }
                         //String fqn = superClassType.();
-                        //TypeDescriptor superClassDescriptor = typeResolver.resolveType("com.acme.MySuperClass", context);
+                        //TypeDescriptor superClassDescriptor = resolver.resolveType("com.acme.MySuperClass", context);
                         //typeDescriptor.setExtends(superClassDescriptor);
                     }
                 }

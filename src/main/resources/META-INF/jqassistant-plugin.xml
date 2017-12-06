@@ -28,14 +28,11 @@
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.JarArchiveDescriptor</class>
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.JavaClassesDirectoryDescriptor</class>
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.VariableDescriptor</class>
-        <!--<class>org.unileipzig.jqassistant.plugin.parser.api.model.XmlPropertyFileDescriptor</class>-->
         <!-- added by DM -->
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.JavaDescriptor</class>
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.SourceDescriptor</class>
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceDirectoryDescriptor</class>
         <class>org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor</class>
-        <!--<class>org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor</class>
-        <class>org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor</class>-->
     </model>
     <scanner>
         <!-- added by DM -->
