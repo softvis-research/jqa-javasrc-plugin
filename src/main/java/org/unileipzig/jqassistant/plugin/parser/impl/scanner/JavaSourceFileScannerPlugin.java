@@ -49,10 +49,13 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         // parse files and determine concrete types (i.e. class, interface, annotation or enum)
         TypeResolver typeResolver = context.peek(TypeResolver.class); // JQA (probably redundant)
         TypeSolver typeSolver = new CombinedTypeSolver( // JavaSymbolResolver
-            new JavaParserTypeSolver(new File("src")), // resolves types in the same path (FIXME: configure path)
+            new JavaParserTypeSolver(new File("src/test/java/samples")), // resolves types in the same path (FIXME: configure path)
+            new JavaParserTypeSolver(new File("src/test/java")),
+            //new JavaParserTypeSolver(new File("src/test")),
+            //new JavaParserTypeSolver(new File("src")),
             new ReflectionTypeSolver() // resolves builtin types, e.g. java.lang.Object
         );
-        //System.out.println((new File("src")).getAbsolutePath());
+        System.out.println("JavaParserTypeSolver should be looking inside " + (new File("src")).getAbsolutePath());
         JavaParser.setStaticConfiguration(new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver(typeSolver)));
         try (InputStream in = item.createStream()) {
             CompilationUnit cu = JavaParser.parse(in);
