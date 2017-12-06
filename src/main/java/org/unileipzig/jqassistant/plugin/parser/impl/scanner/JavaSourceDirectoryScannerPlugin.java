@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceDirectoryDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
-import org.unileipzig.jqassistant.plugin.parser.api.scanner.TypeResolver;
 
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.core.scanner.api.Scope;
@@ -25,11 +24,11 @@ public class JavaSourceDirectoryScannerPlugin extends AbstractDirectoryScannerPl
 
     @Override
     protected void enterContainer(File container, JavaSourceDirectoryDescriptor containerDescriptor, ScannerContext scannerContext) throws IOException {
-        scannerContext.push(TypeResolver.class, new TypeResolverImpl());
+        //do sth. when entering a directory
     }
 
     @Override
     protected void leaveContainer(File container, JavaSourceDirectoryDescriptor containerDescriptor, ScannerContext scannerContext) throws IOException {
-        scannerContext.pop(TypeResolver.class);
+        // do sth. when leaving a directory
     }
 }
