@@ -12,7 +12,6 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.PackageDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
@@ -74,7 +73,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                         try {
                             ResolvedReferenceType x = superClassType.resolve();
                             //javaParserFacade.solve(ClassOrInterfaceDeclaration.class);
-                            System.out.println("Superclass: " + superClassType + " resolved " + x.getQualifiedName());
+                            //ResolvedType y = javaParserFacade.solve(superClassType);
+                            System.out.println("Superclass: " + superClassType + " resolved " + x.getTypeDeclaration());
                         } catch (UnsolvedSymbolException e) {
                             System.out.println("correctly catching " + e);
                         } catch (RuntimeException e) {
