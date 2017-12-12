@@ -12,13 +12,17 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.PackageDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
+import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
+import org.unileipzig.jqassistant.plugin.parser.api.model.ClassFileDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
 
@@ -43,13 +47,15 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         // parse files and determine concrete types (i.e. class, interface, annotation or enum)
         Resolver resolver = context.peek(Resolver.class); // get it from context, it should be the same object throughout
         JavaParser.setStaticConfiguration(new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver(resolver.typeSolver)));
+        JavaParserFacade javaParserFacade = JavaParserFacade.get(resolver.typeSolver);
         try (InputStream in = item.createStream()) {
             CompilationUnit cu = JavaParser.parse(in);
             //System.out.println("CU: " + cu);
             Optional<PackageDeclaration> packageDeclaration = cu.getPackageDeclaration();
             String packageName = packageDeclaration.isPresent() ? packageDeclaration.get().getNameAsString() : "";
             for (TypeDeclaration<?> typeDeclaration : cu.getTypes()) {
-                //ClassTypeDescriptor typeDescriptor = resolver.createType(packageName + typeDeclaration.getNameAsString(), javaSourceFileDescriptor, ClassTypeDescriptor.class, context);
+                String fqn = packageName + typeDeclaration.getNameAsString();
+                ClassFileDescriptor typeDescriptor = resolver.getOrCreate(fqn, ClassFileDescriptor.class);
                 if (typeDeclaration.isClassOrInterfaceDeclaration()) {
                     // get methods and fields
                     for (MethodDeclaration mD : typeDeclaration.getMethods()) {
@@ -66,7 +72,9 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                     // get superclasses / implemented interfaces
                     for (ClassOrInterfaceType superClassType : typeDeclaration.asClassOrInterfaceDeclaration().getExtendedTypes()) {
                         try {
-                            System.out.println("Superclass: " + superClassType + " resolved " + superClassType.resolve());
+                            ResolvedReferenceType x = superClassType.resolve();
+                            //javaParserFacade.solve(ClassOrInterfaceDeclaration.class);
+                            System.out.println("Superclass: " + superClassType + " resolved " + x.getQualifiedName());
                         } catch (UnsolvedSymbolException e) {
                             System.out.println("correctly catching " + e);
                         } catch (RuntimeException e) {

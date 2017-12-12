@@ -58,7 +58,7 @@ public class Resolver {
      * try to get Descriptor from Cache, if it isn't in the cache create it using the Store and return it (?)
      * ... handling of attributes ...
      */
-    public <T extends Descriptor> T getOrCreate(String fullyQualifiedName, Class<Descriptor> appropriateDescriptor) {
+    public <T extends Descriptor> T getOrCreate(String fullyQualifiedName, Class<? extends Descriptor> appropriateDescriptor) {
         if (descriptorCache.containsKey(fullyQualifiedName)) {
             return (T) descriptorCache.get(fullyQualifiedName);
         } else {
