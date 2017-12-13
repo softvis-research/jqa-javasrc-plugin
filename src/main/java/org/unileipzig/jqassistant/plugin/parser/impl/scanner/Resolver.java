@@ -2,6 +2,9 @@ package org.unileipzig.jqassistant.plugin.parser.impl.scanner;
 
 import com.buschmais.jqassistant.core.store.api.Store;
 import com.buschmais.jqassistant.core.store.api.model.Descriptor;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
@@ -48,6 +51,7 @@ public class Resolver {
 
         // Java seems to have only the following ugly way to pass arrays/lists to varargs, so here we go...
         this.typeSolver = new CombinedTypeSolver(typeSolvers.toArray(new TypeSolver[typeSolvers.size()]));
+        JavaParser.setStaticConfiguration(new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver(typeSolver)));
 
         // initialize descriptorCache
         this.descriptorCache = new HashMap<>();
@@ -60,9 +64,24 @@ public class Resolver {
      */
     public <T extends Descriptor> T getOrCreate(String fullyQualifiedName, Class<? extends Descriptor> appropriateDescriptor) {
         if (descriptorCache.containsKey(fullyQualifiedName)) {
-            return (T) descriptorCache.get(fullyQualifiedName);
+            System.out.println("getOrCreate(): Return cached: " + fullyQualifiedName);
+            return this.get(fullyQualifiedName, appropriateDescriptor);
         } else {
-            return (T) this.store.create(appropriateDescriptor);
+            System.out.println("getOrCreate(): Create new: " + fullyQualifiedName + " d: " + appropriateDescriptor);
+            return this.create(fullyQualifiedName, appropriateDescriptor);
         }
+    }
+
+    public Boolean has(String fullyQualifiedName) {
+        return descriptorCache.containsKey(fullyQualifiedName);
+    }
+
+    public <T extends Descriptor> T get(String fullyQualifiedName, Class<? extends Descriptor> appropriateDescriptor) {
+        // assert instanceof appropriateDescriptor..!
+        return (T) descriptorCache.get(fullyQualifiedName);
+    }
+
+    public <T extends Descriptor> T create(String fullyQualifiedName, Class<? extends Descriptor> appropriateDescriptor) {
+        return (T) this.store.create(appropriateDescriptor);
     }
 }
