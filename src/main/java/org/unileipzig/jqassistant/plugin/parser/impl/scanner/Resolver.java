@@ -4,6 +4,11 @@ import com.buschmais.jqassistant.core.store.api.Store;
 import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.resolution.Resolvable;
+import com.github.javaparser.resolution.declarations.ResolvedDeclaration;
+import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
@@ -63,16 +68,39 @@ public class Resolver {
     }
 
     /**
-     * try to get Descriptor from Cache, if it isn't in the cache create it using the Store and return it (?)
-     * ... handling of attributes ...
+     * get a ResolvedDeclaration from a TypeDeclaration
+     * ... the TypeDeclaration needs to be (and most probably is) something that implements Resolvable
      */
-    public <T extends Descriptor> T getOrCreate(String fullyQualifiedName, Class<? extends Descriptor> appropriateDescriptor) {
-        if (descriptorCache.containsKey(fullyQualifiedName)) {
-            System.out.println("getOrCreate(): Return cached: " + fullyQualifiedName);
-            return this.get(fullyQualifiedName, appropriateDescriptor);
+    public ResolvedDeclaration resolve(TypeDeclaration typeDeclaration) {
+        Object resolved = null;
+        if (typeDeclaration instanceof Resolvable) {
+            try {
+                resolved = ((Resolvable) typeDeclaration).resolve();
+                //System.out.println("was able to resolve " + resolved);
+            } catch (RuntimeException e) { // actually is UnsolvedSymbolException
+                System.out.println("could not resolve " + typeDeclaration + " e: " + e);
+                throw e;
+                // TODO: return some replacement/placeholder ("external dependency")
+            }
         } else {
-            System.out.println("getOrCreate(): Create new: " + fullyQualifiedName + " d: " + appropriateDescriptor);
-            return this.create(fullyQualifiedName, appropriateDescriptor);
+            throw new RuntimeException("!!! Unexpected Type that doesn't implement Resolvable: " + typeDeclaration);
+        }
+        if (resolved instanceof ResolvedDeclaration) {
+            return (ResolvedDeclaration) resolved;
+        } else {
+            throw new RuntimeException("!!! Unexpected Result of resolve() (no ResolvedDeclaration): " + resolved);
+        }
+    }
+
+    /**
+     * Quasi the reverse of above: get a ResolvedDeclaration from a ResolvedType
+     * ... the ResolvedType needs to be (and most probably is) actually an instance of ResolvedReferenceType
+     */
+    public ResolvedDeclaration resolve(ResolvedType resolvedType) {
+        if (resolvedType instanceof ResolvedReferenceType) {
+            return ((ResolvedReferenceType) resolvedType).getTypeDeclaration();
+        } else {
+            throw new RuntimeException("!!! Unexpected ResolvedType that isn't ResolvedReferenceType: " + resolvedType);
         }
     }
 
@@ -91,7 +119,9 @@ public class Resolver {
     }
 
     public <T extends Descriptor> T create(String fullyQualifiedName, Class<? extends Descriptor> appropriateDescriptor) {
-        return (T) this.store.create(appropriateDescriptor);
+        T d = (T) this.store.create(appropriateDescriptor);
+        this.descriptorCache.put(fullyQualifiedName, d);
+        return d;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -99,6 +129,7 @@ public class Resolver {
     ///////////////////////////////////////////////////////////////////////////////////////
 
     public Boolean hasDependencies(Descriptor descriptor) {
+        //System.out.println("ask if has dependencies" + this.dependencyCache + this.descriptorCache);
         return dependencyCache.containsKey(descriptor);
     }
 

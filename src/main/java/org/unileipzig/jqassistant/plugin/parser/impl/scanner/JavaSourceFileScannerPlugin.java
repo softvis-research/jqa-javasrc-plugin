@@ -17,7 +17,6 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
-import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.*;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
@@ -54,34 +53,12 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             String packageName = packageDeclaration.isPresent() ? packageDeclaration.get().getNameAsString() : "";
             List<TypeDescriptor> typeDescriptors = javaSourceFileDescriptor.getTypes();
             for (TypeDeclaration<?> typeDeclaration : cu.getTypes()) {
-                TypeDescriptor typeDescriptor = this.handleType(typeDeclaration);
+                TypeDescriptor typeDescriptor = this.handleType(resolver.resolve(typeDeclaration));
                 if (typeDescriptor != null) typeDescriptors.add(typeDescriptor);
                 else System.out.println("WARNING: couldn't handle type in " + cu);
             }
         }
         return javaSourceFileDescriptor;
-    }
-
-    /**
-     * Create TypeDescriptor (XO) from TypeDeclaration (JavaParser)
-     * ... it needs to be (and most probably is) something that implements Resolvable
-     */
-    private TypeDescriptor handleType(TypeDeclaration typeDeclaration) {
-        TypeDescriptor typeDescriptor = null;
-        if (typeDeclaration instanceof Resolvable) {
-            try {
-                Object resolved = ((Resolvable) typeDeclaration).resolve();
-                typeDescriptor = this.handleType(resolved);
-                //System.out.println("was able to resolve " + resolved);
-            } catch (RuntimeException e) { // actually is UnsolvedSymbolException
-                System.out.println("could not resolve " + typeDeclaration + " e: " + e);
-                throw e;
-                // TODO: return some replacement/placeholder ("external dependency")
-            }
-        } else {
-            System.out.println("!!! Unexpected Type that doesn't implement Resolvable: " + typeDeclaration);
-        }
-        return typeDescriptor;
     }
 
     /**
@@ -100,7 +77,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             // how array are currently handled in jqa-java-plugin: see SignatureHelper#getType(org.objectweb.asm.Type)
             // "case Type.ARRAY: return getType(t.getElementType());"
             // thus doing the same, here!
-            resolved = ((ResolvedArrayType) resolved).getComponentType();
+            ResolvedType arrayOf = ((ResolvedArrayType) resolved).getComponentType();
+            resolved = resolver.resolve(arrayOf);
         }
         if (Utils.whichSolverWasUsed(resolved) == Utils.SolverType.JavaParserSolver) {
             if (resolved instanceof ResolvedClassDeclaration) {
@@ -120,11 +98,15 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             if (resolved instanceof ResolvedVoidType) {
                 fullyQualifiedName = Void.class.getCanonicalName();
             } else if (resolved instanceof ResolvedPrimitiveType) {
-                // (INT, BOOLEAN, LONG, CHAR, FLOAT, DOUBLE, SHORT, BYTE)
                 fullyQualifiedName = ((ResolvedPrimitiveType) resolved).getBoxTypeQName();
             } else if (resolved instanceof ResolvedReferenceType) {
-                ResolvedReferenceType resolvedReferenceType = (ResolvedReferenceType) resolved;
-                fullyQualifiedName = resolvedReferenceType.getQualifiedName();
+                fullyQualifiedName = ((ResolvedReferenceType) resolved).getQualifiedName();
+                if (fullyQualifiedName.equals("samples.HelloWorld")) {
+                    //throw new RuntimeException("samples.HelloWorld should REALLY not end up here");
+                    System.out.println("samples.HelloWorld should REALLY not end up here");
+                }
+            } else if (resolved instanceof ResolvedTypeDeclaration) {
+                fullyQualifiedName = ((ResolvedTypeDeclaration) resolved).getQualifiedName();
             } else {
                 throw new RuntimeException("Unexpected Resolvable: " + resolved);
             }
@@ -133,7 +115,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 System.out.println("resolver has " + fullyQualifiedName);
             } else {
                 System.out.println("will need to add TypeDescriptor (as dependency) Object for " + fullyQualifiedName);
-                System.out.println(resolver.descriptorCache.keySet());
+                //System.out.println(resolver.descriptorCache.keySet());
             }
         }
         // handle possibly added descriptors
