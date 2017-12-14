@@ -32,28 +32,13 @@ public class Resolver {
     public Map<String, Object> descriptorCache;
     public Map<Descriptor, Set<String>> dependencyCache;
 
-    public Set<File> recursiveSubDirs(File parent, Set<File> resultSet) {
-        File[] files = parent.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    if (!resultSet.contains(file)) { // avoid endless recursion because of filesystem links and such
-                        resultSet.add(file);
-                        recursiveSubDirs(file, resultSet);
-                    }
-                }
-            }
-        }
-        return resultSet;
-    }
-
     public Resolver(String srcDir, Store store) {
         // create all needed typeSolvers to be passed to CombinedTypeSolver
         List<TypeSolver> typeSolvers = new LinkedList<>(); // solvers to pass on CombinedTypeSolver
         typeSolvers.add(new ReflectionTypeSolver()); // resolves builtin types, e.g. java.lang.Object);
 
         // add a JavaParserTypeSolver for every (sub)directory of the given srcDir
-        for (File dir : this.recursiveSubDirs(new File(srcDir), new HashSet<>())) {
+        for (File dir : Utils.recursiveSubDirs(new File(srcDir))) {
             typeSolvers.add(new JavaParserTypeSolver(dir));
         }
 
@@ -133,26 +118,24 @@ public class Resolver {
         return dependencyCache.containsKey(descriptor);
     }
 
-    public void addDependencies(Descriptor descriptor, String fullyQualifiedNameOfDependency) {
+    public void addDependency(Descriptor descriptor, String fullyQualifiedNameOfDependency) {
         if (!dependencyCache.containsKey(descriptor)) {
             dependencyCache.put(descriptor, new HashSet<>());
         }
         Set<String> dependencies = dependencyCache.get(descriptor);
-        dependencies.add(fullyQualifiedNameOfDependency);
-    }
-
-    public void storeDependencies(Descriptor descriptor) {
-        for (String fullyQualifiedNameOfDependency : dependencyCache.get(descriptor)) {
-            TypeDescriptor dependency; // only create once --> use the same caching mechanism as for anything else
+        if (!dependencies.contains(fullyQualifiedNameOfDependency)) { // only create the link once
+            dependencies.add(fullyQualifiedNameOfDependency);
+            TypeDescriptor dependency; // only create that object once, same caching mechanism as for anything else
             if (this.has(fullyQualifiedNameOfDependency)) {
                 dependency = this.get(fullyQualifiedNameOfDependency, TypeDescriptor.class);
             } else {
                 dependency = this.create(fullyQualifiedNameOfDependency, TypeDescriptor.class);
                 dependency.setFullQualifiedName(fullyQualifiedNameOfDependency);
-                String[] split = fullyQualifiedNameOfDependency.split(".");
+                String[] split = fullyQualifiedNameOfDependency.split("\\.");
                 dependency.setName(split[split.length - 1]);
             }
-            TypeDependsOnDescriptor link = this.store.create(descriptor, TypeDependsOnDescriptor.class, dependency);
+            System.out.println("Try to link " + descriptor + " to " + dependency + " via " + TypeDependsOnDescriptor.class.getSimpleName());
+            TypeDependsOnDescriptor link = store.create(descriptor, TypeDependsOnDescriptor.class, dependency);
             link.setWeight(0); // maybe something useful can happen with that?
         }
     }

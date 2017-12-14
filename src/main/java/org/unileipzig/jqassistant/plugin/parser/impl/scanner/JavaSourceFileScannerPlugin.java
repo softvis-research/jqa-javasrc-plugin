@@ -5,6 +5,7 @@ import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.core.scanner.api.ScannerPlugin.Requires;
 import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.core.store.api.Store;
+import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
@@ -12,6 +13,7 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.PackageDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
@@ -19,6 +21,7 @@ import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.*;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 import org.unileipzig.jqassistant.plugin.parser.api.model.*;
@@ -53,7 +56,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             String packageName = packageDeclaration.isPresent() ? packageDeclaration.get().getNameAsString() : "";
             List<TypeDescriptor> typeDescriptors = javaSourceFileDescriptor.getTypes();
             for (TypeDeclaration<?> typeDeclaration : cu.getTypes()) {
-                TypeDescriptor typeDescriptor = this.handleType(resolver.resolve(typeDeclaration));
+                TypeDescriptor typeDescriptor = this.handleType(resolver.resolve(typeDeclaration), javaSourceFileDescriptor);
                 if (typeDescriptor != null) typeDescriptors.add(typeDescriptor);
                 else System.out.println("WARNING: couldn't handle type in " + cu);
             }
@@ -64,14 +67,18 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
     /**
      * Create TypeDescriptor (XO) from a Resolved* Object (JavaParser)
      * need to differentiate e.g. between JavaParserClassDeclaration and ReflectionClassDeclaration
+     * <p>
      * From jqa-java-plugin docs:
      * # *NOTE* The full set of information is only available for class files which
      * # have actually been scanned. Types which are only referenced (i.e. from
      * # external libraries not included in the scan) are represented by `:Type` nodes with a
      * # property `fqn` and `DECLARES` relations to their members. These are `:Field` or
      * # `:Method` labeled nodes which only provide the property `signature`.
+     *
+     * @param resolved             can be either ResolvedType or ResolvedDeclaration
+     * @param possiblyDependencyOf the object that would have a dependency on it if it is an external or builtin type
      */
-    private TypeDescriptor handleType(Object resolved) {
+    private TypeDescriptor handleType(Object resolved, Descriptor possiblyDependencyOf) {
         TypeDescriptor descriptor = null;
         if (resolved instanceof ResolvedArrayType) {
             // how array are currently handled in jqa-java-plugin: see SignatureHelper#getType(org.objectweb.asm.Type)
@@ -79,6 +86,10 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             // thus doing the same, here!
             ResolvedType arrayOf = ((ResolvedArrayType) resolved).getComponentType();
             resolved = resolver.resolve(arrayOf);
+        }
+        if (resolved instanceof ResolvedReferenceType) {
+            // just put it through the resolver
+            resolved = resolver.resolve((ResolvedReferenceType) resolved);
         }
         if (Utils.whichSolverWasUsed(resolved) == Utils.SolverType.JavaParserSolver) {
             if (resolved instanceof ResolvedClassDeclaration) {
@@ -99,12 +110,6 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 fullyQualifiedName = Void.class.getCanonicalName();
             } else if (resolved instanceof ResolvedPrimitiveType) {
                 fullyQualifiedName = ((ResolvedPrimitiveType) resolved).getBoxTypeQName();
-            } else if (resolved instanceof ResolvedReferenceType) {
-                fullyQualifiedName = ((ResolvedReferenceType) resolved).getQualifiedName();
-                if (fullyQualifiedName.equals("samples.HelloWorld")) {
-                    //throw new RuntimeException("samples.HelloWorld should REALLY not end up here");
-                    System.out.println("samples.HelloWorld should REALLY not end up here");
-                }
             } else if (resolved instanceof ResolvedTypeDeclaration) {
                 fullyQualifiedName = ((ResolvedTypeDeclaration) resolved).getQualifiedName();
             } else {
@@ -113,15 +118,10 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             // HANDLE DEPENDENCIES -> THUS NEED TO KNOW WHICH IS THE THING THAT DEPENDS ON THIS (+1 PARAMETER)
             if (resolver.has(fullyQualifiedName)) {
                 System.out.println("resolver has " + fullyQualifiedName);
-            } else {
+            } else if (possiblyDependencyOf != null) {
                 System.out.println("will need to add TypeDescriptor (as dependency) Object for " + fullyQualifiedName);
-                //System.out.println(resolver.descriptorCache.keySet());
+                resolver.addDependency(possiblyDependencyOf, fullyQualifiedName);
             }
-        }
-        // handle possibly added descriptors
-        if (descriptor != null && resolver.hasDependencies(descriptor)) {
-            System.out.println(descriptor.getFullQualifiedName() + " has dependencies");
-            resolver.storeDependencies(descriptor);
         }
         return descriptor;
     }
@@ -155,14 +155,14 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 ResolvedParameterDeclaration p = m.getParam(i);
                 ParameterDescriptor parameterDescriptor = store.create(ParameterDescriptor.class);
                 parameterDescriptor.setIndex(i);
-                TypeDescriptor parameterTypeDescriptor = this.handleType(p.getType());
+                TypeDescriptor parameterTypeDescriptor = this.handleType(p.getType(), parameterDescriptor);
                 parameterDescriptor.setType(parameterTypeDescriptor);
                 // name seems to (currently!) not be relevant for ParameterDescriptor
                 // interesting: hasVariadicParameter ...  seems also currently not to be relevant
                 parameterDescriptors.add(parameterDescriptor);
             }
             // handle (specified) return type (it would also be possible to be retrieved from body statements)
-            TypeDescriptor returnTypeDescriptor = this.handleType(m.getReturnType());
+            TypeDescriptor returnTypeDescriptor = this.handleType(m.getReturnType(), methodDescriptor);
             methodDescriptor.setReturns(returnTypeDescriptor);
             // handle (specified) thrown exceptions (otherwise needs to be retrieved from body statements)
             for (ResolvedType e : m.getSpecifiedExceptions()) {
@@ -197,7 +197,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             String fullyQualifiedFieldName = f.declaringType().getQualifiedName() + "." + f.getName();
             FieldDescriptor fieldDescriptor = resolver.create(fullyQualifiedFieldName, FieldDescriptor.class);
             fieldDescriptors.add(fieldDescriptor);
-            TypeDescriptor fieldTypeDescriptor = this.handleType(f.getType());
+            TypeDescriptor fieldTypeDescriptor = this.handleType(f.getType(), fieldDescriptor);
             fieldDescriptor.setType(fieldTypeDescriptor);
             fieldDescriptor.setVisibility(Utils.modifierToString(f.accessSpecifier()));
             fieldDescriptor.setStatic(f.isStatic());
@@ -211,12 +211,22 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             //System.out.println("Resolved FieldDeclaration: " + fullyQualifiedFieldName + " type: " + f.getType());
         }
         // get superclasses / implemented interfaces
-        TypeDescriptor superClassDescriptor = this.handleType(resolvedClass.getSuperClass());
+        TypeDescriptor superClassDescriptor = this.handleType(resolvedClass.getSuperClass(), classDescriptor);
         classDescriptor.setSuperClass(superClassDescriptor);
         List<TypeDescriptor> interfaces = classDescriptor.getInterfaces();
         for (ResolvedReferenceType interfaceType : resolvedClass.getInterfaces()) {
-            TypeDescriptor interfaceDescriptor = this.handleType(interfaceType);
+            TypeDescriptor interfaceDescriptor = this.handleType(interfaceType, classDescriptor);
             interfaces.add(interfaceDescriptor);
+        }
+        // more (or rather... the usual) metadata
+        classDescriptor.setFullQualifiedName(fullyQualifiedName);
+        classDescriptor.setName(resolvedClass.getName());
+        classDescriptor.setVisibility(Utils.modifierToString(resolvedClass.accessSpecifier()));
+        if (resolvedClass instanceof JavaParserClassDeclaration) {
+            ClassOrInterfaceDeclaration cD = ((JavaParserClassDeclaration) resolvedClass).getWrappedNode();
+            classDescriptor.setAbstract(cD.isAbstract());
+            classDescriptor.setFinal(cD.isFinal());
+            classDescriptor.setStatic(cD.isStatic());
         }
         return classDescriptor;
     }

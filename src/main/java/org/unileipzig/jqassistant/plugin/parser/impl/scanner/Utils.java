@@ -2,7 +2,30 @@ package org.unileipzig.jqassistant.plugin.parser.impl.scanner;
 
 import com.github.javaparser.ast.AccessSpecifier;
 
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
+
 public class Utils {
+    private static Set<File> recursiveSubDirs(File parent, Set<File> resultSet) {
+        File[] files = parent.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    if (!resultSet.contains(file)) { // avoid endless recursion because of filesystem links and such
+                        resultSet.add(file);
+                        recursiveSubDirs(file, resultSet);
+                    }
+                }
+            }
+        }
+        return resultSet;
+    }
+
+    public static Set<File> recursiveSubDirs(File parent) {
+        return recursiveSubDirs(parent, new HashSet<>());
+    }
+
     public enum SolverType {
         JavaParserSolver,
         ReflectionSolver,
