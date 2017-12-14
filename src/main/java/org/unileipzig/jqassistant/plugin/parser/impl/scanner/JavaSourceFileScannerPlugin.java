@@ -12,14 +12,18 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.PackageDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.declarations.*;
+import com.github.javaparser.resolution.types.ResolvedArrayType;
+import com.github.javaparser.resolution.types.ResolvedPrimitiveType;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 import org.unileipzig.jqassistant.plugin.parser.api.model.*;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
@@ -85,8 +89,20 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
     /**
      * Create TypeDescriptor (XO) from a Resolved* Object (JavaParser)
      * need to differentiate e.g. between JavaParserClassDeclaration and ReflectionClassDeclaration
+     * From jqa-java-plugin docs:
+     * # *NOTE* The full set of information is only available for class files which
+     * # have actually been scanned. Types which are only referenced (i.e. from
+     * # external libraries not included in the scan) are represented by `:Type` nodes with a
+     * # property `fqn` and `DECLARES` relations to their members. These are `:Field` or
+     * # `:Method` labeled nodes which only provide the property `signature`.
      */
     private TypeDescriptor handleType(Object resolved) {
+        if (resolved instanceof ResolvedArrayType) {
+            // how array are currently handled in jqa-java-plugin: see SignatureHelper#getType(org.objectweb.asm.Type)
+            // "case Type.ARRAY: return getType(t.getElementType());"
+            // thus doing the same, here!
+            resolved = ((ResolvedArrayType) resolved).getComponentType();
+        }
         if (Utils.whichSolverWasUsed(resolved) == Utils.SolverType.JavaParserSolver) {
             if (resolved instanceof ResolvedClassDeclaration) {
                 return this.handleClass((ResolvedClassDeclaration) resolved);
@@ -99,12 +115,17 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             } else {
                 System.out.println("!!! Unexpected Resolvable: " + resolved);
             }
-        } else {
-            System.out.println("TODO: Need to handle builtin or unresolvable types"
-                + ", e.g.: " + resolved
-                + " - used resolver: " + Utils.whichSolverWasUsed(resolved));
         }
-
+        if (resolved instanceof ResolvedPrimitiveType) {
+            System.out.println("PRIMITIVE TYPE?" + ((ResolvedType) resolved).isPrimitive() + " " + resolved);
+            ResolvedPrimitiveType p = (ResolvedPrimitiveType) resolved;
+        }
+        // in jqa-java-plugin there is a check if (value instanceof org.objectweb.asm.Type) {
+        //  asm.Type can be... VOID,BOOLEAN,CHAR,BYTE,SHORT,INT,FLOAT,LONG,DOUBLE,ARRAY,OBJECT,METHOD
+        /*System.out.println("TODO: Need to handle builtin or unresolvable types"
+            + ", e.g.: " + resolved
+            + " - used resolver: " + Utils.whichSolverWasUsed(resolved)
+            + " context: \n" + resolved.getClass());*/
         return null; // throw?
     }
 
@@ -128,7 +149,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             methodDescriptors.add(methodDescriptor);
             methodDescriptor.setName(m.getName());
             methodDescriptor.setSignature(m.getSignature());
-            methodDescriptor.setVisibility(m.accessSpecifier().toString()); // TODO: may need to adjust
+            methodDescriptor.setVisibility(Utils.modifierToString(m.accessSpecifier()));
             methodDescriptor.setStatic(m.isStatic());
             methodDescriptor.setAbstract(m.isAbstract());
             // handle parameters
@@ -175,8 +196,22 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 });
             }
         }
-        for (ResolvedFieldDeclaration fD : resolvedClass.getDeclaredFields()) {
-            System.out.println("Resolved FieldDeclaration: " + fD);
+        for (ResolvedFieldDeclaration f : resolvedClass.getDeclaredFields()) {
+            String fullyQualifiedFieldName = f.declaringType().getQualifiedName() + "." + f.getName();
+            FieldDescriptor fieldDescriptor = resolver.create(fullyQualifiedFieldName, FieldDescriptor.class);
+            fieldDescriptors.add(fieldDescriptor);
+            TypeDescriptor fieldTypeDescriptor = this.handleType(f.getType());
+            fieldDescriptor.setType(fieldTypeDescriptor);
+            fieldDescriptor.setVisibility(Utils.modifierToString(f.accessSpecifier()));
+            fieldDescriptor.setStatic(f.isStatic());
+            // some information we can only get from JavaParserFieldDeclaration.wrappedNode (FieldDeclaration)
+            if (f instanceof JavaParserFieldDeclaration) {
+                //fieldDescriptor.setSynthetic();//?fieldDescriptor.setSignature();//?
+                FieldDeclaration fD = ((JavaParserFieldDeclaration) f).getWrappedNode();
+                fieldDescriptor.setTransient(fD.isTransient());
+                fieldDescriptor.setFinal(fD.isFinal());
+            }
+            System.out.println("Resolved FieldDeclaration: " + fullyQualifiedFieldName + " type: " + f.getType());
         }
         // get superclasses / implemented interfaces
         TypeDescriptor superClassDescriptor = this.handleType(resolvedClass.getSuperClass());
