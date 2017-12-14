@@ -9,6 +9,8 @@ import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDependsOnDescriptor;
+import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor;
 
 import java.io.File;
 import java.util.*;
@@ -23,6 +25,7 @@ public class Resolver {
     public Store store;
     public TypeSolver typeSolver;
     public Map<String, Object> descriptorCache;
+    public Map<Descriptor, Set<String>> dependencyCache;
 
     public Set<File> recursiveSubDirs(File parent, Set<File> resultSet) {
         File[] files = parent.listFiles();
@@ -55,6 +58,7 @@ public class Resolver {
 
         // initialize descriptorCache
         this.descriptorCache = new HashMap<>();
+        this.dependencyCache = new HashMap<>();
         this.store = store;
     }
 
@@ -72,6 +76,11 @@ public class Resolver {
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    /////////// Handle Caching / Creating / Retrieving TypeDescriptor instances ///////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+
     public Boolean has(String fullyQualifiedName) {
         return descriptorCache.containsKey(fullyQualifiedName);
     }
@@ -83,5 +92,37 @@ public class Resolver {
 
     public <T extends Descriptor> T create(String fullyQualifiedName, Class<? extends Descriptor> appropriateDescriptor) {
         return (T) this.store.create(appropriateDescriptor);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    /////////// Handle Dependencies for unresolvable (builtin or external) Types //////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+    public Boolean hasDependencies(Descriptor descriptor) {
+        return dependencyCache.containsKey(descriptor);
+    }
+
+    public void addDependencies(Descriptor descriptor, String fullyQualifiedNameOfDependency) {
+        if (!dependencyCache.containsKey(descriptor)) {
+            dependencyCache.put(descriptor, new HashSet<>());
+        }
+        Set<String> dependencies = dependencyCache.get(descriptor);
+        dependencies.add(fullyQualifiedNameOfDependency);
+    }
+
+    public void storeDependencies(Descriptor descriptor) {
+        for (String fullyQualifiedNameOfDependency : dependencyCache.get(descriptor)) {
+            TypeDescriptor dependency; // only create once --> use the same caching mechanism as for anything else
+            if (this.has(fullyQualifiedNameOfDependency)) {
+                dependency = this.get(fullyQualifiedNameOfDependency, TypeDescriptor.class);
+            } else {
+                dependency = this.create(fullyQualifiedNameOfDependency, TypeDescriptor.class);
+                dependency.setFullQualifiedName(fullyQualifiedNameOfDependency);
+                String[] split = fullyQualifiedNameOfDependency.split(".");
+                dependency.setName(split[split.length - 1]);
+            }
+            TypeDependsOnDescriptor link = this.store.create(descriptor, TypeDependsOnDescriptor.class, dependency);
+            link.setWeight(0); // maybe something useful can happen with that?
+        }
     }
 }

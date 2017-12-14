@@ -19,10 +19,7 @@ import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.declarations.*;
-import com.github.javaparser.resolution.types.ResolvedArrayType;
-import com.github.javaparser.resolution.types.ResolvedPrimitiveType;
-import com.github.javaparser.resolution.types.ResolvedReferenceType;
-import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.resolution.types.*;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 import org.unileipzig.jqassistant.plugin.parser.api.model.*;
@@ -78,6 +75,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 //System.out.println("was able to resolve " + resolved);
             } catch (RuntimeException e) { // actually is UnsolvedSymbolException
                 System.out.println("could not resolve " + typeDeclaration + " e: " + e);
+                throw e;
                 // TODO: return some replacement/placeholder ("external dependency")
             }
         } else {
@@ -97,6 +95,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
      * # `:Method` labeled nodes which only provide the property `signature`.
      */
     private TypeDescriptor handleType(Object resolved) {
+        TypeDescriptor descriptor = null;
         if (resolved instanceof ResolvedArrayType) {
             // how array are currently handled in jqa-java-plugin: see SignatureHelper#getType(org.objectweb.asm.Type)
             // "case Type.ARRAY: return getType(t.getElementType());"
@@ -105,7 +104,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         }
         if (Utils.whichSolverWasUsed(resolved) == Utils.SolverType.JavaParserSolver) {
             if (resolved instanceof ResolvedClassDeclaration) {
-                return this.handleClass((ResolvedClassDeclaration) resolved);
+                descriptor = this.handleClass((ResolvedClassDeclaration) resolved);
             } else if (resolved instanceof ResolvedInterfaceDeclaration) {
                 // TODO
             } else if (resolved instanceof ResolvedEnumDeclaration) {
@@ -115,18 +114,34 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             } else {
                 System.out.println("!!! Unexpected Resolvable: " + resolved);
             }
+        } else {
+            // get the fullyQualifiedName, create a TypeDescriptor class implying it is to be treated as a dependency
+            String fullyQualifiedName = "";
+            if (resolved instanceof ResolvedVoidType) {
+                fullyQualifiedName = Void.class.getCanonicalName();
+            } else if (resolved instanceof ResolvedPrimitiveType) {
+                // (INT, BOOLEAN, LONG, CHAR, FLOAT, DOUBLE, SHORT, BYTE)
+                fullyQualifiedName = ((ResolvedPrimitiveType) resolved).getBoxTypeQName();
+            } else if (resolved instanceof ResolvedReferenceType) {
+                ResolvedReferenceType resolvedReferenceType = (ResolvedReferenceType) resolved;
+                fullyQualifiedName = resolvedReferenceType.getQualifiedName();
+            } else {
+                throw new RuntimeException("Unexpected Resolvable: " + resolved);
+            }
+            // HANDLE DEPENDENCIES -> THUS NEED TO KNOW WHICH IS THE THING THAT DEPENDS ON THIS (+1 PARAMETER)
+            if (resolver.has(fullyQualifiedName)) {
+                System.out.println("resolver has " + fullyQualifiedName);
+            } else {
+                System.out.println("will need to add TypeDescriptor (as dependency) Object for " + fullyQualifiedName);
+                System.out.println(resolver.descriptorCache.keySet());
+            }
         }
-        if (resolved instanceof ResolvedPrimitiveType) {
-            System.out.println("PRIMITIVE TYPE?" + ((ResolvedType) resolved).isPrimitive() + " " + resolved);
-            ResolvedPrimitiveType p = (ResolvedPrimitiveType) resolved;
+        // handle possibly added descriptors
+        if (descriptor != null && resolver.hasDependencies(descriptor)) {
+            System.out.println(descriptor.getFullQualifiedName() + " has dependencies");
+            resolver.storeDependencies(descriptor);
         }
-        // in jqa-java-plugin there is a check if (value instanceof org.objectweb.asm.Type) {
-        //  asm.Type can be... VOID,BOOLEAN,CHAR,BYTE,SHORT,INT,FLOAT,LONG,DOUBLE,ARRAY,OBJECT,METHOD
-        /*System.out.println("TODO: Need to handle builtin or unresolvable types"
-            + ", e.g.: " + resolved
-            + " - used resolver: " + Utils.whichSolverWasUsed(resolved)
-            + " context: \n" + resolved.getClass());*/
-        return null; // throw?
+        return descriptor;
     }
 
     /**
@@ -211,7 +226,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 fieldDescriptor.setTransient(fD.isTransient());
                 fieldDescriptor.setFinal(fD.isFinal());
             }
-            System.out.println("Resolved FieldDeclaration: " + fullyQualifiedFieldName + " type: " + f.getType());
+            //System.out.println("Resolved FieldDeclaration: " + fullyQualifiedFieldName + " type: " + f.getType());
         }
         // get superclasses / implemented interfaces
         TypeDescriptor superClassDescriptor = this.handleType(resolvedClass.getSuperClass());
