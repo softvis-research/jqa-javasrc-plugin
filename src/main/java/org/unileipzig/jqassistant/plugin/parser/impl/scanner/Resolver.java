@@ -109,7 +109,6 @@ public class Resolver {
      * @param appropriateDescriptor the expected type of the Descriptor
      */
     public <T extends Descriptor> T get(String id, Class<? extends Descriptor> appropriateDescriptor) {
-        // assert instanceof appropriateDescriptor..!
         T descriptor = (T) descriptorCache.get(id);
         assert (descriptor.getClass() == appropriateDescriptor);
         return descriptor;
@@ -122,6 +121,7 @@ public class Resolver {
      * @param appropriateDescriptor the target type of the Descriptor
      */
     public <T extends Descriptor> T create(String id, Class<? extends Descriptor> appropriateDescriptor) {
+        assert (!this.has(id));
         T descriptor = (T) this.store.create(appropriateDescriptor);
         this.descriptorCache.put(id, descriptor);
         return descriptor;

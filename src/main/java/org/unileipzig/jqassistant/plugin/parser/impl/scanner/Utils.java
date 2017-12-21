@@ -1,6 +1,7 @@
 package org.unileipzig.jqassistant.plugin.parser.impl.scanner;
 
 import com.github.javaparser.ast.AccessSpecifier;
+import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodLikeDeclaration;
 
 import java.io.File;
@@ -59,5 +60,9 @@ public class Utils {
 
     static public String fullyQualifiedSignature(ResolvedMethodLikeDeclaration m) {
         return Utils.replaceLast(m.getQualifiedName(), m.getName(), m.getSignature());
+    }
+
+    static public String fullyQualifiedFieldName(ResolvedFieldDeclaration f) {
+        return f.declaringType().getQualifiedName() + "." + f.getName();
     }
 }

@@ -14,9 +14,13 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.expr.AssignExpr;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.*;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserConstructorDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
@@ -150,13 +154,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         List<MemberDescriptor> memberDescriptors = classLikeDescriptor.getDeclaredMembers();
         List<MethodDescriptor> methodDescriptors = classLikeDescriptor.getDeclaredMethods();
         List<FieldDescriptor> fieldDescriptors = classLikeDescriptor.getDeclaredFields();
-        for (ResolvedMethodDeclaration m : resolvedClassLike.getDeclaredMethods()) {
-            MethodDescriptor methodDescriptor = handleMethodLike(m);
-            memberDescriptors.add(methodDescriptor);
-            methodDescriptors.add(methodDescriptor);
-        }
         for (ResolvedFieldDeclaration f : resolvedClassLike.getDeclaredFields()) {
-            String fullyQualifiedFieldName = f.declaringType().getQualifiedName() + "." + f.getName();
+            String fullyQualifiedFieldName = Utils.fullyQualifiedFieldName(f);
             FieldDescriptor fieldDescriptor = resolver.create(fullyQualifiedFieldName, FieldDescriptor.class);
             fieldDescriptors.add(fieldDescriptor);
             memberDescriptors.add(fieldDescriptor);
@@ -171,7 +170,12 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 fieldDescriptor.setTransient(fD.isTransient());
                 fieldDescriptor.setFinal(fD.isFinal());
             }
-            //System.out.println("Resolved FieldDeclaration: " + fullyQualifiedFieldName + " type: " + f.getType());
+            System.out.println("Resolved FieldDeclaration: " + fullyQualifiedFieldName + " type: " + f.getType());
+        }
+        for (ResolvedMethodDeclaration m : resolvedClassLike.getDeclaredMethods()) {
+            MethodDescriptor methodDescriptor = handleMethodLike(m);
+            memberDescriptors.add(methodDescriptor);
+            methodDescriptors.add(methodDescriptor);
         }
         // get inner classes
         Set<TypeDescriptor> innerClassDescriptors = classLikeDescriptor.getDeclaredInnerClasses();
@@ -235,20 +239,45 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 }
             }
             // handle body statements
-            mD.getBody().ifPresent((body) -> this.handleStatements(body.getStatements(), methodDescriptor));
+            mD.getBody().ifPresent((body) -> this.handleBody(body, methodDescriptor));
         } else {
             assert (m instanceof JavaParserConstructorDeclaration);
             ConstructorDeclaration cD = ((JavaParserConstructorDeclaration) m).getWrappedNode();
             // handle body statements for constructor (in this case not behind Optional<>)
-            this.handleStatements(cD.getBody().getStatements(), methodDescriptor);
+            this.handleBody(cD.getBody(), methodDescriptor);
         }
         return methodDescriptor;
     }
 
-    private void handleStatements(List<Statement> statements, MethodDescriptor methodDescriptor) {
-        for (Statement statement : statements) {
-            System.out.println(statement);
-        }
+    /**
+     * Things of interest in a method body:
+     * - assignments to Field objects (WritesDescriptor)
+     * ..... - FieldDescriptor#getWrittenBy()
+     * ..... - MethodDescriptor#getWrites()
+     * - accessing Field objects (ReadsDescriptor)
+     * ..... - FieldDescriptor#getReadBy()
+     * ..... - MethodDescriptor#getReads()
+     * - method calls (InvokesDescriptor)
+     * ..... - MethodDescriptor#getInvokes()
+     * ..... - MethodDescriptor#getInvokedBy()
+     * - "inner" classes (actually nested classes and anonymous classes)
+     * - declared Variables/Fields (?)
+     */
+    private void handleBody(BlockStmt body, MethodDescriptor ofMethod) {
+        // what interests us
+        body.accept(new VoidVisitorAdapter<Void>() {
+            @Override
+            public void visit(AssignExpr assignExpr, Void arg) {
+                // see https://github.com/javaparser/javasymbolsolver/issues/300
+                // probably best to wait for that pull request? https://github.com/javaparser/javasymbolsolver/pull/357
+                Expression target = assignExpr.getTarget(), value = assignExpr.getValue();
+                ResolvedType type = JavaParserFacade.get(resolver.typeSolver).getType(target);
+                // we need a ResolvedFieldDeclaration from target
+                //System.out.println(JavaParserFacade.get(resolver.typeSolver).solve(target));
+                System.out.println(target.getClass());
+                super.visit(assignExpr, arg);
+            }
+        }, null);
     }
 
     /**

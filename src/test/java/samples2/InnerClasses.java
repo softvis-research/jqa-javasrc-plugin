@@ -6,24 +6,24 @@ public class InnerClasses {
         void z() {
         }
 
-        class Q {
-            void q() {
+        void b() {
+            class B {
             }
         }
 
-        void b() {
-            class B {
+        class Q {
+            void q() {
             }
         }
     }
 
     class X {
+        void x() {
+        }
+
         class Y {
             void y() {
             }
-        }
-
-        void x() {
         }
     }
 }

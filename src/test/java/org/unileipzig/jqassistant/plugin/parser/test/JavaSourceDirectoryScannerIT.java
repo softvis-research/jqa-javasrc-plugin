@@ -15,7 +15,8 @@ import static junit.framework.TestCase.assertTrue;
 
 public class JavaSourceDirectoryScannerIT extends com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT {
 
-    @Test @Ignore
+    @Test
+    @Ignore
     public void scanHelloWorld() {
         File f = new File("src/test/java/samples1");
         store.beginTransaction();
@@ -32,7 +33,8 @@ public class JavaSourceDirectoryScannerIT extends com.buschmais.jqassistant.plug
         store.commitTransaction();
     }
 
-    @Test @Ignore
+    @Test
+    @Ignore
     public void scanInnerClasses() {
         File f = new File("src/test/java/samples2");
         store.beginTransaction();

@@ -28,7 +28,7 @@ public class JavaSourceDirectoryScannerPlugin extends AbstractDirectoryScannerPl
         //-> cannot override scan() cause it's marked as *final*, and when the constructor is called we don't have the path information, so it seems it has to be done here of all places...
         //if (JavaSourceDirectoryScannerPlugin.resolver == null) resolver = new Resolver(container.getPath(), scannerContext.getStore());
         // instead of global/static access, put it into scannerContext -> make sure this is done only once as constructor of Resolver will recursively create JavaParserTypeSolver instances!
-        if(scannerContext.peekOrDefault(Resolver.class, null) == null) {
+        if (scannerContext.peekOrDefault(Resolver.class, null) == null) {
             String path = container.getParentFile().getParentFile().getPath(); // for the HelloWorld Files, container.getPath() was not enough (!)
             scannerContext.push(Resolver.class, new Resolver(path, scannerContext.getStore()));
         }
