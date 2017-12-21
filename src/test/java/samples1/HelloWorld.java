@@ -1,4 +1,4 @@
-package samples;
+package samples1;
 
 public class HelloWorld extends Object {
     private int x = 5;

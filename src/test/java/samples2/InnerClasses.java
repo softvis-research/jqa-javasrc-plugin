@@ -1,5 +1,5 @@
 // example from https://github.com/javaparser/javaparser/issues/962
-package samples;
+package samples2;
 
 public class InnerClasses {
     static class Z {

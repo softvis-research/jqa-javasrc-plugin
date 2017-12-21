@@ -1,4 +1,4 @@
-package samples;
+package samples1;
 
 public class HelloWorld2 extends HelloWorld {
     public static void main(String[] args) {

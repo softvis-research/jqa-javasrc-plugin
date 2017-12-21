@@ -19,7 +19,6 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.*;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
@@ -60,15 +59,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             for (TypeDeclaration<?> typeDeclaration : cu.getTypes()) {
                 TypeDescriptor typeDescriptor = this.handleType(resolver.resolve(typeDeclaration), javaSourceFileDescriptor);
                 if (typeDescriptor != null) typeDescriptors.add(typeDescriptor);
-                else System.out.println("WARNING: couldn't handle type in " + cu);
-                // try out code from https://github.com/javaparser/javaparser/issues/962
-                cu.accept(new VoidVisitorAdapter<Void>() {
-                    @Override
-                    public void visit(ClassOrInterfaceDeclaration n, Void arg) {
-                        //n.getMethods().forEach(m -> System.out.println("\t" + m.getNameAsString()));
-                        super.visit(n, arg);
-                    }
-                }, null);
+                else throw new RuntimeException("WARNING: couldn't handle type in " + cu);
             }
         }
         return javaSourceFileDescriptor;
@@ -112,7 +103,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             } else if (resolved instanceof ResolvedAnnotationDeclaration) {
                 descriptor = this.handleAnnotation((ResolvedAnnotationDeclaration) resolved);
             } else {
-                System.out.println("!!! Unexpected Resolvable: " + resolved);
+                throw new RuntimeException("WARNING: Unexpected Resolvable: " + resolved);
             }
         } else {
             // get the fullyQualifiedName, create a TypeDescriptor class implying it is to be treated as a dependency
@@ -124,7 +115,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             } else if (resolved instanceof ResolvedTypeDeclaration) {
                 fullyQualifiedName = ((ResolvedTypeDeclaration) resolved).getQualifiedName();
             } else {
-                throw new RuntimeException("Unexpected Resolvable: " + resolved);
+                throw new RuntimeException("WARNING: Unexpected Resolvable: " + resolved);
             }
             // HANDLE DEPENDENCIES -> THUS NEED TO KNOW WHICH IS THE THING THAT DEPENDS ON THIS (+1 PARAMETER)
             // TODO: methods may have ambiguities, will need to use signature instead of FQN as ID for them!
@@ -157,7 +148,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         if (resolvedClassLike instanceof HasAccessSpecifier) {
             classLikeDescriptor.setVisibility(Utils.modifierToString(((HasAccessSpecifier) resolvedClassLike).accessSpecifier()));
         }
-        // get methods and fields
+        // get members (= methods and fields)
+        // (subclasses of MemberDescriptor: MethodDescriptor and FieldDescriptor, thus NOT inner classes)
         List<MemberDescriptor> memberDescriptors = classLikeDescriptor.getDeclaredMembers();
         List<MethodDescriptor> methodDescriptors = classLikeDescriptor.getDeclaredMethods();
         List<FieldDescriptor> fieldDescriptors = classLikeDescriptor.getDeclaredFields();
@@ -232,10 +224,10 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             }
             //System.out.println("Resolved FieldDeclaration: " + fullyQualifiedFieldName + " type: " + f.getType());
         }
-        // more stuff from TypeDescriptor
+        // get inner classes
         Set<TypeDescriptor> innerClassDescriptors = classLikeDescriptor.getDeclaredInnerClasses();
         for (ResolvedReferenceTypeDeclaration internalType : resolvedClassLike.internalTypes()) {
-            System.out.println("handleClassLike(): " + fullyQualifiedName + " -> " + internalType.getQualifiedName());
+            innerClassDescriptors.add(this.handleType(internalType, classLikeDescriptor));
         }
         return classLikeDescriptor;
     }
