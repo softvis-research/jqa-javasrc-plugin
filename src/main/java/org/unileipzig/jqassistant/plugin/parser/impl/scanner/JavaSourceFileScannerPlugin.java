@@ -19,6 +19,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.*;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
@@ -31,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Requires(FileDescriptor.class)
 public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResource, JavaSourceFileDescriptor> {
@@ -59,6 +61,14 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 TypeDescriptor typeDescriptor = this.handleType(resolver.resolve(typeDeclaration), javaSourceFileDescriptor);
                 if (typeDescriptor != null) typeDescriptors.add(typeDescriptor);
                 else System.out.println("WARNING: couldn't handle type in " + cu);
+                // try out code from https://github.com/javaparser/javaparser/issues/962
+                cu.accept(new VoidVisitorAdapter<Void>() {
+                    @Override
+                    public void visit(ClassOrInterfaceDeclaration n, Void arg) {
+                        //n.getMethods().forEach(m -> System.out.println("\t" + m.getNameAsString()));
+                        super.visit(n, arg);
+                    }
+                }, null);
             }
         }
         return javaSourceFileDescriptor;
@@ -141,10 +151,16 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         String fullyQualifiedName = resolvedClassLike.getQualifiedName();
         if (resolver.has(fullyQualifiedName)) return resolver.get(fullyQualifiedName, concreteDescriptor);
         ClassFileDescriptor classLikeDescriptor = resolver.create(fullyQualifiedName, concreteDescriptor);
+        // basic metadata
+        classLikeDescriptor.setFullQualifiedName(fullyQualifiedName);
+        classLikeDescriptor.setName(resolvedClassLike.getName());
+        if (resolvedClassLike instanceof HasAccessSpecifier) {
+            classLikeDescriptor.setVisibility(Utils.modifierToString(((HasAccessSpecifier) resolvedClassLike).accessSpecifier()));
+        }
+        // get methods and fields
         List<MemberDescriptor> memberDescriptors = classLikeDescriptor.getDeclaredMembers();
         List<MethodDescriptor> methodDescriptors = classLikeDescriptor.getDeclaredMethods();
         List<FieldDescriptor> fieldDescriptors = classLikeDescriptor.getDeclaredFields();
-        // get methods and fields
         for (ResolvedMethodDeclaration m : resolvedClassLike.getDeclaredMethods()) {
             MethodDescriptor methodDescriptor = resolver.create(m.getQualifiedName(), MethodDescriptor.class);
             memberDescriptors.add(methodDescriptor);
@@ -202,6 +218,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             String fullyQualifiedFieldName = f.declaringType().getQualifiedName() + "." + f.getName();
             FieldDescriptor fieldDescriptor = resolver.create(fullyQualifiedFieldName, FieldDescriptor.class);
             fieldDescriptors.add(fieldDescriptor);
+            memberDescriptors.add(fieldDescriptor);
             TypeDescriptor fieldTypeDescriptor = this.handleType(f.getType(), fieldDescriptor);
             fieldDescriptor.setType(fieldTypeDescriptor);
             fieldDescriptor.setVisibility(Utils.modifierToString(f.accessSpecifier()));
@@ -215,11 +232,10 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             }
             //System.out.println("Resolved FieldDeclaration: " + fullyQualifiedFieldName + " type: " + f.getType());
         }
-        // more metadata
-        classLikeDescriptor.setFullQualifiedName(fullyQualifiedName);
-        classLikeDescriptor.setName(resolvedClassLike.getName());
-        if (resolvedClassLike instanceof HasAccessSpecifier) {
-            classLikeDescriptor.setVisibility(Utils.modifierToString(((HasAccessSpecifier) resolvedClassLike).accessSpecifier()));
+        // more stuff from TypeDescriptor
+        Set<TypeDescriptor> innerClassDescriptors = classLikeDescriptor.getDeclaredInnerClasses();
+        for (ResolvedReferenceTypeDeclaration internalType : resolvedClassLike.internalTypes()) {
+            System.out.println("handleClassLike(): " + fullyQualifiedName + " -> " + internalType.getQualifiedName());
         }
         return classLikeDescriptor;
     }
@@ -263,8 +279,10 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
      */
     private InterfaceTypeDescriptor handleInterface(ResolvedInterfaceDeclaration resolvedInterface) {
         InterfaceTypeDescriptor interfaceDescriptor = (InterfaceTypeDescriptor) handleClassLike(resolvedInterface, InterfaceTypeDescriptor.class);
-        for (ResolvedReferenceType baseInterface : resolvedInterface.getInterfacesExtended()) {
-            System.out.println("baseInterface:" + baseInterface);
+        List<TypeDescriptor> interfaces = interfaceDescriptor.getInterfaces();
+        for (ResolvedReferenceType extendedInterfaceType : resolvedInterface.getInterfacesExtended()) {
+            TypeDescriptor extendedInterfaceDescriptor = this.handleType(extendedInterfaceType, interfaceDescriptor);
+            interfaces.add(extendedInterfaceDescriptor);
         }
         return interfaceDescriptor;
     }
@@ -273,10 +291,10 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
      * Create AnnotationTypeDescriptor (XO) from ResolvedAnnotationDeclaration (JavaParser)
      */
     private AnnotationTypeDescriptor handleAnnotation(ResolvedAnnotationDeclaration resolvedAnnotation) {
-        AnnotationTypeDescriptor annotationDescriptor = (AnnotationTypeDescriptor) handleClassLike(resolvedAnnotation, AnnotationTypeDescriptor.class);
-        for (ResolvedAnnotationMemberDeclaration annotationMember : resolvedAnnotation.getAnnotationMembers()) {
-            System.out.println("annotationMember:" + annotationMember);
-        }
-        return annotationDescriptor;
+        // what resolvedAnnotation.getAnnotationMembers() does is wrappedNode.getMembers()...filter()...
+        // --> thus it should be already handled in handleClassLike()
+        /*AnnotationTypeDescriptor annotationDescriptor = (AnnotationTypeDescriptor) handleClassLike(resolvedAnnotation, AnnotationTypeDescriptor.class);
+        for (ResolvedAnnotationMemberDeclaration annotationMember : resolvedAnnotation.getAnnotationMembers()) {}*/
+        return (AnnotationTypeDescriptor) handleClassLike(resolvedAnnotation, AnnotationTypeDescriptor.class);
     }
 }
