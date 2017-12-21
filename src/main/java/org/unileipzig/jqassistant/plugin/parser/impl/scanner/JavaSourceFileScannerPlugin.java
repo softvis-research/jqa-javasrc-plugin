@@ -66,8 +66,6 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
 
     /**
      * Create TypeDescriptor (XO) from a Resolved* Object (JavaParser)
-     * need to differentiate e.g. between JavaParserClassDeclaration and ReflectionClassDeclaration
-     * <p>
      * From jqa-java-plugin docs:
      * # *NOTE* The full set of information is only available for class files which
      * # have actually been scanned. Types which are only referenced (i.e. from
@@ -91,15 +89,18 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             // just put it through the resolver
             resolved = resolver.resolve((ResolvedReferenceType) resolved);
         }
+        // we need to differentiate between JavaParserClassDeclaration and ReflectionClassDeclaration
+        // - e.g. for a JavaParserClassDeclaration, we WANT TO know everything really detailed
+        // - e.g. for a ReflectionClassDeclaration, we DON'T, since it's a builtin class (treat it as a dependency)
         if (Utils.whichSolverWasUsed(resolved) == Utils.SolverType.JavaParserSolver) {
             if (resolved instanceof ResolvedClassDeclaration) {
                 descriptor = this.handleClass((ResolvedClassDeclaration) resolved);
             } else if (resolved instanceof ResolvedInterfaceDeclaration) {
-                // TODO
+                descriptor = this.handleInterface((ResolvedInterfaceDeclaration) resolved);
             } else if (resolved instanceof ResolvedEnumDeclaration) {
-                // TODO
+                descriptor = this.handleEnum((ResolvedEnumDeclaration) resolved);
             } else if (resolved instanceof ResolvedAnnotationDeclaration) {
-                // TODO
+                descriptor = this.handleAnnotation((ResolvedAnnotationDeclaration) resolved);
             } else {
                 System.out.println("!!! Unexpected Resolvable: " + resolved);
             }
@@ -116,10 +117,11 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 throw new RuntimeException("Unexpected Resolvable: " + resolved);
             }
             // HANDLE DEPENDENCIES -> THUS NEED TO KNOW WHICH IS THE THING THAT DEPENDS ON THIS (+1 PARAMETER)
+            // TODO: methods may have ambiguities, will need to use signature instead of FQN as ID for them!
             if (resolver.has(fullyQualifiedName)) {
-                System.out.println("resolver has " + fullyQualifiedName);
+                //System.out.println("resolver has " + fullyQualifiedName);
             } else if (possiblyDependencyOf != null) {
-                System.out.println("will need to add TypeDescriptor (as dependency) Object for " + fullyQualifiedName);
+                //System.out.println("will need to add TypeDescriptor (as dependency) Object for " + fullyQualifiedName);
                 resolver.addDependency(possiblyDependencyOf, fullyQualifiedName);
             }
         }
@@ -127,20 +129,23 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
     }
 
     /**
-     * Create ClassFileDescriptor (XO) from ResolvedClassDeclaration (JavaParser)
-     * TODO: need to differentiate between JavaParserClassDeclaration and ReflectionClassDeclaration
-     * - e.g. for a JavaParserClassDeclaration, we WANT TO know everything really detailed
-     * - e.g. for a ReflectionClassDeclaration, we DON'T, since it's a builtin class
+     * Create ClassFileDescriptor (or sth. that derives from it) (XO) from ResolvedReferenceTypeDeclaration (JavaParser)
+     * Subclasses of ClassFileDescriptor:
+     * - ClassTypeDescriptor
+     * - InterfaceTypeDescriptor
+     * - EnumTypeDescriptor
+     * - AnnotationTypeDescriptor
      */
-    private ClassFileDescriptor handleClass(ResolvedClassDeclaration resolvedClass) {
-        String fullyQualifiedName = resolvedClass.getQualifiedName();
-        if (resolver.has(fullyQualifiedName)) return resolver.get(fullyQualifiedName, ClassFileDescriptor.class);
-        ClassFileDescriptor classDescriptor = resolver.create(fullyQualifiedName, ClassFileDescriptor.class);
-        List<MemberDescriptor> memberDescriptors = classDescriptor.getDeclaredMembers();
-        List<MethodDescriptor> methodDescriptors = classDescriptor.getDeclaredMethods();
-        List<FieldDescriptor> fieldDescriptors = classDescriptor.getDeclaredFields();
+    private ClassFileDescriptor handleClassLike(ResolvedReferenceTypeDeclaration resolvedClassLike,
+                                                Class<? extends ClassFileDescriptor> concreteDescriptor) {
+        String fullyQualifiedName = resolvedClassLike.getQualifiedName();
+        if (resolver.has(fullyQualifiedName)) return resolver.get(fullyQualifiedName, concreteDescriptor);
+        ClassFileDescriptor classLikeDescriptor = resolver.create(fullyQualifiedName, concreteDescriptor);
+        List<MemberDescriptor> memberDescriptors = classLikeDescriptor.getDeclaredMembers();
+        List<MethodDescriptor> methodDescriptors = classLikeDescriptor.getDeclaredMethods();
+        List<FieldDescriptor> fieldDescriptors = classLikeDescriptor.getDeclaredFields();
         // get methods and fields
-        for (ResolvedMethodDeclaration m : resolvedClass.getDeclaredMethods()) {
+        for (ResolvedMethodDeclaration m : resolvedClassLike.getDeclaredMethods()) {
             MethodDescriptor methodDescriptor = resolver.create(m.getQualifiedName(), MethodDescriptor.class);
             memberDescriptors.add(methodDescriptor);
             methodDescriptors.add(methodDescriptor);
@@ -193,7 +198,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 });
             }
         }
-        for (ResolvedFieldDeclaration f : resolvedClass.getDeclaredFields()) {
+        for (ResolvedFieldDeclaration f : resolvedClassLike.getDeclaredFields()) {
             String fullyQualifiedFieldName = f.declaringType().getQualifiedName() + "." + f.getName();
             FieldDescriptor fieldDescriptor = resolver.create(fullyQualifiedFieldName, FieldDescriptor.class);
             fieldDescriptors.add(fieldDescriptor);
@@ -210,6 +215,20 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             }
             //System.out.println("Resolved FieldDeclaration: " + fullyQualifiedFieldName + " type: " + f.getType());
         }
+        // more metadata
+        classLikeDescriptor.setFullQualifiedName(fullyQualifiedName);
+        classLikeDescriptor.setName(resolvedClassLike.getName());
+        if (resolvedClassLike instanceof HasAccessSpecifier) {
+            classLikeDescriptor.setVisibility(Utils.modifierToString(((HasAccessSpecifier) resolvedClassLike).accessSpecifier()));
+        }
+        return classLikeDescriptor;
+    }
+
+    /**
+     * Create ClassTypeDescriptor (XO) from ResolvedClassDeclaration (JavaParser)
+     */
+    private ClassTypeDescriptor handleClass(ResolvedClassDeclaration resolvedClass) {
+        ClassTypeDescriptor classDescriptor = (ClassTypeDescriptor) handleClassLike(resolvedClass, ClassTypeDescriptor.class);
         // get superclasses / implemented interfaces
         TypeDescriptor superClassDescriptor = this.handleType(resolvedClass.getSuperClass(), classDescriptor);
         classDescriptor.setSuperClass(superClassDescriptor);
@@ -218,10 +237,6 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             TypeDescriptor interfaceDescriptor = this.handleType(interfaceType, classDescriptor);
             interfaces.add(interfaceDescriptor);
         }
-        // more (or rather... the usual) metadata
-        classDescriptor.setFullQualifiedName(fullyQualifiedName);
-        classDescriptor.setName(resolvedClass.getName());
-        classDescriptor.setVisibility(Utils.modifierToString(resolvedClass.accessSpecifier()));
         if (resolvedClass instanceof JavaParserClassDeclaration) {
             ClassOrInterfaceDeclaration cD = ((JavaParserClassDeclaration) resolvedClass).getWrappedNode();
             classDescriptor.setAbstract(cD.isAbstract());
@@ -229,5 +244,39 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             classDescriptor.setStatic(cD.isStatic());
         }
         return classDescriptor;
+    }
+
+    /**
+     * Create EnumTypeDescriptor (XO) from ResolvedEnumDeclaration (JavaParser)
+     */
+    private EnumTypeDescriptor handleEnum(ResolvedEnumDeclaration resolvedEnum) {
+        EnumTypeDescriptor enumDescriptor = (EnumTypeDescriptor) handleClassLike(resolvedEnum, EnumTypeDescriptor.class);
+        for (ResolvedEnumConstantDeclaration enumConstant : resolvedEnum.getEnumConstants()) {
+            //enumDescriptor.set...()? // seems like there is no attribute for that, yet?
+            System.out.println("Enum would have those:" + enumConstant);
+        }
+        return enumDescriptor;
+    }
+
+    /**
+     * Create InterfaceTypeDescriptor (XO) from ResolvedInterfaceDeclaration (JavaParser)
+     */
+    private InterfaceTypeDescriptor handleInterface(ResolvedInterfaceDeclaration resolvedInterface) {
+        InterfaceTypeDescriptor interfaceDescriptor = (InterfaceTypeDescriptor) handleClassLike(resolvedInterface, InterfaceTypeDescriptor.class);
+        for (ResolvedReferenceType baseInterface : resolvedInterface.getInterfacesExtended()) {
+            System.out.println("baseInterface:" + baseInterface);
+        }
+        return interfaceDescriptor;
+    }
+
+    /**
+     * Create AnnotationTypeDescriptor (XO) from ResolvedAnnotationDeclaration (JavaParser)
+     */
+    private AnnotationTypeDescriptor handleAnnotation(ResolvedAnnotationDeclaration resolvedAnnotation) {
+        AnnotationTypeDescriptor annotationDescriptor = (AnnotationTypeDescriptor) handleClassLike(resolvedAnnotation, AnnotationTypeDescriptor.class);
+        for (ResolvedAnnotationMemberDeclaration annotationMember : resolvedAnnotation.getAnnotationMembers()) {
+            System.out.println("annotationMember:" + annotationMember);
+        }
+        return annotationDescriptor;
     }
 }

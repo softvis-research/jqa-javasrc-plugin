@@ -134,9 +134,9 @@ public class Resolver {
                 String[] split = fullyQualifiedNameOfDependency.split("\\.");
                 dependency.setName(split[split.length - 1]);
             }
-            System.out.println("Try to link " + descriptor + " to " + dependency + " via " + TypeDependsOnDescriptor.class.getSimpleName());
-            TypeDependsOnDescriptor link = store.create(descriptor, TypeDependsOnDescriptor.class, dependency);
-            link.setWeight(0); // maybe something useful can happen with that?
+            //System.out.println("TODO: link " + descriptor + " to " + dependency + " via " + TypeDependsOnDescriptor.class.getSimpleName());
+            //TypeDependsOnDescriptor link = store.create(descriptor, TypeDependsOnDescriptor.class, dependency); // FIXME
+            //link.setWeight(0); // maybe something useful can happen with that?
         }
     }
 }
