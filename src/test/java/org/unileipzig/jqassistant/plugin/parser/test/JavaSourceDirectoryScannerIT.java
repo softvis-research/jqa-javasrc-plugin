@@ -1,6 +1,7 @@
 package org.unileipzig.jqassistant.plugin.parser.test;
 
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceDirectoryDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor;
@@ -9,11 +10,12 @@ import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
 
 import java.io.File;
 
+import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
 public class JavaSourceDirectoryScannerIT extends com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT {
 
-    @Test
+    @Test @Ignore
     public void scanHelloWorld() {
         File f = new File("src/test/java/samples1");
         store.beginTransaction();
@@ -30,7 +32,7 @@ public class JavaSourceDirectoryScannerIT extends com.buschmais.jqassistant.plug
         store.commitTransaction();
     }
 
-    @Test
+    @Test @Ignore
     public void scanInnerClasses() {
         File f = new File("src/test/java/samples2");
         store.beginTransaction();
@@ -38,7 +40,7 @@ public class JavaSourceDirectoryScannerIT extends com.buschmais.jqassistant.plug
         for (FileDescriptor fileDescriptor : dirDescriptor.getContains()) {
             for (TypeDescriptor typeDescriptor : ((JavaSourceFileDescriptor) fileDescriptor).getTypes()) {
                 if (typeDescriptor.getFullQualifiedName().equals("samples2.InnerClasses")) {
-                    assertTrue(typeDescriptor.getDeclaredInnerClasses().size() == 2);
+                    assertEquals(2, typeDescriptor.getDeclaredInnerClasses().size());
                 }
             }
         }

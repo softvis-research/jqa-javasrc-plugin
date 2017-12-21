@@ -154,57 +154,9 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         List<MethodDescriptor> methodDescriptors = classLikeDescriptor.getDeclaredMethods();
         List<FieldDescriptor> fieldDescriptors = classLikeDescriptor.getDeclaredFields();
         for (ResolvedMethodDeclaration m : resolvedClassLike.getDeclaredMethods()) {
-            MethodDescriptor methodDescriptor = resolver.create(m.getQualifiedName(), MethodDescriptor.class);
+            MethodDescriptor methodDescriptor = handleMethodLike(m);
             memberDescriptors.add(methodDescriptor);
             methodDescriptors.add(methodDescriptor);
-            methodDescriptor.setName(m.getName());
-            methodDescriptor.setSignature(m.getSignature());
-            methodDescriptor.setVisibility(Utils.modifierToString(m.accessSpecifier()));
-            methodDescriptor.setStatic(m.isStatic());
-            methodDescriptor.setAbstract(m.isAbstract());
-            // handle parameters
-            List<ParameterDescriptor> parameterDescriptors = methodDescriptor.getParameters();
-            for (int i = 0; i < m.getNumberOfParams(); i++) {
-                ResolvedParameterDeclaration p = m.getParam(i);
-                ParameterDescriptor parameterDescriptor = store.create(ParameterDescriptor.class);
-                parameterDescriptor.setIndex(i);
-                TypeDescriptor parameterTypeDescriptor = this.handleType(p.getType(), parameterDescriptor);
-                parameterDescriptor.setType(parameterTypeDescriptor);
-                // name seems to (currently!) not be relevant for ParameterDescriptor
-                // interesting: hasVariadicParameter ...  seems also currently not to be relevant
-                parameterDescriptors.add(parameterDescriptor);
-            }
-            // handle (specified) return type (it would also be possible to be retrieved from body statements)
-            TypeDescriptor returnTypeDescriptor = this.handleType(m.getReturnType(), methodDescriptor);
-            methodDescriptor.setReturns(returnTypeDescriptor);
-            // handle (specified) thrown exceptions (otherwise needs to be retrieved from body statements)
-            for (ResolvedType e : m.getSpecifiedExceptions()) {
-                System.out.println("TODO: resolve exception" + e);
-            }
-            // some information we can only get from JavaParserMethodDeclaration.wrappedNode (MethodDeclaration)
-            // for example, ResolvedMethodDeclaration itself has no reference in any way to the method's body
-            if (m instanceof JavaParserMethodDeclaration) { // should always be true since we wouldn't want any such details above for builtin types
-                MethodDeclaration mD = ((JavaParserMethodDeclaration) m).getWrappedNode();
-                for (Modifier modifier : mD.getModifiers()) {
-                    switch (modifier) { // we need only to handle those that where not possible to compute above
-                        case FINAL:
-                            methodDescriptor.setFinal(true);
-                            break;
-                        case NATIVE:
-                            methodDescriptor.setNative(true);
-                            break;
-                    }
-                }
-                // handle body statements
-                mD.getBody().ifPresent((body) -> {
-                    for (Statement statement : body.getStatements()) {
-                        if (statement instanceof ReturnStmt) {
-                            // TODO...
-                        }
-                        // TODO...
-                    }
-                });
-            }
         }
         for (ResolvedFieldDeclaration f : resolvedClassLike.getDeclaredFields()) {
             String fullyQualifiedFieldName = f.declaringType().getQualifiedName() + "." + f.getName();
@@ -233,6 +185,80 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
     }
 
     /**
+     * Create either MethodDescriptor or ConstructorDescriptor (XO) from ResolvedMethodLikeDeclaration (JavaParser)
+     */
+    private MethodDescriptor handleMethodLike(ResolvedMethodLikeDeclaration m) {
+        MethodDescriptor methodDescriptor;
+        String qualifiedName = m.getQualifiedName(); // FIXME: need signature
+        System.out.println(qualifiedName);
+        if (m instanceof ResolvedMethodDeclaration) {
+            methodDescriptor = resolver.create(qualifiedName, MethodDescriptor.class);
+        } else {
+            assert (m instanceof ResolvedConstructorDeclaration);
+            methodDescriptor = resolver.create(qualifiedName, ConstructorDescriptor.class);
+        }
+        methodDescriptor.setName(m.getName());
+        methodDescriptor.setSignature(m.getSignature());
+        methodDescriptor.setVisibility(Utils.modifierToString(m.accessSpecifier()));
+        // handle parameters
+        List<ParameterDescriptor> parameterDescriptors = methodDescriptor.getParameters();
+        for (int i = 0; i < m.getNumberOfParams(); i++) {
+            ResolvedParameterDeclaration p = m.getParam(i);
+            ParameterDescriptor parameterDescriptor = store.create(ParameterDescriptor.class);
+            parameterDescriptor.setIndex(i);
+            TypeDescriptor parameterTypeDescriptor = this.handleType(p.getType(), parameterDescriptor);
+            parameterDescriptor.setType(parameterTypeDescriptor);
+            // name seems to (currently!) not be relevant for ParameterDescriptor
+            // interesting: hasVariadicParameter ...  seems also currently not to be relevant
+            parameterDescriptors.add(parameterDescriptor);
+        }
+        // handle (specified) return type (it would also be possible to be retrieved from body statements)
+        if (m instanceof ResolvedMethodDeclaration) {
+            TypeDescriptor returnTypeDescriptor = this.handleType(((ResolvedMethodDeclaration) m).getReturnType(), methodDescriptor);
+            methodDescriptor.setReturns(returnTypeDescriptor);
+            // handle (specified) thrown exceptions (otherwise needs to be retrieved from body statements)
+            for (ResolvedType e : m.getSpecifiedExceptions()) {
+                System.out.println("TODO: resolve exception" + e);
+            }
+        }
+        // some information we can only get from JavaParserMethodDeclaration.wrappedNode (MethodDeclaration)
+        // for example, ResolvedMethodDeclaration itself has no reference in any way to the method's body
+        methodDescriptor.setFinal(false);
+        methodDescriptor.setNative(false);
+        methodDescriptor.setStatic(false);
+        methodDescriptor.setAbstract(false);
+        if (m instanceof JavaParserMethodDeclaration) { // should always be true since we wouldn't want any such details above for builtin types
+            MethodDeclaration mD = ((JavaParserMethodDeclaration) m).getWrappedNode();
+            for (Modifier modifier : mD.getModifiers()) {
+                switch (modifier) { // we need only to handle those that where not possible to compute above
+                    case FINAL:
+                        methodDescriptor.setFinal(true);
+                        break;
+                    case NATIVE:
+                        methodDescriptor.setNative(true);
+                        break;
+                    case STATIC:
+                        methodDescriptor.setStatic(true);
+                        break;
+                    case ABSTRACT:
+                        methodDescriptor.setAbstract(true);
+                        break;
+                }
+            }
+            // handle body statements
+            mD.getBody().ifPresent((body) -> {
+                for (Statement statement : body.getStatements()) {
+                    if (statement instanceof ReturnStmt) {
+                        // TODO...
+                    }
+                    // TODO...
+                }
+            });
+        }
+        return methodDescriptor;
+    }
+
+    /**
      * Create ClassTypeDescriptor (XO) from ResolvedClassDeclaration (JavaParser)
      */
     private ClassTypeDescriptor handleClass(ResolvedClassDeclaration resolvedClass) {
@@ -250,6 +276,14 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             classDescriptor.setAbstract(cD.isAbstract());
             classDescriptor.setFinal(cD.isFinal());
             classDescriptor.setStatic(cD.isStatic());
+        }
+        // get constructor(s)
+        List<MemberDescriptor> memberDescriptors = classDescriptor.getDeclaredMembers(); // is it a member??
+        List<MethodDescriptor> methodDescriptors = classDescriptor.getDeclaredMethods();
+        for (ResolvedConstructorDeclaration constructorDeclaration : resolvedClass.getConstructors()) {
+            MethodDescriptor methodDescriptor = handleMethodLike(constructorDeclaration);
+            memberDescriptors.add(methodDescriptor); // is it a member??
+            methodDescriptors.add(methodDescriptor);
         }
         return classDescriptor;
     }
