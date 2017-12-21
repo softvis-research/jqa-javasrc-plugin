@@ -1,6 +1,7 @@
 package org.unileipzig.jqassistant.plugin.parser.impl.scanner;
 
 import com.github.javaparser.ast.AccessSpecifier;
+import com.github.javaparser.resolution.declarations.ResolvedMethodLikeDeclaration;
 
 import java.io.File;
 import java.util.HashSet;
@@ -48,5 +49,15 @@ public class Utils {
 
     static public String modifierToString(AccessSpecifier m) { // may need to be adjusted (e.g. *.toLowerCase())
         return m.toString();
+    }
+
+    static public String replaceLast(String string, String toReplace, String replacement) {
+        // quasi the reverse of String.replaceFirst()
+        int i = string.lastIndexOf(toReplace);
+        return string.substring(0, i) + replacement + string.substring(i + toReplace.length(), string.length());
+    }
+
+    static public String fullyQualifiedSignature(ResolvedMethodLikeDeclaration m) {
+        return Utils.replaceLast(m.getQualifiedName(), m.getName(), m.getSignature());
     }
 }

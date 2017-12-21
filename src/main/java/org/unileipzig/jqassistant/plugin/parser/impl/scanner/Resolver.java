@@ -14,7 +14,6 @@ import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
-import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDependsOnDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor;
 
 import java.io.File;
@@ -94,19 +93,38 @@ public class Resolver {
     ///////////////////////////////////////////////////////////////////////////////////////
 
 
-    public Boolean has(String fullyQualifiedName) {
-        return descriptorCache.containsKey(fullyQualifiedName);
+    /**
+     * Check whether a Descriptor for that ID was already been scanned
+     *
+     * @param id can be either a signature (for Methods!) or a fullyQualifiedName (for everything else!)
+     */
+    public Boolean has(String id) {
+        return descriptorCache.containsKey(id);
     }
 
-    public <T extends Descriptor> T get(String fullyQualifiedName, Class<? extends Descriptor> appropriateDescriptor) {
+    /**
+     * Get the cached Descriptor for an ID
+     *
+     * @param id                    either a method-signature or a fullyQualifiedName
+     * @param appropriateDescriptor the expected type of the Descriptor
+     */
+    public <T extends Descriptor> T get(String id, Class<? extends Descriptor> appropriateDescriptor) {
         // assert instanceof appropriateDescriptor..!
-        return (T) descriptorCache.get(fullyQualifiedName);
+        T descriptor = (T) descriptorCache.get(id);
+        assert (descriptor.getClass() == appropriateDescriptor);
+        return descriptor;
     }
 
-    public <T extends Descriptor> T create(String fullyQualifiedName, Class<? extends Descriptor> appropriateDescriptor) {
-        T d = (T) this.store.create(appropriateDescriptor);
-        this.descriptorCache.put(fullyQualifiedName, d);
-        return d;
+    /**
+     * Create (and cache!) a new Descriptor for a given ID
+     *
+     * @param id                    either a method-signature or a fullyQualifiedName
+     * @param appropriateDescriptor the target type of the Descriptor
+     */
+    public <T extends Descriptor> T create(String id, Class<? extends Descriptor> appropriateDescriptor) {
+        T descriptor = (T) this.store.create(appropriateDescriptor);
+        this.descriptorCache.put(id, descriptor);
+        return descriptor;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -118,20 +136,20 @@ public class Resolver {
         return dependencyCache.containsKey(descriptor);
     }
 
-    public void addDependency(Descriptor descriptor, String fullyQualifiedNameOfDependency) {
+    public void addDependency(Descriptor descriptor, String idOfDependency) {
         if (!dependencyCache.containsKey(descriptor)) {
             dependencyCache.put(descriptor, new HashSet<>());
         }
         Set<String> dependencies = dependencyCache.get(descriptor);
-        if (!dependencies.contains(fullyQualifiedNameOfDependency)) { // only create the link once
-            dependencies.add(fullyQualifiedNameOfDependency);
+        if (!dependencies.contains(idOfDependency)) { // only create the link once
+            dependencies.add(idOfDependency);
             TypeDescriptor dependency; // only create that object once, same caching mechanism as for anything else
-            if (this.has(fullyQualifiedNameOfDependency)) {
-                dependency = this.get(fullyQualifiedNameOfDependency, TypeDescriptor.class);
+            if (this.has(idOfDependency)) {
+                dependency = this.get(idOfDependency, TypeDescriptor.class);
             } else {
-                dependency = this.create(fullyQualifiedNameOfDependency, TypeDescriptor.class);
-                dependency.setFullQualifiedName(fullyQualifiedNameOfDependency);
-                String[] split = fullyQualifiedNameOfDependency.split("\\.");
+                dependency = this.create(idOfDependency, TypeDescriptor.class);
+                dependency.setFullQualifiedName(idOfDependency);
+                String[] split = idOfDependency.split("\\.");
                 dependency.setName(split[split.length - 1]);
             }
             //System.out.println("TODO: link " + descriptor + " to " + dependency + " via " + TypeDependsOnDescriptor.class.getSimpleName());

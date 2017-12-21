@@ -13,15 +13,12 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.PackageDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.TypeDeclaration;
-import com.github.javaparser.ast.stmt.ReturnStmt;
+import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.*;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserConstructorDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 import org.unileipzig.jqassistant.plugin.parser.api.model.*;
@@ -189,13 +186,11 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
      */
     private MethodDescriptor handleMethodLike(ResolvedMethodLikeDeclaration m) {
         MethodDescriptor methodDescriptor;
-        String qualifiedName = m.getQualifiedName(); // FIXME: need signature
-        System.out.println(qualifiedName);
         if (m instanceof ResolvedMethodDeclaration) {
-            methodDescriptor = resolver.create(qualifiedName, MethodDescriptor.class);
+            methodDescriptor = resolver.create(Utils.fullyQualifiedSignature(m), MethodDescriptor.class);
         } else {
             assert (m instanceof ResolvedConstructorDeclaration);
-            methodDescriptor = resolver.create(qualifiedName, ConstructorDescriptor.class);
+            methodDescriptor = resolver.create(Utils.fullyQualifiedSignature(m), ConstructorDescriptor.class);
         }
         methodDescriptor.setName(m.getName());
         methodDescriptor.setSignature(m.getSignature());
@@ -214,6 +209,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         }
         // handle (specified) return type (it would also be possible to be retrieved from body statements)
         if (m instanceof ResolvedMethodDeclaration) {
+            methodDescriptor.setStatic(((ResolvedMethodDeclaration) m).isStatic());
+            methodDescriptor.setAbstract(((ResolvedMethodDeclaration) m).isAbstract());
             TypeDescriptor returnTypeDescriptor = this.handleType(((ResolvedMethodDeclaration) m).getReturnType(), methodDescriptor);
             methodDescriptor.setReturns(returnTypeDescriptor);
             // handle (specified) thrown exceptions (otherwise needs to be retrieved from body statements)
@@ -223,11 +220,9 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         }
         // some information we can only get from JavaParserMethodDeclaration.wrappedNode (MethodDeclaration)
         // for example, ResolvedMethodDeclaration itself has no reference in any way to the method's body
-        methodDescriptor.setFinal(false);
-        methodDescriptor.setNative(false);
-        methodDescriptor.setStatic(false);
-        methodDescriptor.setAbstract(false);
-        if (m instanceof JavaParserMethodDeclaration) { // should always be true since we wouldn't want any such details above for builtin types
+        if (m instanceof JavaParserMethodDeclaration) {
+            methodDescriptor.setFinal(false);
+            methodDescriptor.setNative(false);
             MethodDeclaration mD = ((JavaParserMethodDeclaration) m).getWrappedNode();
             for (Modifier modifier : mD.getModifiers()) {
                 switch (modifier) { // we need only to handle those that where not possible to compute above
@@ -237,25 +232,23 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                     case NATIVE:
                         methodDescriptor.setNative(true);
                         break;
-                    case STATIC:
-                        methodDescriptor.setStatic(true);
-                        break;
-                    case ABSTRACT:
-                        methodDescriptor.setAbstract(true);
-                        break;
                 }
             }
             // handle body statements
-            mD.getBody().ifPresent((body) -> {
-                for (Statement statement : body.getStatements()) {
-                    if (statement instanceof ReturnStmt) {
-                        // TODO...
-                    }
-                    // TODO...
-                }
-            });
+            mD.getBody().ifPresent((body) -> this.handleStatements(body.getStatements(), methodDescriptor));
+        } else {
+            assert (m instanceof JavaParserConstructorDeclaration);
+            ConstructorDeclaration cD = ((JavaParserConstructorDeclaration) m).getWrappedNode();
+            // handle body statements for constructor (in this case not behind Optional<>)
+            this.handleStatements(cD.getBody().getStatements(), methodDescriptor);
         }
         return methodDescriptor;
+    }
+
+    private void handleStatements(List<Statement> statements, MethodDescriptor methodDescriptor) {
+        for (Statement statement : statements) {
+            System.out.println(statement);
+        }
     }
 
     /**
