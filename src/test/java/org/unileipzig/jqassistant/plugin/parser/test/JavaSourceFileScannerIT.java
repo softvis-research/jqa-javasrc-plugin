@@ -3,10 +3,7 @@ package org.unileipzig.jqassistant.plugin.parser.test;
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor;
-import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceDirectoryDescriptor;
-import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor;
-import org.unileipzig.jqassistant.plugin.parser.api.model.MethodDescriptor;
+import org.unileipzig.jqassistant.plugin.parser.api.model.*;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
 
 import java.io.File;
@@ -15,6 +12,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT {
     private void scanFileHelper(String path, Consumer<JavaSourceFileDescriptor> then) {
@@ -40,7 +38,6 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
-    @Ignore
     public void scanMethodCalls() {
         scanFileHelper("src/test/java/samples3/MethodCallExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -50,7 +47,7 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
                         MethodDescriptor method = (MethodDescriptor) o;
                         //System.out.println(method.getSignature()); // why is this redundantly in type.getDeclaredMethods()?
                         //   -> solved: the redundancy came from adding methods and fields (also) to the List of memberDescriptors
-                        //System.out.println("declaring type: " + method.getDeclaringType().getFullQualifiedName());
+                        assertEquals("MethodCallExample", method.getDeclaringType().getName());
                         Set<String> signaturesOfCalledMethods = new HashSet<>();
                         Set<String> expectedSignaturesOfCalledMethods = new HashSet<>();
                         expectedSignaturesOfCalledMethods.add("calledMethod0()");
@@ -58,7 +55,6 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
                         expectedSignaturesOfCalledMethods.add("calledMethod2()");
                         if (method.getName().equals("callingMethod")) {
                             method.getInvokes().forEach(invoke -> {
-                                System.out.println(method.getSignature() + " calls " + invoke.getInvokedMethod().getSignature());
                                 signaturesOfCalledMethods.add(invoke.getInvokedMethod().getSignature());
                             });
                             assertEquals(expectedSignaturesOfCalledMethods, signaturesOfCalledMethods);
@@ -91,7 +87,7 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
                                 expectedExceptionNames.add("IOException");
                                 assertEquals(expectedExceptionNames, exceptionNames);
                                 break;
-                            case  "f2":
+                            case "f2":
                                 expectedExceptionNames.add("RuntimeException");
                                 expectedExceptionNames.add("MyException");
                                 assertEquals(expectedExceptionNames, exceptionNames);
@@ -99,6 +95,25 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
                         }
                     }
                 }
+            });
+        });
+    }
+
+    @Test
+    public void scanEnumExample() {
+        scanFileHelper("src/test/java/samples3/EnumExample.java", (fileDescriptor) -> {
+            fileDescriptor.getTypes().forEach((type) -> {
+                assert (type instanceof EnumTypeDescriptor);
+                EnumTypeDescriptor enumDescriptor = (EnumTypeDescriptor) type;
+                enumDescriptor.getDeclaredFields().forEach((field) -> {
+                    assertTrue(field.getName().equals("ONE") || field.getName().equals("TWO"));
+                    if (field.getName().equals("ONE")) {
+                        assertTrue(field.getValue().getValue() == ((Object) 1));
+                    } else {
+                        assertTrue(field.getValue().getValue() == ((Object) 2));
+                    }
+                    ;
+                });
             });
         });
     }

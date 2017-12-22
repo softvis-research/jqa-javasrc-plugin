@@ -147,7 +147,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         // basic metadata
         classLikeDescriptor.setFullQualifiedName(qualifiedName);
         classLikeDescriptor.setName(resolvedClassLike.getName());
-        if (resolvedClassLike instanceof HasAccessSpecifier) {
+        if (resolvedClassLike instanceof HasAccessSpecifier && !(resolvedClassLike instanceof ResolvedEnumDeclaration)) {
             classLikeDescriptor.setVisibility(Utils.modifierToString(((HasAccessSpecifier) resolvedClassLike).accessSpecifier()));
         }
         // get members (= methods and fields)
@@ -155,23 +155,25 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         //List<MemberDescriptor> memberDescriptors = classLikeDescriptor.getDeclaredMembers();
         List<MethodDescriptor> methodDescriptors = classLikeDescriptor.getDeclaredMethods();
         List<FieldDescriptor> fieldDescriptors = classLikeDescriptor.getDeclaredFields();
-        for (ResolvedFieldDeclaration f : resolvedClassLike.getDeclaredFields()) {
-            String qualifiedFieldName = Utils.fullyQualifiedFieldName(f);
-            FieldDescriptor fieldDescriptor = resolver.create(qualifiedFieldName, FieldDescriptor.class);
-            fieldDescriptors.add(fieldDescriptor);
-            //memberDescriptors.add(fieldDescriptor);
-            TypeDescriptor fieldTypeDescriptor = this.handleType(f.getType(), fieldDescriptor);
-            fieldDescriptor.setType(fieldTypeDescriptor);
-            fieldDescriptor.setVisibility(Utils.modifierToString(f.accessSpecifier()));
-            fieldDescriptor.setStatic(f.isStatic());
-            // some information we can only get from JavaParserFieldDeclaration.wrappedNode (FieldDeclaration)
-            if (f instanceof JavaParserFieldDeclaration) {
-                //fieldDescriptor.setSynthetic();//?fieldDescriptor.setSignature();//?
-                FieldDeclaration fD = ((JavaParserFieldDeclaration) f).getWrappedNode();
-                fieldDescriptor.setTransient(fD.isTransient());
-                fieldDescriptor.setFinal(fD.isFinal());
+        if (!(resolvedClassLike instanceof ResolvedEnumDeclaration)) { // can't call getDeclaredFields() for enum!!
+            for (ResolvedFieldDeclaration f : resolvedClassLike.getDeclaredFields()) {
+                String qualifiedFieldName = Utils.fullyQualifiedFieldName(f);
+                FieldDescriptor fieldDescriptor = resolver.create(qualifiedFieldName, FieldDescriptor.class);
+                fieldDescriptors.add(fieldDescriptor);
+                //memberDescriptors.add(fieldDescriptor);
+                TypeDescriptor fieldTypeDescriptor = this.handleType(f.getType(), fieldDescriptor);
+                fieldDescriptor.setType(fieldTypeDescriptor);
+                fieldDescriptor.setVisibility(Utils.modifierToString(f.accessSpecifier()));
+                fieldDescriptor.setStatic(f.isStatic());
+                // some information we can only get from JavaParserFieldDeclaration.wrappedNode (FieldDeclaration)
+                if (f instanceof JavaParserFieldDeclaration) {
+                    //fieldDescriptor.setSynthetic();//?fieldDescriptor.setSignature();//?
+                    FieldDeclaration fD = ((JavaParserFieldDeclaration) f).getWrappedNode();
+                    fieldDescriptor.setTransient(fD.isTransient());
+                    fieldDescriptor.setFinal(fD.isFinal());
+                }
+                //System.out.println("Resolved FieldDeclaration: " + qualifiedFieldName + " type: " + f.getType());
             }
-            //System.out.println("Resolved FieldDeclaration: " + qualifiedFieldName + " type: " + f.getType());
         }
         for (ResolvedMethodDeclaration m : resolvedClassLike.getDeclaredMethods()) {
             MethodDescriptor methodDescriptor = handleMethodLike(m);
@@ -222,7 +224,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             methodDescriptor.setAbstract(((ResolvedMethodDeclaration) m).isAbstract());
             TypeDescriptor returnTypeDescriptor = this.handleType(((ResolvedMethodDeclaration) m).getReturnType(), methodDescriptor);
             methodDescriptor.setReturns(returnTypeDescriptor);
-            // handle (specified) thrown exceptions (otherwise needs to be retrieved from body statements)
+            // handle (specified) thrown exceptions (otherwise it would need to be retrieved from body statements)
             List<TypeDescriptor> declaredThrowables = methodDescriptor.getDeclaredThrowables();
             for (ResolvedType e : m.getSpecifiedExceptions()) {
                 declaredThrowables.add(this.handleType(e, methodDescriptor));
@@ -337,9 +339,21 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
      */
     private EnumTypeDescriptor handleEnum(ResolvedEnumDeclaration resolvedEnum) {
         EnumTypeDescriptor enumDescriptor = (EnumTypeDescriptor) handleClassLike(resolvedEnum, EnumTypeDescriptor.class);
+        int i = 0;
         for (ResolvedEnumConstantDeclaration enumConstant : resolvedEnum.getEnumConstants()) {
-            //enumDescriptor.set...()? // seems like there is no attribute for that, yet?
-            System.out.println("Enum would have those:" + enumConstant);
+            // JavaParser throws NullPointerException when calling getDeclaredFields() -> need to translate enum constants to Fields manually
+            String name = enumConstant.getName();
+            String qualifiedName = enumDescriptor.getFullQualifiedName() + "." + name;
+            FieldDescriptor fieldDescriptor = resolver.create(qualifiedName, FieldDescriptor.class);
+            PrimitiveValueDescriptor primitiveValueDescriptor = store.create(PrimitiveValueDescriptor.class);
+            EnumValueDescriptor valueDescriptor = store.create(EnumValueDescriptor.class);
+            primitiveValueDescriptor.setValue(++i); // NOT SURE ABOUT THAT...
+            fieldDescriptor.setName(name);
+            fieldDescriptor.setValue(primitiveValueDescriptor);
+            valueDescriptor.setName(name);
+            valueDescriptor.setType(enumDescriptor);
+            valueDescriptor.setValue(fieldDescriptor);
+            enumDescriptor.getDeclaredFields().add(fieldDescriptor);
         }
         return enumDescriptor;
     }

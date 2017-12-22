@@ -64,11 +64,8 @@ public class Resolver {
         if (typeDeclaration instanceof Resolvable) {
             try {
                 resolved = ((Resolvable) typeDeclaration).resolve();
-                //System.out.println("was able to resolve " + resolved);
-            } catch (RuntimeException e) { // actually is UnsolvedSymbolException
-                System.out.println("could not resolve " + typeDeclaration + " e: " + e);
-                throw e;
-                // TODO: return some replacement/placeholder ("external dependency")
+            } catch (RuntimeException e) {
+                throw new RuntimeException("WARNING: Could not resolve " + typeDeclaration + " e: " + e);
             }
         } else {
             throw new RuntimeException("!!! Unexpected Type that doesn't implement Resolvable: " + typeDeclaration);
