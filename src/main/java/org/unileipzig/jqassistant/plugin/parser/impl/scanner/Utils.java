@@ -59,7 +59,8 @@ public class Utils {
     }
 
     static public String fullyQualifiedSignature(ResolvedMethodLikeDeclaration m) {
-        return Utils.replaceLast(m.getQualifiedName(), m.getName(), m.getSignature());
+        //return Utils.replaceLast(m.getQualifiedName(), m.getName(), m.getSignature());
+        return m.getQualifiedSignature();
     }
 
     static public String fullyQualifiedFieldName(ResolvedFieldDeclaration f) {

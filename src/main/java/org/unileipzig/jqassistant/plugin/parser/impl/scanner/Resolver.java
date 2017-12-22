@@ -5,11 +5,15 @@ import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.resolution.MethodUsage;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.declarations.ResolvedDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
@@ -88,6 +92,12 @@ public class Resolver {
         }
     }
 
+    public ResolvedMethodDeclaration resolve(MethodCallExpr methodCallExpr) {
+        //try { return methodCallExpr.resolveInvokedMethod(); // this always fails!
+        MethodUsage methodUsage = JavaParserFacade.get(typeSolver).solveMethodAsUsage(methodCallExpr);
+        return methodUsage.getDeclaration();
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////
     /////////// Handle Caching / Creating / Retrieving TypeDescriptor instances ///////////
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -110,7 +120,7 @@ public class Resolver {
      */
     public <T extends Descriptor> T get(String id, Class<? extends Descriptor> appropriateDescriptor) {
         T descriptor = (T) descriptorCache.get(id);
-        assert (descriptor.getClass() == appropriateDescriptor);
+        assert (appropriateDescriptor.isAssignableFrom(descriptor.getClass()));
         return descriptor;
     }
 
@@ -124,6 +134,7 @@ public class Resolver {
         assert (!this.has(id));
         T descriptor = (T) this.store.create(appropriateDescriptor);
         this.descriptorCache.put(id, descriptor);
+        assert (appropriateDescriptor.isAssignableFrom(descriptor.getClass()));
         return descriptor;
     }
 
