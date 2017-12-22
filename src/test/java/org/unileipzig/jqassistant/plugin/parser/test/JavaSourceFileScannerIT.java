@@ -40,6 +40,7 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
+    @Ignore
     public void scanMethodCalls() {
         scanFileHelper("src/test/java/samples3/MethodCallExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -49,6 +50,7 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
                         MethodDescriptor method = (MethodDescriptor) o;
                         //System.out.println(method.getSignature()); // why is this redundantly in type.getDeclaredMethods()?
                         //   -> solved: the redundancy came from adding methods and fields (also) to the List of memberDescriptors
+                        //System.out.println("declaring type: " + method.getDeclaringType().getFullQualifiedName());
                         Set<String> signaturesOfCalledMethods = new HashSet<>();
                         Set<String> expectedSignaturesOfCalledMethods = new HashSet<>();
                         expectedSignaturesOfCalledMethods.add("calledMethod0()");
@@ -72,4 +74,32 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
         });
     }
 
+    @Test
+    public void scanThrowingMethod() {
+        scanFileHelper("src/test/java/samples3/ThrowsExample.java", (fileDescriptor) -> {
+            fileDescriptor.getTypes().forEach((type) -> {
+                for (Object o : type.getDeclaredMethods()) {
+                    if (o instanceof MethodDescriptor) { // analogous scanMethodCalls Test
+                        MethodDescriptor method = (MethodDescriptor) o;
+                        Set<String> exceptionNames = new HashSet<>();
+                        Set<String> expectedExceptionNames = new HashSet<>();
+                        method.getDeclaredThrowables().forEach((t) -> {
+                            exceptionNames.add(t.getName());
+                        });
+                        switch (method.getName()) {
+                            case "f1":
+                                expectedExceptionNames.add("IOException");
+                                assertEquals(expectedExceptionNames, exceptionNames);
+                                break;
+                            case  "f2":
+                                expectedExceptionNames.add("RuntimeException");
+                                expectedExceptionNames.add("MyException");
+                                assertEquals(expectedExceptionNames, exceptionNames);
+                                break;
+                        }
+                    }
+                }
+            });
+        });
+    }
 }

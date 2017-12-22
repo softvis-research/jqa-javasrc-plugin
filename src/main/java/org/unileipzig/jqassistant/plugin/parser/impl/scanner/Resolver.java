@@ -147,14 +147,14 @@ public class Resolver {
         return dependencyCache.containsKey(descriptor);
     }
 
-    public void addDependency(Descriptor descriptor, String idOfDependency) {
+    public TypeDescriptor addDependency(Descriptor descriptor, String idOfDependency) {
         if (!dependencyCache.containsKey(descriptor)) {
             dependencyCache.put(descriptor, new HashSet<>());
         }
+        TypeDescriptor dependency = null; // only create that object once, same caching mechanism as for anything else
         Set<String> dependencies = dependencyCache.get(descriptor);
         if (!dependencies.contains(idOfDependency)) { // only create the link once
             dependencies.add(idOfDependency);
-            TypeDescriptor dependency; // only create that object once, same caching mechanism as for anything else
             if (this.has(idOfDependency)) {
                 dependency = this.get(idOfDependency, TypeDescriptor.class);
             } else {
@@ -167,5 +167,6 @@ public class Resolver {
             //TypeDependsOnDescriptor link = store.create(descriptor, TypeDependsOnDescriptor.class, dependency); // FIXME
             //link.setWeight(0); // maybe something useful can happen with that?
         }
+        return dependency;
     }
 }

@@ -77,7 +77,6 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
      * @param possiblyDependencyOf the object that would have a dependency on it if it is an external or builtin type
      */
     private TypeDescriptor handleType(Object resolved, Descriptor possiblyDependencyOf) {
-        TypeDescriptor descriptor = null;
         if (resolved instanceof ResolvedArrayType) {
             // how array are currently handled in jqa-java-plugin: see SignatureHelper#getType(org.objectweb.asm.Type)
             // "case Type.ARRAY: return getType(t.getElementType());"
@@ -97,13 +96,13 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         // - e.g. for a ReflectionClassDeclaration, we DON'T, since it's a builtin class (treat it as a dependency)
         if (Utils.whichSolverWasUsed(resolved) == Utils.SolverType.JavaParserSolver) {
             if (resolved instanceof ResolvedClassDeclaration) {
-                descriptor = this.handleClass((ResolvedClassDeclaration) resolved);
+                return this.handleClass((ResolvedClassDeclaration) resolved);
             } else if (resolved instanceof ResolvedInterfaceDeclaration) {
-                descriptor = this.handleInterface((ResolvedInterfaceDeclaration) resolved);
+                return this.handleInterface((ResolvedInterfaceDeclaration) resolved);
             } else if (resolved instanceof ResolvedEnumDeclaration) {
-                descriptor = this.handleEnum((ResolvedEnumDeclaration) resolved);
+                return this.handleEnum((ResolvedEnumDeclaration) resolved);
             } else if (resolved instanceof ResolvedAnnotationDeclaration) {
-                descriptor = this.handleAnnotation((ResolvedAnnotationDeclaration) resolved);
+                return this.handleAnnotation((ResolvedAnnotationDeclaration) resolved);
             } else {
                 throw new RuntimeException("WARNING: Unexpected Resolvable: " + resolved);
             }
@@ -123,12 +122,13 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             // TODO: methods may have ambiguities, will need to use signature instead of FQN as ID for them!
             if (resolver.has(fullyQualifiedName)) {
                 //System.out.println("resolver has " + fullyQualifiedName);
+                return resolver.get(fullyQualifiedName, TypeDescriptor.class);
             } else if (possiblyDependencyOf != null) {
                 //System.out.println("will need to add TypeDescriptor (as dependency) Object for " + fullyQualifiedName);
-                resolver.addDependency(possiblyDependencyOf, fullyQualifiedName);
+                return resolver.addDependency(possiblyDependencyOf, fullyQualifiedName);
             }
         }
-        return descriptor;
+        return null; // should never end up here
     }
 
     /**
@@ -175,7 +175,6 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         }
         for (ResolvedMethodDeclaration m : resolvedClassLike.getDeclaredMethods()) {
             MethodDescriptor methodDescriptor = handleMethodLike(m);
-            System.out.println("handleMethodLike() was called: " + methodDescriptor.getSignature());
             //memberDescriptors.add(methodDescriptor); // caused redundancy when calling MethodDescriptor.getDeclaredMethods()!
             methodDescriptors.add(methodDescriptor);
 
@@ -224,8 +223,9 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             TypeDescriptor returnTypeDescriptor = this.handleType(((ResolvedMethodDeclaration) m).getReturnType(), methodDescriptor);
             methodDescriptor.setReturns(returnTypeDescriptor);
             // handle (specified) thrown exceptions (otherwise needs to be retrieved from body statements)
+            List<TypeDescriptor> declaredThrowables = methodDescriptor.getDeclaredThrowables();
             for (ResolvedType e : m.getSpecifiedExceptions()) {
-                System.out.println("TODO: resolve exception" + e);
+                declaredThrowables.add(this.handleType(e, methodDescriptor));
             }
         }
         // some information we can only get from JavaParserMethodDeclaration.wrappedNode (MethodDeclaration)
