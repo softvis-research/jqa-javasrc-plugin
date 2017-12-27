@@ -38,6 +38,7 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
+    @Ignore
     public void scanMethodCalls() {
         scanFileHelper("src/test/java/samples3/MethodCallExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -71,6 +72,7 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
+    @Ignore
     public void scanThrowingMethod() {
         scanFileHelper("src/test/java/samples3/ThrowsExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -100,6 +102,7 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
+    @Ignore
     public void scanEnumExample() {
         scanFileHelper("src/test/java/samples3/EnumExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -114,6 +117,16 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
                     }
                     ;
                 });
+            });
+        });
+    }
+
+    @Test
+    public void scanAnnotationExample() {
+        scanFileHelper("src/test/java/samples3/AnnotationExample.java", (fileDescriptor) -> {
+            fileDescriptor.getTypes().forEach((type) -> {
+                assert (type instanceof ClassTypeDescriptor);
+                ClassTypeDescriptor classDescriptor = (ClassTypeDescriptor) type;
             });
         });
     }

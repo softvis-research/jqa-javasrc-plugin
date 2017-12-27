@@ -19,10 +19,7 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.*;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserConstructorDeclaration;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserFieldDeclaration;
-import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.*;
 import org.unileipzig.jqassistant.plugin.parser.api.model.*;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
 
@@ -155,7 +152,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         //List<MemberDescriptor> memberDescriptors = classLikeDescriptor.getDeclaredMembers();
         List<MethodDescriptor> methodDescriptors = classLikeDescriptor.getDeclaredMethods();
         List<FieldDescriptor> fieldDescriptors = classLikeDescriptor.getDeclaredFields();
-        if (!(resolvedClassLike instanceof ResolvedEnumDeclaration)) { // can't call getDeclaredFields() for enum!!
+        if (!(resolvedClassLike instanceof ResolvedEnumDeclaration) // can't call getDeclaredFields() for enum- and annotation-declarations!
+            && !(resolvedClassLike instanceof ResolvedAnnotationDeclaration)) {
             for (ResolvedFieldDeclaration f : resolvedClassLike.getDeclaredFields()) {
                 String qualifiedFieldName = Utils.fullyQualifiedFieldName(f);
                 FieldDescriptor fieldDescriptor = resolver.create(qualifiedFieldName, FieldDescriptor.class);
@@ -175,16 +173,38 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 //System.out.println("Resolved FieldDeclaration: " + qualifiedFieldName + " type: " + f.getType());
             }
         }
-        for (ResolvedMethodDeclaration m : resolvedClassLike.getDeclaredMethods()) {
-            MethodDescriptor methodDescriptor = handleMethodLike(m);
-            //memberDescriptors.add(methodDescriptor); // caused redundancy when calling MethodDescriptor.getDeclaredMethods()!
-            methodDescriptors.add(methodDescriptor);
+        if (!(resolvedClassLike instanceof ResolvedAnnotationDeclaration)) { // getDeclaredMethods() for annotation-declarations throws UnsupportedOperationException
+            for (ResolvedMethodDeclaration m : resolvedClassLike.getDeclaredMethods()) {
+                MethodDescriptor methodDescriptor = handleMethodLike(m);
+                //memberDescriptors.add(methodDescriptor); // caused redundancy when calling MethodDescriptor.getDeclaredMethods()!
+                methodDescriptors.add(methodDescriptor);
 
+            }
         }
+
         // get inner classes
         Set<TypeDescriptor> innerClassDescriptors = classLikeDescriptor.getDeclaredInnerClasses();
-        for (ResolvedReferenceTypeDeclaration internalType : resolvedClassLike.internalTypes()) {
-            innerClassDescriptors.add(this.handleType(internalType, classLikeDescriptor));
+        if (!(resolvedClassLike instanceof ResolvedAnnotationDeclaration)) { // internalTypes() for annotation-declarations throws UnsupportedOperationException
+            for (ResolvedReferenceTypeDeclaration internalType : resolvedClassLike.internalTypes()) {
+                innerClassDescriptors.add(this.handleType(internalType, classLikeDescriptor));
+            }
+        }
+        // get annotations
+        BodyDeclaration wrapped = null;
+        if (resolvedClassLike instanceof JavaParserClassDeclaration) {
+            wrapped = ((JavaParserClassDeclaration) resolvedClassLike).getWrappedNode();
+        } else if (resolvedClassLike instanceof JavaParserEnumDeclaration) {
+            wrapped = ((JavaParserEnumDeclaration) resolvedClassLike).getWrappedNode();
+        } else if (resolvedClassLike instanceof JavaParserInterfaceDeclaration) {
+            wrapped = ((JavaParserInterfaceDeclaration) resolvedClassLike).getWrappedNode();
+        }
+        /*else if (resolvedClassLike instanceof JavaParserAnnotationDeclaration) {  // has no getWrappedNode()!
+            //wrapped = ((JavaParserAnnotationDeclaration) resolvedClassLike).getWrappedNode();
+        }*/
+        if (wrapped != null) {
+            for (Object aE : wrapped.getAnnotations()) {
+                System.out.println("annotation: " + aE);
+            }
         }
         return classLikeDescriptor;
     }
