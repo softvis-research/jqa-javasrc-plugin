@@ -1,7 +1,7 @@
 package org.unileipzig.jqassistant.plugin.parser.test;
 
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
-import org.junit.Ignore;
+import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import org.junit.Test;
 import org.unileipzig.jqassistant.plugin.parser.api.model.*;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
@@ -27,7 +27,6 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
-    @Ignore
     public void scanConstructors() {
         scanFileHelper("src/test/java/samples3/ConstructorExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -38,7 +37,6 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
-    @Ignore
     public void scanMethodCalls() {
         scanFileHelper("src/test/java/samples3/MethodCallExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -66,13 +64,11 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
                         throw new RuntimeException("...");
                     }
                 }
-                ;
             });
         });
     }
 
     @Test
-    @Ignore
     public void scanThrowingMethod() {
         scanFileHelper("src/test/java/samples3/ThrowsExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -102,7 +98,6 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
-    @Ignore
     public void scanEnumExample() {
         scanFileHelper("src/test/java/samples3/EnumExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -115,7 +110,6 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
                     } else {
                         assertTrue(field.getValue().getValue() == ((Object) 2));
                     }
-                    ;
                 });
             });
         });
@@ -127,6 +121,65 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
             fileDescriptor.getTypes().forEach((type) -> {
                 assert (type instanceof ClassTypeDescriptor);
                 ClassTypeDescriptor classDescriptor = (ClassTypeDescriptor) type;
+                Set<String> expectedFirstAnnotationArgumentNames = new HashSet<>();
+                expectedFirstAnnotationArgumentNames.add("value2");
+                expectedFirstAnnotationArgumentNames.add("option1");
+                expectedFirstAnnotationArgumentNames.add("option2");
+                classDescriptor.getAnnotatedBy().forEach((classAnnotation) -> {
+                    assertEquals("AnnotationExample.MultiValueAnnotation", classAnnotation.getName());
+                    for (ValueDescriptor<?> valueDescriptor : classAnnotation.getValue()) {
+                        assertTrue(expectedFirstAnnotationArgumentNames.contains(valueDescriptor.getName()));
+                        //System.out.println(valueDescriptor.getName());
+                    }
+                });
+                for (Object o : type.getDeclaredMethods()) {
+                    if (o instanceof MethodDescriptor) {
+                        MethodDescriptor method = (MethodDescriptor) o;
+                        method.getAnnotatedBy().forEach((methodAnnotation) -> {
+                            String n = methodAnnotation.getName();
+                            assertTrue(n.equals("Deprecated") || n.equals("SingleValueAnnotation"));
+                        });
+                        method.getParameters().forEach((parameter) -> {
+                            parameter.getAnnotatedBy().forEach((parameterAnnotation) -> {
+                                assertEquals("SingleValueAnnotation", parameterAnnotation.getName());
+                            });
+                        });
+                    }
+                }
+                for (Object o : type.getDeclaredInnerClasses()) {
+                    if (o instanceof TypeDescriptor) {
+                        assertTrue(o instanceof AnnotationTypeDescriptor);
+                        AnnotationTypeDescriptor t = (AnnotationTypeDescriptor) o;
+                        String n = t.getName();
+                        assertTrue(n.equals("SingleValueAnnotation") || n.equals("MultiValueAnnotation"));
+                        for (Object oo : t.getDeclaredMethods()) {
+                            if (oo instanceof MethodDescriptor) {
+                                MethodDescriptor method = (MethodDescriptor) oo;
+                                switch (method.getName()) {
+                                    case "value":
+                                        assertEquals("java.lang.String", method.getReturns().getFullQualifiedName());
+                                        break;
+                                    case "value1":
+                                        assertEquals("java.lang.Integer", method.getReturns().getFullQualifiedName());
+                                        assertEquals("1", method.getHasDefault().getValue().toString());
+                                        break;
+                                    case "value2":
+                                        assertEquals("java.lang.Integer", method.getReturns().getFullQualifiedName());
+                                        break;
+                                    case "option1":
+                                        assertEquals("java.lang.Boolean", method.getReturns().getFullQualifiedName());
+                                        assertEquals("true", method.getHasDefault().getValue().toString());
+                                        break;
+                                    case "option2":
+                                        assertEquals("java.lang.Boolean", method.getReturns().getFullQualifiedName());
+                                        break;
+                                    default:
+                                        throw new RuntimeException("Unexpected Annotation Member: " + method.getName());
+                                }
+                            }
+                        }
+                    }
+                }
             });
         });
     }

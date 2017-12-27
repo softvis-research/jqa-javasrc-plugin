@@ -7,14 +7,16 @@ import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.core.store.api.Store;
 import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
+import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.*;
@@ -25,6 +27,7 @@ import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -169,6 +172,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                     FieldDeclaration fD = ((JavaParserFieldDeclaration) f).getWrappedNode();
                     fieldDescriptor.setTransient(fD.isTransient());
                     fieldDescriptor.setFinal(fD.isFinal());
+                    // handle annotations
+                    handleAnnotations(fD.getAnnotations(), fieldDescriptor);
                 }
                 //System.out.println("Resolved FieldDeclaration: " + qualifiedFieldName + " type: " + f.getType());
             }
@@ -190,22 +195,18 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             }
         }
         // get annotations
-        BodyDeclaration wrapped = null;
+        NodeList<AnnotationExpr> annotations = new NodeList<>();
         if (resolvedClassLike instanceof JavaParserClassDeclaration) {
-            wrapped = ((JavaParserClassDeclaration) resolvedClassLike).getWrappedNode();
+            annotations = ((JavaParserClassDeclaration) resolvedClassLike).getWrappedNode().getAnnotations();
         } else if (resolvedClassLike instanceof JavaParserEnumDeclaration) {
-            wrapped = ((JavaParserEnumDeclaration) resolvedClassLike).getWrappedNode();
+            annotations = ((JavaParserEnumDeclaration) resolvedClassLike).getWrappedNode().getAnnotations();
         } else if (resolvedClassLike instanceof JavaParserInterfaceDeclaration) {
-            wrapped = ((JavaParserInterfaceDeclaration) resolvedClassLike).getWrappedNode();
+            annotations = ((JavaParserInterfaceDeclaration) resolvedClassLike).getWrappedNode().getAnnotations();
         }
         /*else if (resolvedClassLike instanceof JavaParserAnnotationDeclaration) {  // has no getWrappedNode()!
             //wrapped = ((JavaParserAnnotationDeclaration) resolvedClassLike).getWrappedNode();
         }*/
-        if (wrapped != null) {
-            for (Object aE : wrapped.getAnnotations()) {
-                System.out.println("annotation: " + aE);
-            }
-        }
+        handleAnnotations(annotations, classLikeDescriptor);
         return classLikeDescriptor;
     }
 
@@ -234,6 +235,11 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             parameterDescriptor.setIndex(i);
             TypeDescriptor parameterTypeDescriptor = this.handleType(p.getType(), parameterDescriptor);
             parameterDescriptor.setType(parameterTypeDescriptor);
+            // handle annotations for parameter
+            if (p instanceof JavaParserParameterDeclaration) {
+                Parameter parameter = ((JavaParserParameterDeclaration) p).getWrappedNode();
+                handleAnnotations(parameter.getAnnotations(), parameterDescriptor);
+            }
             // name seems to (currently!) not be relevant for ParameterDescriptor
             // interesting: hasVariadicParameter ...  seems also currently not to be relevant
             parameterDescriptors.add(parameterDescriptor);
@@ -266,6 +272,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                         break;
                 }
             }
+            // handle annotations
+            handleAnnotations(mD.getAnnotations(), methodDescriptor);
             // handle body statements
             mD.getBody().ifPresent((body) -> this.handleBody(body, methodDescriptor));
         } else if (m instanceof JavaParserConstructorDeclaration) {
@@ -328,6 +336,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
      * Create ClassTypeDescriptor (XO) from ResolvedClassDeclaration (JavaParser)
      */
     private ClassTypeDescriptor handleClass(ResolvedClassDeclaration resolvedClass) {
+        String qualifiedName = resolvedClass.getQualifiedName();
+        if (resolver.has(qualifiedName)) return resolver.get(qualifiedName, ClassTypeDescriptor.class);
         ClassTypeDescriptor classDescriptor = (ClassTypeDescriptor) handleClassLike(resolvedClass, ClassTypeDescriptor.class);
         // get superclasses / implemented interfaces
         TypeDescriptor superClassDescriptor = this.handleType(resolvedClass.getSuperClass(), classDescriptor);
@@ -358,13 +368,15 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
      * Create EnumTypeDescriptor (XO) from ResolvedEnumDeclaration (JavaParser)
      */
     private EnumTypeDescriptor handleEnum(ResolvedEnumDeclaration resolvedEnum) {
+        String qualifiedName = resolvedEnum.getQualifiedName();
+        if (resolver.has(qualifiedName)) return resolver.get(qualifiedName, EnumTypeDescriptor.class);
         EnumTypeDescriptor enumDescriptor = (EnumTypeDescriptor) handleClassLike(resolvedEnum, EnumTypeDescriptor.class);
         int i = 0;
         for (ResolvedEnumConstantDeclaration enumConstant : resolvedEnum.getEnumConstants()) {
             // JavaParser throws NullPointerException when calling getDeclaredFields() -> need to translate enum constants to Fields manually
             String name = enumConstant.getName();
-            String qualifiedName = enumDescriptor.getFullQualifiedName() + "." + name;
-            FieldDescriptor fieldDescriptor = resolver.create(qualifiedName, FieldDescriptor.class);
+            String qualifiedFieldName = enumDescriptor.getFullQualifiedName() + "." + name;
+            FieldDescriptor fieldDescriptor = resolver.create(qualifiedFieldName, FieldDescriptor.class);
             PrimitiveValueDescriptor primitiveValueDescriptor = store.create(PrimitiveValueDescriptor.class);
             EnumValueDescriptor valueDescriptor = store.create(EnumValueDescriptor.class);
             primitiveValueDescriptor.setValue(++i); // NOT SURE ABOUT THAT...
@@ -382,6 +394,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
      * Create InterfaceTypeDescriptor (XO) from ResolvedInterfaceDeclaration (JavaParser)
      */
     private InterfaceTypeDescriptor handleInterface(ResolvedInterfaceDeclaration resolvedInterface) {
+        String qualifiedName = resolvedInterface.getQualifiedName();
+        if (resolver.has(qualifiedName)) return resolver.get(qualifiedName, InterfaceTypeDescriptor.class);
         InterfaceTypeDescriptor interfaceDescriptor = (InterfaceTypeDescriptor) handleClassLike(resolvedInterface, InterfaceTypeDescriptor.class);
         List<TypeDescriptor> interfaces = interfaceDescriptor.getInterfaces();
         for (ResolvedReferenceType extendedInterfaceType : resolvedInterface.getInterfacesExtended()) {
@@ -396,9 +410,68 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
      */
     private AnnotationTypeDescriptor handleAnnotation(ResolvedAnnotationDeclaration resolvedAnnotation) {
         // what resolvedAnnotation.getAnnotationMembers() does is wrappedNode.getMembers()...filter()...
-        // --> thus it should be already handled in handleClassLike()
-        /*AnnotationTypeDescriptor annotationDescriptor = (AnnotationTypeDescriptor) handleClassLike(resolvedAnnotation, AnnotationTypeDescriptor.class);
-        for (ResolvedAnnotationMemberDeclaration annotationMember : resolvedAnnotation.getAnnotationMembers()) {}*/
-        return (AnnotationTypeDescriptor) handleClassLike(resolvedAnnotation, AnnotationTypeDescriptor.class);
+        // in handleClassLike(), getDeclaredMethods() and getDeclaredFields() throw UnsupportedOperationException for ResolvedAnnotationDeclaration!!
+        String qualifiedName = resolvedAnnotation.getQualifiedName();
+        if (resolver.has(qualifiedName)) return resolver.get(qualifiedName, AnnotationTypeDescriptor.class);
+        AnnotationTypeDescriptor annotationDescriptor = (AnnotationTypeDescriptor) handleClassLike(resolvedAnnotation, AnnotationTypeDescriptor.class);
+        List<MethodDescriptor> declaredMethods = annotationDescriptor.getDeclaredMethods();
+        for (ResolvedAnnotationMemberDeclaration m : resolvedAnnotation.getAnnotationMembers()) {
+            MethodDescriptor methodDescriptor = store.create(MethodDescriptor.class);
+            methodDescriptor.setName(m.getName());
+            methodDescriptor.setSignature(m.getName() + "()");
+            // other than getName(), most methods of ResolvedAnnotationMemberDeclaration throw UnsupportedOperationException, thus operate on wrapped node
+            assert (m instanceof JavaParserAnnotationMemberDeclaration);
+            JavaParserAnnotationMemberDeclaration annotationMemberWrapping = (JavaParserAnnotationMemberDeclaration) m;
+            AnnotationMemberDeclaration annotationMember = annotationMemberWrapping.getWrappedNode();
+            annotationMember.getDefaultValue().ifPresent((defaultValue) -> {
+                PrimitiveValueDescriptor primitiveValueDescriptor = store.create(PrimitiveValueDescriptor.class);
+                primitiveValueDescriptor.setName(m.getName());
+                primitiveValueDescriptor.setValue(defaultValue.toString());
+                methodDescriptor.setHasDefault(primitiveValueDescriptor);
+            });
+            TypeDescriptor memberType = this.handleType(annotationMember.getType().resolve(), annotationDescriptor);
+            methodDescriptor.setReturns(memberType);
+            //System.out.println("add " + methodDescriptor.getSignature() + " to " + annotationDescriptor.getName());
+            declaredMethods.add(methodDescriptor);
+        }
+        return annotationDescriptor;
+    }
+
+    /**
+     * fill AnnotatedDescriptor's (XO) annotationDescriptors from lists of AnnotationExpr
+     * Problem: "a" + "b" is actually a BinaryExpr -> no way to store that with current Descriptor classes!
+     * ---> there are not many alternative variants of ValueDescriptor, more would need to be added
+     * ----> for now, everything is stored as PrimitiveValueDescriptor with the toString() representation used as value
+     */
+    private void handleAnnotations(NodeList<AnnotationExpr> annotationExpressions, AnnotatedDescriptor descriptor) {
+        List<AnnotationValueDescriptor> annotationDescriptors = descriptor.getAnnotatedBy();
+        for (AnnotationExpr annotationExpr : annotationExpressions) {
+            TypeDescriptor annotationType = this.handleType(resolver.resolve(annotationExpr), descriptor);
+            AnnotationValueDescriptor annotationValueDescriptor = store.create(AnnotationValueDescriptor.class);
+            List<ValueDescriptor<?>> values = new LinkedList<>();
+            if (annotationExpr instanceof SingleMemberAnnotationExpr) {
+                SingleMemberAnnotationExpr singleMemberAnnotationExpr = (SingleMemberAnnotationExpr) annotationExpr;
+                singleMemberAnnotationExpr.getName();
+                Expression v = singleMemberAnnotationExpr.getMemberValue();
+                PrimitiveValueDescriptor primitiveValueDescriptor = store.create(PrimitiveValueDescriptor.class);
+                primitiveValueDescriptor.setName("value"); // always "value" for SingleMemberAnnotationExpr
+                primitiveValueDescriptor.setValue(v.toString());
+                values.add(primitiveValueDescriptor);
+                //System.out.println("single member annotation: " + v.toString() + " // " + v.getClass().getName());
+            } else if (annotationExpr instanceof NormalAnnotationExpr) {
+                for (MemberValuePair pair : ((NormalAnnotationExpr) annotationExpr).getPairs()) {
+                    PrimitiveValueDescriptor primitiveValueDescriptor = store.create(PrimitiveValueDescriptor.class);
+                    primitiveValueDescriptor.setName(pair.getName().toString());
+                    primitiveValueDescriptor.setValue(pair.getValue().toString());
+                    values.add(primitiveValueDescriptor);
+                    //System.out.println("expression value pair: " + pair.getName() + "->" + pair.getValue());
+                }
+            }
+            annotationValueDescriptor.setName(annotationExpr.getNameAsString());
+            annotationValueDescriptor.setType(annotationType);
+            annotationValueDescriptor.setValue(values);
+            annotationDescriptors.add(annotationValueDescriptor);
+            //System.out.println(annotationExpr);
+        }
     }
 }

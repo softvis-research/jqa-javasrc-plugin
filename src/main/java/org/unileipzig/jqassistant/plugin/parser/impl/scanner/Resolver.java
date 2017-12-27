@@ -5,15 +5,19 @@ import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.resolution.MethodUsage;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.declarations.ResolvedDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.core.resolution.Context;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFactory;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
@@ -93,6 +97,13 @@ public class Resolver {
         //try { return methodCallExpr.resolveInvokedMethod(); // this always fails!
         MethodUsage methodUsage = JavaParserFacade.get(typeSolver).solveMethodAsUsage(methodCallExpr);
         return methodUsage.getDeclaration();
+    }
+
+    public ResolvedTypeDeclaration resolve(AnnotationExpr annotationExpr) {
+        // bug in com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade.solve(com.github.javaparser.ast.expr.AnnotationExpr):
+        //return JavaParserFacade.get(typeSolver).solve(annotationExpr).getCorrespondingDeclaration(); // fails for builtin annotations, e.g. @Debug!
+        Context context = JavaParserFactory.getContext(annotationExpr, this.typeSolver);
+        return context.solveType(annotationExpr.getNameAsString(), this.typeSolver).getCorrespondingDeclaration();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
