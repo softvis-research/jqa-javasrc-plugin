@@ -2,7 +2,6 @@ package org.unileipzig.jqassistant.plugin.parser.test;
 
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.unileipzig.jqassistant.plugin.parser.api.model.*;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
@@ -42,7 +41,6 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
-    @Ignore
     public void scanConstructors() {
         scanFileHelper("src/test/java/samples3/ConstructorExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -53,7 +51,6 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
-    @Ignore
     public void scanMethodCalls() {
         scanFileHelper("src/test/java/samples3/MethodCallExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -86,7 +83,6 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
-    @Ignore
     public void scanThrowingMethod() {
         scanFileHelper("src/test/java/samples3/ThrowsExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -116,7 +112,6 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
-    @Ignore
     public void scanEnumExample() {
         scanFileHelper("src/test/java/samples3/EnumExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -135,7 +130,6 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     }
 
     @Test
-    @Ignore
     public void scanAnnotationExample() {
         scanFileHelper("src/test/java/samples3/AnnotationExample.java", (fileDescriptor) -> {
             fileDescriptor.getTypes().forEach((type) -> {
@@ -218,7 +212,12 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
     @Test
     public void scanFieldAccessExample() {
         scanFileHelper("src/test/java/samples3/FieldAccessExample.java", "methodAccessingFields", (method) -> {
-
+            assertEquals("methodAccessingFields", method.getName());
+            method.getWrites().forEach((writesDescriptor -> {
+                String fieldName = writesDescriptor.getField().getName();
+                assertTrue(fieldName.equals("a") || fieldName.equals("b"));
+                assertTrue(writesDescriptor.getLineNumber() > 0);
+            }));
         });
     }
 }

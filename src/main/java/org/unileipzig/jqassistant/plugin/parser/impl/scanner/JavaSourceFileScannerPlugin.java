@@ -160,24 +160,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         if (!(resolvedClassLike instanceof ResolvedEnumDeclaration) // can't call getDeclaredFields() for enum- and annotation-declarations!
             && !(resolvedClassLike instanceof ResolvedAnnotationDeclaration)) {
             for (ResolvedFieldDeclaration f : resolvedClassLike.getDeclaredFields()) {
-                String qualifiedFieldName = Utils.fullyQualifiedFieldName(f);
-                FieldDescriptor fieldDescriptor = resolver.create(qualifiedFieldName, FieldDescriptor.class);
+                FieldDescriptor fieldDescriptor = handleField(f);
                 fieldDescriptors.add(fieldDescriptor);
-                //memberDescriptors.add(fieldDescriptor);
-                TypeDescriptor fieldTypeDescriptor = this.handleType(f.getType(), fieldDescriptor);
-                fieldDescriptor.setType(fieldTypeDescriptor);
-                fieldDescriptor.setVisibility(Utils.modifierToString(f.accessSpecifier()));
-                fieldDescriptor.setStatic(f.isStatic());
-                // some information we can only get from JavaParserFieldDeclaration.wrappedNode (FieldDeclaration)
-                if (f instanceof JavaParserFieldDeclaration) {
-                    //fieldDescriptor.setSynthetic();//?fieldDescriptor.setSignature();//?
-                    FieldDeclaration fD = ((JavaParserFieldDeclaration) f).getWrappedNode();
-                    fieldDescriptor.setTransient(fD.isTransient());
-                    fieldDescriptor.setFinal(fD.isFinal());
-                    // handle annotations
-                    handleAnnotations(fD.getAnnotations(), fieldDescriptor);
-                }
-                //System.out.println("Resolved FieldDeclaration: " + qualifiedFieldName + " type: " + f.getType());
             }
         }
         if (!(resolvedClassLike instanceof ResolvedAnnotationDeclaration)) { // getDeclaredMethods() for annotation-declarations throws UnsupportedOperationException
@@ -210,6 +194,29 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         }*/
         handleAnnotations(annotations, classLikeDescriptor);
         return classLikeDescriptor;
+    }
+
+    private FieldDescriptor handleField(ResolvedFieldDeclaration f) {
+        String qualifiedFieldName = Utils.fullyQualifiedFieldName(f);
+        if (resolver.has(qualifiedFieldName)) return resolver.get(qualifiedFieldName, FieldDescriptor.class);
+        FieldDescriptor fieldDescriptor = resolver.create(qualifiedFieldName, FieldDescriptor.class);
+        TypeDescriptor fieldTypeDescriptor = this.handleType(f.getType(), fieldDescriptor);
+        fieldDescriptor.setName(f.getName());
+        fieldDescriptor.setSignature(qualifiedFieldName); // not sure about that!
+        fieldDescriptor.setType(fieldTypeDescriptor);
+        fieldDescriptor.setVisibility(Utils.modifierToString(f.accessSpecifier()));
+        fieldDescriptor.setStatic(f.isStatic());
+        // some information we can only get from JavaParserFieldDeclaration.wrappedNode (FieldDeclaration)
+        if (f instanceof JavaParserFieldDeclaration) {
+            //fieldDescriptor.setSynthetic(); ??
+            FieldDeclaration fD = ((JavaParserFieldDeclaration) f).getWrappedNode();
+            fieldDescriptor.setTransient(fD.isTransient());
+            fieldDescriptor.setFinal(fD.isFinal());
+            // handle annotations
+            handleAnnotations(fD.getAnnotations(), fieldDescriptor);
+        }
+        //System.out.println("Resolved FieldDeclaration: " + qualifiedFieldName + " type: " + f.getType());
+        return fieldDescriptor;
     }
 
     /**
@@ -312,16 +319,26 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             @Override // written fields
             public void visit(AssignExpr assignExpr, Void arg) {
                 JavaParserFacade jp = JavaParserFacade.get(resolver.typeSolver);
-                Expression target = assignExpr.getTarget(), value = assignExpr.getValue();
+                Expression target = assignExpr.getTarget(); // value = assignExpr.getValue();
+                FieldDescriptor fieldDescriptor = null; // stays null if not an actual field (e.g. local variable)
                 if (target instanceof FieldAccessExpr) {
                     SymbolReference<ResolvedFieldDeclaration> s = Issue300.solve((FieldAccessExpr) target, jp);
-                    ResolvedFieldDeclaration fieldDeclaration = s.getCorrespondingDeclaration();
-                    System.out.println("Resolved Field access: " + target + " -- " + fieldDeclaration);
+                    fieldDescriptor = handleField(s.getCorrespondingDeclaration());
+
                 } else {
                     assert (target instanceof NameExpr);
                     SymbolReference<? extends ResolvedValueDeclaration> s = jp.solve(target);
                     ResolvedValueDeclaration valueDeclaration = s.getCorrespondingDeclaration();
-                    System.out.println("Resolved NameExpr: " + target + " -- " + valueDeclaration);
+                    if (valueDeclaration instanceof ResolvedFieldDeclaration) {
+                        fieldDescriptor = handleField((ResolvedFieldDeclaration) valueDeclaration);
+                    } // else...
+                }
+                if (fieldDescriptor != null) { // null for local variables
+                    // see com.buschmais.jqassistant.plugin.java.impl.scanner.visitor.VisitorHelper#addWrites
+                    WritesDescriptor writesDescriptor = store.create(ofMethod, WritesDescriptor.class, fieldDescriptor);
+                    assignExpr.getBegin().ifPresent((pos) -> {
+                        writesDescriptor.setLineNumber(pos.line);
+                    });
                 }
                 super.visit(assignExpr, arg);
             }
