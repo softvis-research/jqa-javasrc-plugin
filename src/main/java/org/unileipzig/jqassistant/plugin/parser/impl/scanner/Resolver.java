@@ -22,6 +22,7 @@ import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import org.unileipzig.jqassistant.plugin.parser.api.model.MethodDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor;
 
 import java.io.File;
@@ -168,6 +169,29 @@ public class Resolver {
             } else {
                 dependency = this.create(idOfDependency, TypeDescriptor.class);
                 dependency.setFullQualifiedName(idOfDependency);
+                String[] split = idOfDependency.split("\\.");
+                dependency.setName(split[split.length - 1]);
+            }
+            //System.out.println("TODO: link " + descriptor + " to " + dependency + " via " + TypeDependsOnDescriptor.class.getSimpleName());
+            //TypeDependsOnDescriptor link = store.create(descriptor, TypeDependsOnDescriptor.class, dependency); // FIXME
+            //link.setWeight(0); // maybe something useful can happen with that?
+        }
+        return dependency;
+    }
+
+    public MethodDescriptor addMethodDependency(Descriptor descriptor, String idOfDependency) {
+        if (!dependencyCache.containsKey(descriptor)) {
+            dependencyCache.put(descriptor, new HashSet<>());
+        }
+        MethodDescriptor dependency = null; // only create that object once, same caching mechanism as for anything else
+        Set<String> dependencies = dependencyCache.get(descriptor);
+        if (!dependencies.contains(idOfDependency)) { // only create the link once
+            dependencies.add(idOfDependency);
+            if (this.has(idOfDependency)) {
+                dependency = this.get(idOfDependency, MethodDescriptor.class);
+            } else {
+                dependency = this.create(idOfDependency, MethodDescriptor.class);
+                dependency.setSignature(idOfDependency);
                 String[] split = idOfDependency.split("\\.");
                 dependency.setName(split[split.length - 1]);
             }

@@ -183,4 +183,23 @@ public class JavaSourceFileScannerIT extends com.buschmais.jqassistant.plugin.co
             });
         });
     }
+
+    @Test
+    public void scanVariableExample() {
+        scanFileHelper("src/test/java/samples3/VariableExample.java", (fileDescriptor) -> {
+            fileDescriptor.getTypes().forEach((type) -> {
+                for (Object o : type.getDeclaredMethods()) {
+                    if (o instanceof MethodDescriptor) {
+                        MethodDescriptor method = (MethodDescriptor) o;
+                        if (method.getName().equals("VariableExample")) continue; // ignore default constructor
+                        assertTrue(method.getVariables().size() == 2);
+                        method.getVariables().forEach((v) -> {
+                            assertTrue(v.getName().equals("i") || v.getName().equals("j"));
+                            assertEquals("java.lang.Integer", v.getType().getFullQualifiedName());
+                        });
+                    }
+                }
+            });
+        });
+    }
 }

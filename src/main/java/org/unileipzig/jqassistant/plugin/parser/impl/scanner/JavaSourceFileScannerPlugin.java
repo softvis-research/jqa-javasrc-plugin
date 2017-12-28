@@ -22,6 +22,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.*;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.*;
+import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionMethodDeclaration;
 import org.unileipzig.jqassistant.plugin.parser.api.model.*;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
 
@@ -118,8 +119,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             } else {
                 throw new RuntimeException("WARNING: Unexpected Resolvable: " + resolved.getClass());
             }
-            // HANDLE DEPENDENCIES -> THUS NEED TO KNOW WHICH IS THE THING THAT DEPENDS ON THIS (+1 PARAMETER)
-            // TODO: methods may have ambiguities, will need to use signature instead of FQN as ID for them!
+            // HANDLE DEPENDENCIES
             if (resolver.has(fullyQualifiedName)) {
                 //System.out.println("resolver has " + fullyQualifiedName);
                 return resolver.get(fullyQualifiedName, TypeDescriptor.class);
@@ -180,7 +180,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         }
         if (!(resolvedClassLike instanceof ResolvedAnnotationDeclaration)) { // getDeclaredMethods() for annotation-declarations throws UnsupportedOperationException
             for (ResolvedMethodDeclaration m : resolvedClassLike.getDeclaredMethods()) {
-                MethodDescriptor methodDescriptor = handleMethodLike(m);
+                MethodDescriptor methodDescriptor = handleMethod(m, classLikeDescriptor);
                 //memberDescriptors.add(methodDescriptor); // caused redundancy when calling MethodDescriptor.getDeclaredMethods()!
                 methodDescriptors.add(methodDescriptor);
 
@@ -212,8 +212,11 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
 
     /**
      * Create either MethodDescriptor or ConstructorDescriptor (XO) from ResolvedMethodLikeDeclaration (JavaParser)
+     *
+     * @param m                    must be ResolvedMethodLikeDeclaration
+     * @param possiblyDependencyOf the object that would have a dependency on it if it is an external or builtin type
      */
-    private MethodDescriptor handleMethodLike(ResolvedMethodLikeDeclaration m) {
+    private MethodDescriptor handleMethod(ResolvedMethodLikeDeclaration m, Descriptor possiblyDependencyOf) {
         String qualifiedSignature = m.getQualifiedSignature();
         MethodDescriptor methodDescriptor;
         if (m instanceof ResolvedMethodDeclaration) {
@@ -280,6 +283,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             ConstructorDeclaration cD = ((JavaParserConstructorDeclaration) m).getWrappedNode();
             // handle body statements for constructor (in this case not behind Optional<>)
             this.handleBody(cD.getBody(), methodDescriptor);
+        } else if (m instanceof ReflectionMethodDeclaration) {
+            return resolver.addMethodDependency(possiblyDependencyOf, qualifiedSignature);
         } else {
             assert (m instanceof ResolvedConstructorDeclaration); // actually Default Constructor (not explicitly defined)
         }
@@ -317,7 +322,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             public void visit(MethodCallExpr methodCallExpr, Void arg) {
                 ResolvedMethodDeclaration resolvedMethodDeclaration = resolver.resolve(methodCallExpr);
                 //System.out.println("resolvedMethodDeclaration: " + resolvedMethodDeclaration+ "--->"+resolvedMethodDeclaration.getClass());
-                MethodDescriptor calledMethodDescriptor = handleMethodLike(resolvedMethodDeclaration);
+                MethodDescriptor calledMethodDescriptor = handleMethod(resolvedMethodDeclaration, ofMethod);
                 InvokesDescriptor invokesDescriptor = resolver.store.create(ofMethod, InvokesDescriptor.class, calledMethodDescriptor);
                 methodCallExpr.getBegin().ifPresent((pos) -> invokesDescriptor.setLineNumber(pos.line));
                 super.visit(methodCallExpr, arg);
@@ -328,6 +333,18 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
                 TypeDescriptor typeDescriptor = handleType(classDeclaration, ofMethod);
                 ofMethod.getDeclaredInnerClasses().add(typeDescriptor);
                 super.visit(classDeclaration, arg);
+            }
+
+            @Override // declared variables
+            public void visit(VariableDeclarationExpr variableDeclarationExpr, Void arg) {
+                for (VariableDeclarator v : variableDeclarationExpr.getVariables()) {
+                    VariableDescriptor variableDescriptor = store.create(VariableDescriptor.class);
+                    variableDescriptor.setName(v.getNameAsString());
+                    variableDescriptor.setType(handleType(v.getType().resolve(), ofMethod));
+                    //variableDescriptor.setSignature(); // ?????
+                    ofMethod.getVariables().add(variableDescriptor);
+                }
+                super.visit(variableDeclarationExpr, arg);
             }
         }, null);
     }
@@ -357,7 +374,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         //List<MemberDescriptor> memberDescriptors = classDescriptor.getDeclaredMembers(); // is it a member??
         List<MethodDescriptor> methodDescriptors = classDescriptor.getDeclaredMethods();
         for (ResolvedConstructorDeclaration constructorDeclaration : resolvedClass.getConstructors()) {
-            MethodDescriptor methodDescriptor = handleMethodLike(constructorDeclaration);
+            MethodDescriptor methodDescriptor = handleMethod(constructorDeclaration, classDescriptor);
             //memberDescriptors.add(methodDescriptor); // is it a member??
             methodDescriptors.add(methodDescriptor);
         }
