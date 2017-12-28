@@ -21,7 +21,9 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.*;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.*;
+import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionMethodDeclaration;
 import org.unileipzig.jqassistant.plugin.parser.api.model.*;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
@@ -307,17 +309,23 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
      */
     private void handleBody(BlockStmt body, MethodDescriptor ofMethod) {
         body.accept(new VoidVisitorAdapter<Void>() {
-            /*@Override // written fields
+            @Override // written fields
             public void visit(AssignExpr assignExpr, Void arg) {
-                // see https://github.com/javaparser/javasymbolsolver/issues/300
-                // probably best to wait for that pull request? https://github.com/javaparser/javasymbolsolver/pull/357
+                JavaParserFacade jp = JavaParserFacade.get(resolver.typeSolver);
                 Expression target = assignExpr.getTarget(), value = assignExpr.getValue();
-                ResolvedType type = JavaParserFacade.get(resolver.typeSolver).getType(target);
-                // we need a ResolvedFieldDeclaration from target
-                //System.out.println(JavaParserFacade.get(resolver.typeSolver).solve(target));
-                System.out.println(target.getClass());
+                if (target instanceof FieldAccessExpr) {
+                    SymbolReference<ResolvedFieldDeclaration> s = Issue300.solve((FieldAccessExpr) target, jp);
+                    ResolvedFieldDeclaration fieldDeclaration = s.getCorrespondingDeclaration();
+                    System.out.println("Resolved Field access: " + target + " -- " + fieldDeclaration);
+                } else {
+                    assert (target instanceof NameExpr);
+                    SymbolReference<? extends ResolvedValueDeclaration> s = jp.solve(target);
+                    ResolvedValueDeclaration valueDeclaration = s.getCorrespondingDeclaration();
+                    System.out.println("Resolved NameExpr: " + target + " -- " + valueDeclaration);
+                }
                 super.visit(assignExpr, arg);
-            }*/
+            }
+
             @Override // method calls
             public void visit(MethodCallExpr methodCallExpr, Void arg) {
                 ResolvedMethodDeclaration resolvedMethodDeclaration = resolver.resolve(methodCallExpr);
