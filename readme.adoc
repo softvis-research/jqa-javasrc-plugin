@@ -1,20 +1,65 @@
-= jQAssistant Parser Plugin
+= jQAssistant Java Source Parser Plugin
 
-This is a Parser Plugin of https://www.jqassistant.org[jQAssistant^].
+This is a java source parser of https://www.jqassistant.org[jQAssistant^].
 
 (Work in Progress)
 
-== Notes on Custom Parsers
+== Implemented (+), not implemented (-)
+type (+ class, - interface)
++ name
++ fqn
++ visibility and access modifiers (public, protected, private, default, abstract, final, static)
++ getDeclaredMethods(), getDeclaredMembers()
++ getDeclaredFields(), getDeclaredMembers()
++ extends (typedescriptors are wrong)
++ implements (typedescriptors are wrong)
+- depends
 
-- on Functions/Lambdas as Parameters
-    - https://dzone.com/articles/why-theres-interface
-    - chose Supplier instead of Callable, since it is more similar to Function (especially: doesn't throw Exception)
-- on Matcher::group(): seams so that int as parameter doesn't work the same as named parameter (String)
-    - maybe will need String-Identifier for every Symbol
-    - TODO: try more variants to see if that's avoidable
+type (inner class)
+- name
+- fqn
+- visibility and access modifiers
+- getDeclaredMethods(), getDeclaredMembers()
+- getDeclaredFields(), getDeclaredMembers()
+- extends
+- implements
+- depends
 
-== Notes on ANTLR4
+type (enum)
++ name
++ fqn
++ visibility and access modifiers (public, protected, private, default, static)
++ getDeclaredFields(), getDeclaredMembers()
++ enum constants (primitive type, reference type)
+- constructor
 
-- ANTLR Setup / Maven
-    - https://codevomit.wordpress.com/2015/03/15/antlr4-project-with-maven-tutorial-episode-1/
-    - potentially more Grammars: https://github.com/antlr/grammars-v4
+constructor (+ overloaded constructor, - implicit default constructor)
++ signature
++ name
++ visibility (public, protected, private, default)
++ parameters (primitive type, reference type) 
+
+method
++ signature
++ name
++ visibility and access modifiers (public, protected, private, default, abstract, final, static)
++ parameters (primitive type, reference type)
++ return type (void, primitive type, reference type)
+- reads
+- writes
+- invokes
+- loc
+- complexity
+
+field
++ signature
++ name
++ visibility and access modifiers (public, protected, private, default, final, static)
++ type (primitive type, reference type)
++ value (of first variable)
+
+== TODO
+- annotation
+- arrays
+- parameter types
+- comments

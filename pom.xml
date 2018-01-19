@@ -10,12 +10,9 @@
     <groupId>com.unileipzig.jqassistant.plugin</groupId>
     <artifactId>parser</artifactId>
     <version>${jqa.version}</version>
-    <name>jQAssistant Parser Plugin</name>
+    <name>jQAssistant Java Source Parser</name>
     <url>http://jqassistant.org/</url>
-    <description>
-        Plugin for jQAssistant to be able to scan and to
-        analyze Source Code artifacts (currently Java).
-    </description>
+    <description>Plugin for jQAssistant to be able to scan and to analyze java source code.</description>
     <licenses>
         <license>
             <name>GNU General Public License, v3</name>
@@ -26,7 +23,6 @@
         <jqa.version>1.3</jqa.version>
     </properties>
     <build>
-        <defaultGoal>exec:java</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -36,15 +32,16 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
-            <plugin>
+     <!--         <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
                 <configuration>
                     <mainClass>Main</mainClass>
                 </configuration>
-            </plugin>
+            </plugin>-->
         </plugins>
+        
     </build>
     <dependencies>
         <!--
@@ -122,18 +119,13 @@
             <artifactId>slf4j-simple</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>23.0</version>
-        </dependency>
-        <dependency>
             <!-- From the book "JavaParser: Visited" (p. 40):
                 "If you add the JavaSymbolSolver it will automatically add a dependency the correct version of
                  JavaParser, without the need for you to figure out that JavaSymbolSolver 0.5.1 depends
                  on JavaParser 3.1.1."-->
             <groupId>com.github.javaparser</groupId>
             <artifactId>java-symbol-solver-core</artifactId>
-            <version>0.6.2</version>
+            <version>0.6.3</version>
         </dependency>
     </dependencies>
     <repositories>
