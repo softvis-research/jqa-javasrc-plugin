@@ -4,16 +4,12 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.ConstructorDescriptor;
-import org.unileipzig.jqassistant.plugin.parser.api.model.EnumTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.FieldDescriptor;
-import org.unileipzig.jqassistant.plugin.parser.api.model.InterfaceTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.MethodDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.ParameterDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor;
-import org.unileipzig.jqassistant.plugin.parser.api.model.TypedDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.impl.scanner.TypeCache.CachedType;
 
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
@@ -130,7 +126,7 @@ public class TypeResolver {
 	
 	public TypeDescriptor getTypeDescriptor(ResolvedType resolvedType) {
 		if (resolvedType.isVoid()) {
-			return resolveType("void").getTypeDescriptor();
+			return resolveType(resolvedType.describe()).getTypeDescriptor();
 		} else if(resolvedType.isPrimitive()) {
 			return resolveType(resolvedType.asPrimitive().describe()).getTypeDescriptor();
 		}else if (resolvedType.isReferenceType()) {
