@@ -1,6 +1,5 @@
 package org.unileipzig.jqassistant.plugin.parser.api.scanner.visitor;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.unileipzig.jqassistant.plugin.parser.api.model.FieldDescriptor;
@@ -33,7 +32,7 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 		// signature, name
 		ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solveDeclaration(fieldDeclaration, ResolvedFieldDeclaration.class);
 		TypeDescriptor fieldTypeDescriptor = typeResolver.getTypeDescriptor(resolvedFieldDeclaration.getType()); 
-		FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(typeDescriptor.getFullQualifiedName(), fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedFieldDeclaration.getName());
+		FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(typeDescriptor, fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedFieldDeclaration.getName());
 		fieldDescriptor.setName(resolvedFieldDeclaration.getName());
 		
 		// visibility and access modifiers
@@ -68,7 +67,7 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 		// fqn, name
 		ResolvedEnumConstantDeclaration resolvedEnumConstantDeclaration = typeResolver.solveDeclaration(enumConstantDeclaration, ResolvedEnumConstantDeclaration.class);
 		TypeDescriptor fieldTypeDescriptor = typeResolver.getTypeDescriptor(resolvedEnumConstantDeclaration.getType()); 
-		FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(typeDescriptor.getFullQualifiedName(), fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedEnumConstantDeclaration.getName());
+		FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(typeDescriptor, fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedEnumConstantDeclaration.getName());
 		fieldDescriptor.setName(resolvedEnumConstantDeclaration.getName());
 
 		super.visit(enumConstantDeclaration, typeDescriptor);

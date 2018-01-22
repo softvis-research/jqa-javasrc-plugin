@@ -2,7 +2,6 @@ package org.unileipzig.jqassistant.plugin.parser.api.scanner.visitor;
 
 import java.util.List;
 
-import org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.ConstructorDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.MethodDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.ParameterDescriptor;
@@ -36,7 +35,7 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor>{
 		// signature, name
 		ResolvedMethodDeclaration resolvedMethodDeclaration = typeResolver.solveDeclaration(methodDeclaration, ResolvedMethodDeclaration.class);
 		TypeDescriptor returnTypeDescriptor = typeResolver.getTypeDescriptor(resolvedMethodDeclaration.getReturnType());
-		MethodDescriptor methodDescriptor = typeResolver.getMethodDescriptor(typeDescriptor.getFullQualifiedName(), returnTypeDescriptor.getFullQualifiedName() + " " + resolvedMethodDeclaration.getSignature());
+		MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(typeDescriptor, returnTypeDescriptor.getFullQualifiedName() + " " + resolvedMethodDeclaration.getSignature());
 		methodDescriptor.setName(resolvedMethodDeclaration.getName());
 		
 		// visibility and access modifiers
@@ -65,7 +64,7 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor>{
 		// signature, name
 		ResolvedConstructorDeclaration resolvedConstructorDeclaration = typeResolver.solveDeclaration(constructorDeclaration, ResolvedConstructorDeclaration.class);
 		final String constructorParameter = resolvedConstructorDeclaration.getSignature().replaceAll(resolvedConstructorDeclaration.getName(), "");
-		ConstructorDescriptor constructorDescriptor = (ConstructorDescriptor) typeResolver.getMethodDescriptor(typeDescriptor.getFullQualifiedName(), CONSTRUCTOR_METHOD + constructorParameter);
+		ConstructorDescriptor constructorDescriptor = (ConstructorDescriptor) typeResolver.addMethodDescriptor(typeDescriptor, CONSTRUCTOR_METHOD + constructorParameter);
 		constructorDescriptor.setName(resolvedConstructorDeclaration.getName());		
 		
 		// visibility

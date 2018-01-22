@@ -2,13 +2,11 @@ package org.unileipzig.jqassistant.plugin.parser.api.scanner.visitor;
 
 import java.util.List;
 
-import org.unileipzig.jqassistant.plugin.parser.api.model.ClassFileDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.EnumTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.InterfaceTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor;
-import org.unileipzig.jqassistant.plugin.parser.impl.scanner.TypeCache;
 import org.unileipzig.jqassistant.plugin.parser.impl.scanner.TypeResolver;
 import org.unileipzig.jqassistant.plugin.parser.impl.scanner.Utils;
 
@@ -44,8 +42,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			// interface
 			// fqn, name
 			ResolvedInterfaceDeclaration resolvedInterfaceDeclaration = typeResolver.solveDeclaration(classOrInterfaceDeclaration, ResolvedInterfaceDeclaration.class);
-			TypeCache.CachedType cachedType = typeResolver.createType(resolvedInterfaceDeclaration.getQualifiedName(), javaSourceFileDescriptor, InterfaceTypeDescriptor.class);
-			InterfaceTypeDescriptor interfaceTypeDescriptor = (InterfaceTypeDescriptor) cachedType.getTypeDescriptor();
+			InterfaceTypeDescriptor interfaceTypeDescriptor = typeResolver.createType(resolvedInterfaceDeclaration.getQualifiedName(), javaSourceFileDescriptor, InterfaceTypeDescriptor.class);
 			interfaceTypeDescriptor.setFullQualifiedName(resolvedInterfaceDeclaration.getQualifiedName());
 			interfaceTypeDescriptor.setName(classOrInterfaceDeclaration.getName().toString());
 
@@ -69,8 +66,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			List<ClassOrInterfaceType> superTypes = classOrInterfaceDeclaration.getExtendedTypes();
 			for (ClassOrInterfaceType superType : superTypes) {
 				ResolvedTypeDeclaration resolvedSuperType = typeResolver.solveType(superType);
-				TypeCache.CachedType cachedSuperType = typeResolver.resolveType(resolvedSuperType.getQualifiedName());
-				interfaceTypeDescriptor.setSuperClass(cachedSuperType.getTypeDescriptor());
+				interfaceTypeDescriptor.setSuperClass(typeResolver.resolveType(resolvedSuperType.getQualifiedName()));
 			}
 
 
@@ -78,8 +74,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			// class
 			// fqn, name
 			ResolvedClassDeclaration resolvedClassDeclaration = typeResolver.solveDeclaration(classOrInterfaceDeclaration, ResolvedClassDeclaration.class);
-			TypeCache.CachedType cachedType = typeResolver.createType(resolvedClassDeclaration.getQualifiedName(), javaSourceFileDescriptor, ClassTypeDescriptor.class);
-			ClassTypeDescriptor classTypeDescriptor = (ClassTypeDescriptor) cachedType.getTypeDescriptor();
+			ClassTypeDescriptor classTypeDescriptor = typeResolver.createType(resolvedClassDeclaration.getQualifiedName(), javaSourceFileDescriptor, ClassTypeDescriptor.class);
 			classTypeDescriptor.setFullQualifiedName(resolvedClassDeclaration.getQualifiedName());
 			classTypeDescriptor.setName(classOrInterfaceDeclaration.getName().toString());
 
@@ -106,15 +101,13 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			
 			// extend
 			ResolvedReferenceType resolvedSuperType = resolvedClassDeclaration.getSuperClass();
-			TypeCache.CachedType cachedSuperType = typeResolver.resolveType(resolvedSuperType.getQualifiedName());
-			TypeDescriptor superClassTypeDescriptor = cachedSuperType.getTypeDescriptor();
+			TypeDescriptor superClassTypeDescriptor = typeResolver.resolveType(resolvedSuperType.getQualifiedName());
 			classTypeDescriptor.setSuperClass(superClassTypeDescriptor);
 			
 			// implements
 			List<ResolvedReferenceType> resolvedInterfaces = resolvedClassDeclaration.getInterfaces();
 			for (ResolvedReferenceType resolvedInterface : resolvedInterfaces) {
-				TypeCache.CachedType cachedInterfaceType = typeResolver.resolveType(resolvedInterface.getQualifiedName());
-				classTypeDescriptor.getInterfaces().add(cachedInterfaceType.getTypeDescriptor());
+				classTypeDescriptor.getInterfaces().add(typeResolver.resolveType(resolvedInterface.getQualifiedName()));
 			}
 		}
 
@@ -124,12 +117,9 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 	@Override
 	public void visit(EnumDeclaration enumDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
 		// fqn, name
-		ResolvedEnumDeclaration resolvedEnumDeclaration = typeResolver.solveDeclaration(enumDeclaration,
-				ResolvedEnumDeclaration.class);
+		ResolvedEnumDeclaration resolvedEnumDeclaration = typeResolver.solveDeclaration(enumDeclaration, ResolvedEnumDeclaration.class);
 		String fqn = resolvedEnumDeclaration.getQualifiedName();
-		TypeCache.CachedType cachedType = typeResolver.createType(fqn, javaSourceFileDescriptor,
-				EnumTypeDescriptor.class);
-		EnumTypeDescriptor enumTypeDescriptor = (EnumTypeDescriptor) cachedType.getTypeDescriptor();
+		EnumTypeDescriptor enumTypeDescriptor = typeResolver.createType(fqn, javaSourceFileDescriptor, EnumTypeDescriptor.class);
 		enumTypeDescriptor.setFullQualifiedName(fqn);
 		enumTypeDescriptor.setName(resolvedEnumDeclaration.getName().toString());
 
