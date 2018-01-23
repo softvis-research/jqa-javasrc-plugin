@@ -16,14 +16,11 @@ import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedClassDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedEnumDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedInterfaceDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
-import com.github.javaparser.resolution.types.ResolvedType;
 
 /**
  * @author Richard Müller
