@@ -5,14 +5,14 @@ This is a java source parser of https://www.jqassistant.org[jQAssistant^].
 (Work in Progress)
 
 == Implemented (+), not implemented (-)
-type (+ class, - interface)
+type (+ class, + interface)
 + name
 + fqn
 + visibility and access modifiers (public, protected, private, default, abstract, final, static)
 + getDeclaredMethods(), getDeclaredMembers()
 + getDeclaredFields(), getDeclaredMembers()
-+ extends (typedescriptors are wrong)
-+ implements (typedescriptors are wrong)
++ extends
++ implements
 - depends
 
 type (inner class)
