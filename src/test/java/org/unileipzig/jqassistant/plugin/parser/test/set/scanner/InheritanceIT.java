@@ -5,12 +5,10 @@ import static org.junit.Assert.assertThat;
 import static org.unileipzig.jqassistant.plugin.parser.test.matcher.TypeDescriptorMatcher.typeDescriptor;
 
 import java.io.File;
-import java.sql.Savepoint;
 
 import org.junit.Test;
 import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceDirectoryDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
-import org.unileipzig.jqassistant.plugin.parser.test.set.scanner.inheritance.SubInterface;
 import org.unileipzig.jqassistant.plugin.parser.test.set.scanner.inheritance.SuperInterface;
 
 import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
@@ -25,7 +23,7 @@ public class InheritanceIT extends AbstractPluginIT {
     	File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
-		assertThat(query("MATCH (sub:Type:Interface)-[:EXTENDS]->(super:Type) RETURN super").getColumn("super"), hasItem(typeDescriptor(SuperInterface.class)));
+		assertThat(query("MATCH (sub:Type:Interface)-[:EXTENDS]->(super:Type:Interface) RETURN super").getColumn("super"), hasItem(typeDescriptor(SuperInterface.class)));
         store.commitTransaction();
     }
     
@@ -36,7 +34,7 @@ public class InheritanceIT extends AbstractPluginIT {
     	File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
-        assertThat(query("MATCH (t:Type)-[:IMPLEMENTS]->(i:Type) RETURN i").getColumn("i"), hasItem(typeDescriptor(SuperInterface.class)));
+        assertThat(query("MATCH (t:Type)-[:IMPLEMENTS]->(i:Type:Interface) RETURN i").getColumn("i"), hasItem(typeDescriptor(SuperInterface.class)));
         store.commitTransaction();
     }
 }

@@ -34,7 +34,7 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor>{
 	public void visit(MethodDeclaration methodDeclaration, TypeDescriptor typeDescriptor) {
 		// signature, name
 		ResolvedMethodDeclaration resolvedMethodDeclaration = typeResolver.solveDeclaration(methodDeclaration, ResolvedMethodDeclaration.class);
-		TypeDescriptor returnTypeDescriptor = typeResolver.getTypeDescriptor(resolvedMethodDeclaration.getReturnType());
+		TypeDescriptor returnTypeDescriptor = typeResolver.resolveType(resolvedMethodDeclaration.getReturnType());
 		MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(typeDescriptor, returnTypeDescriptor.getFullQualifiedName() + " " + resolvedMethodDeclaration.getSignature());
 		methodDescriptor.setName(resolvedMethodDeclaration.getName());
 		
@@ -48,7 +48,7 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor>{
 		List<Parameter> parameters = methodDeclaration.getParameters();
 		for (int i = 0; i < parameters.size(); i++) {
 			ResolvedParameterDeclaration resolvedParameterDeclaration = typeResolver.solveDeclaration(parameters.get(i), ResolvedParameterDeclaration.class);
-			TypeDescriptor parameterTypeDescriptor = typeResolver.getTypeDescriptor(resolvedParameterDeclaration.getType());
+			TypeDescriptor parameterTypeDescriptor = typeResolver.resolveType(resolvedParameterDeclaration.getType());
 			ParameterDescriptor parameterDescriptor = typeResolver.addParameterDescriptor(methodDescriptor, i);
 			parameterDescriptor.setType(parameterTypeDescriptor);
 		}
@@ -74,7 +74,7 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor>{
 		List<Parameter> parameters = constructorDeclaration.getParameters();
 		for (int i = 0; i < parameters.size(); i++) {
 			ResolvedParameterDeclaration resolvedParameterDeclaration = typeResolver.solveDeclaration(parameters.get(i), ResolvedParameterDeclaration.class);
-			TypeDescriptor parameterTypeDescriptor = typeResolver.getTypeDescriptor(resolvedParameterDeclaration.getType());
+			TypeDescriptor parameterTypeDescriptor = typeResolver.resolveType(resolvedParameterDeclaration.getType());
 			ParameterDescriptor parameterDescriptor = typeResolver.addParameterDescriptor(constructorDescriptor, i);
 			parameterDescriptor.setType(parameterTypeDescriptor);
 		}

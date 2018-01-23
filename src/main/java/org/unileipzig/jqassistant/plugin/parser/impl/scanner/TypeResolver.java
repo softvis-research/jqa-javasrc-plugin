@@ -4,8 +4,11 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.ConstructorDescriptor;
+import org.unileipzig.jqassistant.plugin.parser.api.model.EnumTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.FieldDescriptor;
+import org.unileipzig.jqassistant.plugin.parser.api.model.InterfaceTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.MethodDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.ParameterDescriptor;
@@ -33,6 +36,7 @@ import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ThisExpr;
 import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.ReferenceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedAnnotationDeclaration;
@@ -73,55 +77,67 @@ public class TypeResolver {
 	private Map<String, TypeDescriptor> containedTypes = new HashMap<>();
 	private Map<String, TypeDescriptor> requiredTypes = new HashMap<>();
 	private static final String CONSTRUCTOR_METHOD = "void <init>";
-    private ScannerContext scannerContext;
+	private ScannerContext scannerContext;
 
- 
 	public TypeResolver(String srcDir, ScannerContext scannerContext) {
 		this.javaTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(),
 				new JavaParserTypeSolver(new File(srcDir)));
-		JavaParser.setStaticConfiguration(new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver(javaTypeSolver)));
+		JavaParser.setStaticConfiguration(
+				new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver(javaTypeSolver)));
 		this.containedTypes = new HashMap<>();
 		this.requiredTypes = new HashMap<>();
 		this.scannerContext = scannerContext;
 	}
 
-	public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor, Class<T> type) {
+	public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor,
+			Class<T> type) {
 		TypeDescriptor resolvedTypeDescriptor = javaSourcefileDescriptor.resolveType(fqn);
 		T typeDescriptor = scannerContext.getStore().addDescriptorType(resolvedTypeDescriptor, type);
-        containedTypes.put(fqn, typeDescriptor);
+		containedTypes.put(fqn, typeDescriptor);
 		requiredTypes.remove(fqn);
 		return typeDescriptor;
 	}
 
-	public TypeDescriptor resolveType(String fqn) {
+	public TypeDescriptor resolveType(ResolvedType resolvedType) {
 		TypeDescriptor typeDescriptor;
+		String fqn = "";
+		if (resolvedType.isVoid()) {
+			fqn = resolvedType.describe();
+		} else if (resolvedType.isPrimitive()) {
+			fqn = resolvedType.asPrimitive().describe();
+		} else if (resolvedType.isReferenceType()) {
+			fqn = resolvedType.asReferenceType().getTypeDeclaration().getQualifiedName();
+		} else {
+			throw new RuntimeException("Type could not be resolved: " + resolvedType.toString());
+		}
 		if (containedTypes.containsKey(fqn)) {
 			typeDescriptor = containedTypes.get(fqn);
-		}else if (requiredTypes.containsKey(fqn)) {
+		} else if (requiredTypes.containsKey(fqn)) {
 			typeDescriptor = requiredTypes.get(fqn);
-		}else {
-			String fileName = "/" + fqn.replace('.', '/') + ".java"; // Inner classes?
-			FileResolver fileResolver = scannerContext.peek(FileResolver.class);
-			JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName,
-					JavaSourceFileDescriptor.class, scannerContext);
-			typeDescriptor = sourceFileDescriptor.resolveType(fqn);
+		} else {
+			if (resolvedType.isReferenceType()) {// class, interface, enum
+				ResolvedReferenceTypeDeclaration resolvedReferenceTypeDeclaration = resolvedType.asReferenceType()
+						.getTypeDeclaration();
+				if (resolvedReferenceTypeDeclaration.isClass()) {
+					typeDescriptor = scannerContext.getStore().create(ClassTypeDescriptor.class);
+				} else if (resolvedReferenceTypeDeclaration.isInterface()) {
+					typeDescriptor = scannerContext.getStore().create(InterfaceTypeDescriptor.class);
+				} else if (resolvedReferenceTypeDeclaration.isEnum()) {
+					typeDescriptor = scannerContext.getStore().create(EnumTypeDescriptor.class);
+				} else {
+					typeDescriptor = null;
+				}
+			} else {// void or primitive type
+				String fileName = "/" + fqn.replace('.', '/') + ".java"; // Inner classes?
+				FileResolver fileResolver = scannerContext.peek(FileResolver.class);
+				JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName,
+						JavaSourceFileDescriptor.class, scannerContext);
+				typeDescriptor = sourceFileDescriptor.resolveType(fqn);
+			}
+			typeDescriptor.setFullQualifiedName(fqn);
 			requiredTypes.put(fqn, typeDescriptor);
 		}
 		return typeDescriptor;
-	}
-	
-	
-	
-	public TypeDescriptor getTypeDescriptor(ResolvedType resolvedType) {
-		if (resolvedType.isVoid()) {
-			return resolveType(resolvedType.describe());
-		} else if(resolvedType.isPrimitive()) {
-			return resolveType(resolvedType.asPrimitive().describe());
-		}else if (resolvedType.isReferenceType()) {
-			return resolveType(resolvedType.asReferenceType().getQualifiedName());
-		}else {
-			throw new RuntimeException("Type could not be resolved: " + resolvedType.toString());
-		}
 	}
 
 	public MethodDescriptor addMethodDescriptor(TypeDescriptor parentType, String signature) {
@@ -133,148 +149,167 @@ public class TypeResolver {
 		}
 		methodDescriptor.setSignature(signature);
 		parentType.getDeclaredMethods().add(methodDescriptor);
-		
+
 		return methodDescriptor;
 	}
-	
+
 	public FieldDescriptor addFieldDescriptor(TypeDescriptor parentType, String signature) {
 		FieldDescriptor fieldDescriptor = scannerContext.getStore().create(FieldDescriptor.class);
-	    fieldDescriptor.setSignature(signature);
-	    parentType.getDeclaredFields().add(fieldDescriptor);
-	    
-	    return fieldDescriptor;
+		fieldDescriptor.setSignature(signature);
+		parentType.getDeclaredFields().add(fieldDescriptor);
+
+		return fieldDescriptor;
 	}
 
 	public ParameterDescriptor addParameterDescriptor(MethodDescriptor methodDescriptor, int index) {
-        ParameterDescriptor parameterDescriptor = scannerContext.getStore().create(ParameterDescriptor.class);
-        parameterDescriptor.setIndex(index);
-        methodDescriptor.getParameters().add(parameterDescriptor);
-        return parameterDescriptor;
-    }
+		ParameterDescriptor parameterDescriptor = scannerContext.getStore().create(ParameterDescriptor.class);
+		parameterDescriptor.setIndex(index);
+		methodDescriptor.getParameters().add(parameterDescriptor);
+		return parameterDescriptor;
+	}
 
-    public <T extends ValueDescriptor<?>> T getValueDescriptor(Class<T> valueDescriptorType) {
-        return scannerContext.getStore().create(valueDescriptorType);
-    }
-    
+	public <T extends ValueDescriptor<?>> T getValueDescriptor(Class<T> valueDescriptorType) {
+		return scannerContext.getStore().create(valueDescriptorType);
+	}
+
 	public <T> T solveDeclaration(Node node, Class<T> resultClass) {
 		if (node instanceof MethodDeclaration) {
-            return resultClass.cast(new JavaParserMethodDeclaration((MethodDeclaration)node, javaTypeSolver));
-        }
-        if (node instanceof ClassOrInterfaceDeclaration) {
-            ResolvedReferenceTypeDeclaration resolved = JavaParserFactory.toTypeDeclaration(node, javaTypeSolver);
-            if (resultClass.isInstance(resolved)) {
-                return resultClass.cast(resolved);
-            }
-        }
-        if (node instanceof EnumDeclaration) {
-            ResolvedReferenceTypeDeclaration resolved = JavaParserFactory.toTypeDeclaration(node, javaTypeSolver);
-            if (resultClass.isInstance(resolved)) {
-                return resultClass.cast(resolved);
-            }
-        }
-        if (node instanceof EnumConstantDeclaration) {
-            ResolvedEnumDeclaration enumDeclaration = Navigator.findAncestor(node, EnumDeclaration.class).get().resolve().asEnum();
-            ResolvedEnumConstantDeclaration resolved = enumDeclaration.getEnumConstants().stream().filter(c -> ((JavaParserEnumConstantDeclaration)c).getWrappedNode() == node).findFirst().get();
-            if (resultClass.isInstance(resolved)) {
-                return resultClass.cast(resolved);
-            }
-        }
-        if (node instanceof ConstructorDeclaration) {
-            ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration)node;
-            Node classOrInterfaceDeclaration = (ClassOrInterfaceDeclaration) node.getParentNode().get();
-            ResolvedClassDeclaration resolvedClass = solveDeclaration(classOrInterfaceDeclaration, ResolvedClassDeclaration.class).asClass();
-            ResolvedConstructorDeclaration resolved =  resolvedClass.getConstructors().stream().filter(c -> ((JavaParserConstructorDeclaration)c).getWrappedNode() == constructorDeclaration).findFirst().get();
-            if (resultClass.isInstance(resolved)) {
-                return resultClass.cast(resolved);
-            } 
-        }
-        if (node instanceof AnnotationDeclaration) {
-            ResolvedReferenceTypeDeclaration resolved = JavaParserFactory.toTypeDeclaration(node, javaTypeSolver);
-            if (resultClass.isInstance(resolved)) {
-                return resultClass.cast(resolved);
-            }
-        }
-        if (node instanceof AnnotationMemberDeclaration) {
-            ResolvedAnnotationDeclaration annotationDeclaration = Navigator.findAncestor(node, AnnotationDeclaration.class).get().resolve();
-            ResolvedAnnotationMemberDeclaration resolved = annotationDeclaration.getAnnotationMembers().stream().filter(c -> ((JavaParserAnnotationMemberDeclaration)c).getWrappedNode() == node).findFirst().get();
-            if (resultClass.isInstance(resolved)) {
-                return resultClass.cast(resolved);
-            }
-        }
-        if (node instanceof FieldDeclaration) {
-            FieldDeclaration fieldDeclaration = (FieldDeclaration)node;
-            if (fieldDeclaration.getVariables().size() != 1) {
-                throw new RuntimeException("Cannot resolve a Field Declaration including multiple variable declarators. Resolve the single variable declarators");
-            }
-            ResolvedFieldDeclaration resolved = new JavaParserFieldDeclaration(fieldDeclaration.getVariable(0), javaTypeSolver);
-            if (resultClass.isInstance(resolved)) {
-                return resultClass.cast(resolved);
-            }
-        }
-        if (node instanceof VariableDeclarator) {
-            ResolvedFieldDeclaration resolved = new JavaParserFieldDeclaration((VariableDeclarator)node, javaTypeSolver);
-            if (resultClass.isInstance(resolved)) {
-                return resultClass.cast(resolved);
-            }
-        }
-        if (node instanceof MethodCallExpr) {
-            SymbolReference<ResolvedMethodDeclaration> result = JavaParserFacade.get(javaTypeSolver).solve((MethodCallExpr)node);
-            if (result.isSolved()) {
-                if (resultClass.isInstance(result.getCorrespondingDeclaration())) {
-                    return resultClass.cast(result.getCorrespondingDeclaration());
-                }
-            } else {
-                throw new UnsolvedSymbolException("We are unable to find the method declaration corresponding to " + node);
-            }
-        }
-        if (node instanceof NameExpr) {
-            SymbolReference<? extends ResolvedValueDeclaration> result = JavaParserFacade.get(javaTypeSolver).solve((NameExpr) node);
-            if (result.isSolved()) {
-                if (resultClass.isInstance(result.getCorrespondingDeclaration())) {
-                    return resultClass.cast(result.getCorrespondingDeclaration());
-                }
-            } else {
-                throw new UnsolvedSymbolException("We are unable to find the value declaration corresponding to " + node);
-            }
-        }
-        if (node instanceof ThisExpr) {
-            SymbolReference<ResolvedTypeDeclaration> result = JavaParserFacade.get(javaTypeSolver).solve((ThisExpr) node);
-            if (result.isSolved()) {
-                if (resultClass.isInstance(result.getCorrespondingDeclaration())) {
-                    return resultClass.cast(result.getCorrespondingDeclaration());
-                }
-            } else {
-                throw new UnsolvedSymbolException("We are unable to find the type declaration corresponding to " + node);
-            }
-        }
-        if (node instanceof ExplicitConstructorInvocationStmt) {
-            SymbolReference<ResolvedConstructorDeclaration> result = JavaParserFacade.get(javaTypeSolver).solve((ExplicitConstructorInvocationStmt) node);
-            if (result.isSolved()) {
-                if (resultClass.isInstance(result.getCorrespondingDeclaration())) {
-                    return resultClass.cast(result.getCorrespondingDeclaration());
-                }
-            } else {
-                throw new UnsolvedSymbolException("We are unable to find the constructor declaration corresponding to " + node);
-            }
-        }
-        if (node instanceof Parameter) {
-            if (ResolvedParameterDeclaration.class.equals(resultClass)) {
-                Parameter parameter = (Parameter)node;
-                CallableDeclaration callableDeclaration = Navigator.findAncestor(node, CallableDeclaration.class).get();
-                ResolvedMethodLikeDeclaration resolvedMethodLikeDeclaration;
-                if (callableDeclaration.isConstructorDeclaration()) {
-                    resolvedMethodLikeDeclaration = callableDeclaration.asConstructorDeclaration().resolve();
-                } else {
-                    resolvedMethodLikeDeclaration = callableDeclaration.asMethodDeclaration().resolve();
-                }
-                for (int i=0;i<resolvedMethodLikeDeclaration.getNumberOfParams();i++) {
-                    if (resolvedMethodLikeDeclaration.getParam(i).getName().equals(parameter.getNameAsString())) {
-                        return resultClass.cast(resolvedMethodLikeDeclaration.getParam(i));
-                    }
-                }
-            }
-        }
-        throw new UnsupportedOperationException("Unable to find the declaration of type " + resultClass.getSimpleName()
-                + " from " + node.getClass().getSimpleName());
-}
+			return resultClass.cast(new JavaParserMethodDeclaration((MethodDeclaration) node, javaTypeSolver));
+		}
+		if (node instanceof ClassOrInterfaceDeclaration) {
+			ResolvedReferenceTypeDeclaration resolved = JavaParserFactory.toTypeDeclaration(node, javaTypeSolver);
+			if (resultClass.isInstance(resolved)) {
+				return resultClass.cast(resolved);
+			}
+		}
+		if (node instanceof EnumDeclaration) {
+			ResolvedReferenceTypeDeclaration resolved = JavaParserFactory.toTypeDeclaration(node, javaTypeSolver);
+			if (resultClass.isInstance(resolved)) {
+				return resultClass.cast(resolved);
+			}
+		}
+		if (node instanceof EnumConstantDeclaration) {
+			ResolvedEnumDeclaration enumDeclaration = Navigator.findAncestor(node, EnumDeclaration.class).get()
+					.resolve().asEnum();
+			ResolvedEnumConstantDeclaration resolved = enumDeclaration.getEnumConstants().stream()
+					.filter(c -> ((JavaParserEnumConstantDeclaration) c).getWrappedNode() == node).findFirst().get();
+			if (resultClass.isInstance(resolved)) {
+				return resultClass.cast(resolved);
+			}
+		}
+		if (node instanceof ConstructorDeclaration) {
+			ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) node;
+			Node classOrInterfaceDeclaration = (ClassOrInterfaceDeclaration) node.getParentNode().get();
+			ResolvedClassDeclaration resolvedClass = solveDeclaration(classOrInterfaceDeclaration,
+					ResolvedClassDeclaration.class).asClass();
+			ResolvedConstructorDeclaration resolved = resolvedClass.getConstructors().stream()
+					.filter(c -> ((JavaParserConstructorDeclaration) c).getWrappedNode() == constructorDeclaration)
+					.findFirst().get();
+			if (resultClass.isInstance(resolved)) {
+				return resultClass.cast(resolved);
+			}
+		}
+		if (node instanceof AnnotationDeclaration) {
+			ResolvedReferenceTypeDeclaration resolved = JavaParserFactory.toTypeDeclaration(node, javaTypeSolver);
+			if (resultClass.isInstance(resolved)) {
+				return resultClass.cast(resolved);
+			}
+		}
+		if (node instanceof AnnotationMemberDeclaration) {
+			ResolvedAnnotationDeclaration annotationDeclaration = Navigator
+					.findAncestor(node, AnnotationDeclaration.class).get().resolve();
+			ResolvedAnnotationMemberDeclaration resolved = annotationDeclaration.getAnnotationMembers().stream()
+					.filter(c -> ((JavaParserAnnotationMemberDeclaration) c).getWrappedNode() == node).findFirst()
+					.get();
+			if (resultClass.isInstance(resolved)) {
+				return resultClass.cast(resolved);
+			}
+		}
+		if (node instanceof FieldDeclaration) {
+			FieldDeclaration fieldDeclaration = (FieldDeclaration) node;
+			if (fieldDeclaration.getVariables().size() != 1) {
+				throw new RuntimeException(
+						"Cannot resolve a Field Declaration including multiple variable declarators. Resolve the single variable declarators");
+			}
+			ResolvedFieldDeclaration resolved = new JavaParserFieldDeclaration(fieldDeclaration.getVariable(0),
+					javaTypeSolver);
+			if (resultClass.isInstance(resolved)) {
+				return resultClass.cast(resolved);
+			}
+		}
+		if (node instanceof VariableDeclarator) {
+			ResolvedFieldDeclaration resolved = new JavaParserFieldDeclaration((VariableDeclarator) node,
+					javaTypeSolver);
+			if (resultClass.isInstance(resolved)) {
+				return resultClass.cast(resolved);
+			}
+		}
+		if (node instanceof MethodCallExpr) {
+			SymbolReference<ResolvedMethodDeclaration> result = JavaParserFacade.get(javaTypeSolver)
+					.solve((MethodCallExpr) node);
+			if (result.isSolved()) {
+				if (resultClass.isInstance(result.getCorrespondingDeclaration())) {
+					return resultClass.cast(result.getCorrespondingDeclaration());
+				}
+			} else {
+				throw new UnsolvedSymbolException(
+						"We are unable to find the method declaration corresponding to " + node);
+			}
+		}
+		if (node instanceof NameExpr) {
+			SymbolReference<? extends ResolvedValueDeclaration> result = JavaParserFacade.get(javaTypeSolver)
+					.solve((NameExpr) node);
+			if (result.isSolved()) {
+				if (resultClass.isInstance(result.getCorrespondingDeclaration())) {
+					return resultClass.cast(result.getCorrespondingDeclaration());
+				}
+			} else {
+				throw new UnsolvedSymbolException(
+						"We are unable to find the value declaration corresponding to " + node);
+			}
+		}
+		if (node instanceof ThisExpr) {
+			SymbolReference<ResolvedTypeDeclaration> result = JavaParserFacade.get(javaTypeSolver)
+					.solve((ThisExpr) node);
+			if (result.isSolved()) {
+				if (resultClass.isInstance(result.getCorrespondingDeclaration())) {
+					return resultClass.cast(result.getCorrespondingDeclaration());
+				}
+			} else {
+				throw new UnsolvedSymbolException(
+						"We are unable to find the type declaration corresponding to " + node);
+			}
+		}
+		if (node instanceof ExplicitConstructorInvocationStmt) {
+			SymbolReference<ResolvedConstructorDeclaration> result = JavaParserFacade.get(javaTypeSolver)
+					.solve((ExplicitConstructorInvocationStmt) node);
+			if (result.isSolved()) {
+				if (resultClass.isInstance(result.getCorrespondingDeclaration())) {
+					return resultClass.cast(result.getCorrespondingDeclaration());
+				}
+			} else {
+				throw new UnsolvedSymbolException(
+						"We are unable to find the constructor declaration corresponding to " + node);
+			}
+		}
+		if (node instanceof Parameter) {
+			if (ResolvedParameterDeclaration.class.equals(resultClass)) {
+				Parameter parameter = (Parameter) node;
+				CallableDeclaration callableDeclaration = Navigator.findAncestor(node, CallableDeclaration.class).get();
+				ResolvedMethodLikeDeclaration resolvedMethodLikeDeclaration;
+				if (callableDeclaration.isConstructorDeclaration()) {
+					resolvedMethodLikeDeclaration = callableDeclaration.asConstructorDeclaration().resolve();
+				} else {
+					resolvedMethodLikeDeclaration = callableDeclaration.asMethodDeclaration().resolve();
+				}
+				for (int i = 0; i < resolvedMethodLikeDeclaration.getNumberOfParams(); i++) {
+					if (resolvedMethodLikeDeclaration.getParam(i).getName().equals(parameter.getNameAsString())) {
+						return resultClass.cast(resolvedMethodLikeDeclaration.getParam(i));
+					}
+				}
+			}
+		}
+		throw new UnsupportedOperationException("Unable to find the declaration of type " + resultClass.getSimpleName()
+				+ " from " + node.getClass().getSimpleName());
+	}
 }
