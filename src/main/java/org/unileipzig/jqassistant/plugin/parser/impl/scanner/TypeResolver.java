@@ -33,6 +33,7 @@ import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ThisExpr;
 import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedAnnotationDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedAnnotationMemberDeclaration;
@@ -93,8 +94,12 @@ public class TypeResolver {
 	}
 
 	public TypeDescriptor resolveType(String fqn) {
-		TypeDescriptor typeDescriptor = containedTypes.get(fqn);
-		if (typeDescriptor == null) {
+		TypeDescriptor typeDescriptor;
+		if (containedTypes.containsKey(fqn)) {
+			typeDescriptor = containedTypes.get(fqn);
+		}else if (requiredTypes.containsKey(fqn)) {
+			typeDescriptor = requiredTypes.get(fqn);
+		}else {
 			String fileName = "/" + fqn.replace('.', '/') + ".java"; // Inner classes?
 			FileResolver fileResolver = scannerContext.peek(FileResolver.class);
 			JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName,
@@ -107,6 +112,18 @@ public class TypeResolver {
 	
 	
 	
+	public TypeDescriptor getTypeDescriptor(ResolvedType resolvedType) {
+		if (resolvedType.isVoid()) {
+			return resolveType(resolvedType.describe());
+		} else if(resolvedType.isPrimitive()) {
+			return resolveType(resolvedType.asPrimitive().describe());
+		}else if (resolvedType.isReferenceType()) {
+			return resolveType(resolvedType.asReferenceType().getQualifiedName());
+		}else {
+			throw new RuntimeException("Type could not be resolved: " + resolvedType.toString());
+		}
+	}
+
 	public MethodDescriptor addMethodDescriptor(TypeDescriptor parentType, String signature) {
 		MethodDescriptor methodDescriptor;
 		if (signature.startsWith(CONSTRUCTOR_METHOD)) {
@@ -120,33 +137,21 @@ public class TypeResolver {
 		return methodDescriptor;
 	}
 	
-	public TypeDescriptor getTypeDescriptor(ResolvedType resolvedType) {
-		if (resolvedType.isVoid()) {
-			return resolveType(resolvedType.describe());
-		} else if(resolvedType.isPrimitive()) {
-			return resolveType(resolvedType.asPrimitive().describe());
-		}else if (resolvedType.isReferenceType()) {
-			return resolveType(resolvedType.asReferenceType().getQualifiedName());
-		}else {
-			throw new RuntimeException("Type could not be resolved: " + resolvedType.toString());
-		}
+	public FieldDescriptor addFieldDescriptor(TypeDescriptor parentType, String signature) {
+		FieldDescriptor fieldDescriptor = scannerContext.getStore().create(FieldDescriptor.class);
+	    fieldDescriptor.setSignature(signature);
+	    parentType.getDeclaredFields().add(fieldDescriptor);
+	    
+	    return fieldDescriptor;
 	}
-	
-    public ParameterDescriptor addParameterDescriptor(MethodDescriptor methodDescriptor, int index) {
+
+	public ParameterDescriptor addParameterDescriptor(MethodDescriptor methodDescriptor, int index) {
         ParameterDescriptor parameterDescriptor = scannerContext.getStore().create(ParameterDescriptor.class);
         parameterDescriptor.setIndex(index);
         methodDescriptor.getParameters().add(parameterDescriptor);
         return parameterDescriptor;
     }
 
-    public FieldDescriptor addFieldDescriptor(TypeDescriptor parentType, String signature) {
-    	FieldDescriptor fieldDescriptor = scannerContext.getStore().create(FieldDescriptor.class);
-        fieldDescriptor.setSignature(signature);
-        parentType.getDeclaredFields().add(fieldDescriptor);
-        
-        return fieldDescriptor;
-    }
-    
     public <T extends ValueDescriptor<?>> T getValueDescriptor(Class<T> valueDescriptorType) {
         return scannerContext.getStore().create(valueDescriptorType);
     }
@@ -272,14 +277,4 @@ public class TypeResolver {
         throw new UnsupportedOperationException("Unable to find the declaration of type " + resultClass.getSimpleName()
                 + " from " + node.getClass().getSimpleName());
 }
-
-	public ResolvedTypeDeclaration solveType(ClassOrInterfaceType classOrInterfaceType) {
-		SymbolReference<ResolvedTypeDeclaration> typeDeclarationSymbolReference = JavaParserFactory
-				.getContext(classOrInterfaceType, javaTypeSolver)
-				.solveType(classOrInterfaceType.getName().getId(), javaTypeSolver);
-		if (!typeDeclarationSymbolReference.isSolved()) {
-			throw new UnsupportedOperationException();
-		}
-		return typeDeclarationSymbolReference.getCorrespondingDeclaration();
-	}
 }

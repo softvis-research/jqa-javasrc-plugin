@@ -23,6 +23,7 @@ import com.github.javaparser.resolution.declarations.ResolvedEnumDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedInterfaceDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.resolution.types.ResolvedType;
 
 /**
  * @author Richard Müller
@@ -62,13 +63,11 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 				field.accept(new FieldVisitor(typeResolver), interfaceTypeDescriptor);
 			}
 			
-			// extend
-			List<ClassOrInterfaceType> superTypes = classOrInterfaceDeclaration.getExtendedTypes();
-			for (ClassOrInterfaceType superType : superTypes) {
-				ResolvedTypeDeclaration resolvedSuperType = typeResolver.solveType(superType);
+			// extends, implements
+			List<ResolvedReferenceType> resolvedSuperTypes = resolvedInterfaceDeclaration.getAncestors();
+			for (ResolvedReferenceType resolvedSuperType : resolvedSuperTypes) {
 				interfaceTypeDescriptor.setSuperClass(typeResolver.resolveType(resolvedSuperType.getQualifiedName()));
 			}
-
 
 		} else {
 			// class
