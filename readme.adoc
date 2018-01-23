@@ -5,7 +5,7 @@ This is a java source parser of https://www.jqassistant.org[jQAssistant^].
 (Work in Progress)
 
 == Implemented (+), not implemented (-)
-type (+ class, + interface)
+type (+ class, + interface, + inner class)
 + name
 + fqn
 + visibility and access modifiers (public, protected, private, default, abstract, final, static)
@@ -13,16 +13,6 @@ type (+ class, + interface)
 + getDeclaredFields(), getDeclaredMembers()
 + extends
 + implements
-- depends
-
-type (inner class)
-- name
-- fqn
-- visibility and access modifiers
-- getDeclaredMethods(), getDeclaredMembers()
-- getDeclaredFields(), getDeclaredMembers()
-- extends
-- implements
 - depends
 
 type (enum)
@@ -64,3 +54,4 @@ field
 - parameter types
 - comments
 - remove parameters in visitors?
+- inner classes' fqn are with . instead of $

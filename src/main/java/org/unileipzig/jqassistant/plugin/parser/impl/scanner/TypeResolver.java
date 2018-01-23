@@ -139,6 +139,17 @@ public class TypeResolver {
 		}
 		return typeDescriptor;
 	}
+	
+	public TypeDescriptor resolveType(String fqn) {
+		TypeDescriptor typeDescriptor;
+		if (containedTypes.containsKey(fqn)) {
+			return typeDescriptor = containedTypes.get(fqn);
+		} else if (requiredTypes.containsKey(fqn)) {
+			return typeDescriptor = requiredTypes.get(fqn);
+		}else {
+			return null;
+		}
+	}
 
 	public MethodDescriptor addMethodDescriptor(TypeDescriptor parentType, String signature) {
 		MethodDescriptor methodDescriptor;

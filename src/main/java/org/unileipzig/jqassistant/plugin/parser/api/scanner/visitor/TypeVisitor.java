@@ -1,6 +1,8 @@
 package org.unileipzig.jqassistant.plugin.parser.api.scanner.visitor;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.EnumTypeDescriptor;
@@ -10,6 +12,7 @@ import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.impl.scanner.TypeResolver;
 import org.unileipzig.jqassistant.plugin.parser.impl.scanner.Utils;
 
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
@@ -20,7 +23,10 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedClassDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedEnumDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedInterfaceDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserClassDeclaration;
 
 /**
  * @author Richard Müller
@@ -73,7 +79,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			ClassTypeDescriptor classTypeDescriptor = typeResolver.createType(resolvedClassDeclaration.getQualifiedName(), javaSourceFileDescriptor, ClassTypeDescriptor.class);
 			classTypeDescriptor.setFullQualifiedName(resolvedClassDeclaration.getQualifiedName());
 			classTypeDescriptor.setName(classOrInterfaceDeclaration.getName().toString());
-
+			
 			// visibility and access modifiers
 			classTypeDescriptor.setVisibility(Utils.getAccessSpecifier(classOrInterfaceDeclaration.getModifiers()).getValue());
 			classTypeDescriptor.setAbstract(classOrInterfaceDeclaration.isAbstract());
@@ -105,10 +111,19 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			for (ResolvedReferenceType resolvedInterface : resolvedInterfaces) {
 				classTypeDescriptor.getInterfaces().add(typeResolver.resolveType(resolvedInterface));
 			}
+			
+			// inner class
+			// TODO is there a better way?
+			if (classOrInterfaceDeclaration.isInnerClass()) {
+				//ClassOrInterfaceDeclaration parentClass = (ClassOrInterfaceDeclaration)classOrInterfaceDeclaration.getParentNode().get();
+				String parentFQN = resolvedClassDeclaration.getQualifiedName().substring(0, resolvedClassDeclaration.getQualifiedName().lastIndexOf(classOrInterfaceDeclaration.getNameAsString())-1);
+				((ClassTypeDescriptor)typeResolver.resolveType(parentFQN)).getDeclaredInnerClasses().add(classTypeDescriptor);	
+			}
 		}
 
 		super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
 	}
+	
 
 	@Override
 	public void visit(EnumDeclaration enumDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
