@@ -41,7 +41,8 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 
 	@Override
 	public void visit(ClassOrInterfaceDeclaration classOrInterfaceDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
-
+		super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
+		
 		if (classOrInterfaceDeclaration.isInterface()) {
 			// interface
 			// fqn, name
@@ -70,6 +71,12 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			List<ResolvedReferenceType> resolvedSuperTypes = resolvedInterfaceDeclaration.getAncestors();
 			for (ResolvedReferenceType resolvedSuperType : resolvedSuperTypes) {
 				interfaceTypeDescriptor.setSuperClass(typeResolver.resolveType(resolvedSuperType));
+			}
+			
+			// inner class			
+			Set<ResolvedReferenceTypeDeclaration> resolvedInnerClasses = resolvedInterfaceDeclaration.internalTypes();
+			for (ResolvedReferenceTypeDeclaration resolvedInnerClass : resolvedInnerClasses) {
+				interfaceTypeDescriptor.getDeclaredInnerClasses().add(typeResolver.resolveType(resolvedInnerClass.getQualifiedName()));
 			}
 
 		} else {
@@ -112,16 +119,12 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 				classTypeDescriptor.getInterfaces().add(typeResolver.resolveType(resolvedInterface));
 			}
 			
-			// inner class
-			// TODO is there a better way?
-			if (classOrInterfaceDeclaration.isInnerClass()) {
-				//ClassOrInterfaceDeclaration parentClass = (ClassOrInterfaceDeclaration)classOrInterfaceDeclaration.getParentNode().get();
-				String parentFQN = resolvedClassDeclaration.getQualifiedName().substring(0, resolvedClassDeclaration.getQualifiedName().lastIndexOf(classOrInterfaceDeclaration.getNameAsString())-1);
-				((ClassTypeDescriptor)typeResolver.resolveType(parentFQN)).getDeclaredInnerClasses().add(classTypeDescriptor);	
+			// inner class			
+			Set<ResolvedReferenceTypeDeclaration> resolvedInnerClasses = resolvedClassDeclaration.internalTypes();
+			for (ResolvedReferenceTypeDeclaration resolvedInnerClass : resolvedInnerClasses) {
+				classTypeDescriptor.getDeclaredInnerClasses().add(typeResolver.resolveType(resolvedInnerClass.getQualifiedName()));
 			}
 		}
-
-		super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
 	}
 	
 

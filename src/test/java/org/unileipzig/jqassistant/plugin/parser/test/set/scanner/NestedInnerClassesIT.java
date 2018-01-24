@@ -36,7 +36,7 @@ public class NestedInnerClassesIT extends AbstractPluginIT {
 		File directory = new File(FILE_DIRECTORY_PATH);
 		store.beginTransaction();
 		JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
-        List<Map<String, Object>> rows = query("MATCH (t1:Type)-[:DECLARES]->(t2:Type)-[:DECLARES]->(t3:Type) RETURN t1, t2.name, t3.name").getRows();
+		List<Map<String, Object>> rows = query("MATCH (t1:Type)-[:DECLARES]->(t2:Type)-[:DECLARES]->(t3:Type) RETURN t1, t2.name, t3.name").getRows();
         assertThat(rows.size(), equalTo(1));
         Map<String, Object> row = rows.get(0);
         assertThat(row.get("t1"), (Matcher<? super Object>) typeDescriptor(NestedInnerClasses.class));

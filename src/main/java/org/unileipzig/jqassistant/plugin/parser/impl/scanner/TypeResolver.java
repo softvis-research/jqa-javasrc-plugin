@@ -97,6 +97,24 @@ public class TypeResolver {
 		requiredTypes.remove(fqn);
 		return typeDescriptor;
 	}
+	
+    public TypeDescriptor resolveType(String fqn) {
+		TypeDescriptor typeDescriptor;
+		if (containedTypes.containsKey(fqn)) {
+			return typeDescriptor = containedTypes.get(fqn);
+		} else if (requiredTypes.containsKey(fqn)) {
+			return typeDescriptor = requiredTypes.get(fqn);
+		} else {
+			String fileName = "/" + fqn.replace('.', '/') + ".java"; // Inner classes?
+			fileName = "/NestedInnerClasses.java";
+			FileResolver fileResolver = scannerContext.peek(FileResolver.class);
+			JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName,
+					JavaSourceFileDescriptor.class, scannerContext);
+			typeDescriptor = sourceFileDescriptor.resolveType(fqn);
+			requiredTypes.put(fqn, typeDescriptor);
+		}
+		return typeDescriptor;
+	}
 
 	public TypeDescriptor resolveType(ResolvedType resolvedType) {
 		TypeDescriptor typeDescriptor;
@@ -138,17 +156,6 @@ public class TypeResolver {
 			requiredTypes.put(fqn, typeDescriptor);
 		}
 		return typeDescriptor;
-	}
-	
-	public TypeDescriptor resolveType(String fqn) {
-		TypeDescriptor typeDescriptor;
-		if (containedTypes.containsKey(fqn)) {
-			return typeDescriptor = containedTypes.get(fqn);
-		} else if (requiredTypes.containsKey(fqn)) {
-			return typeDescriptor = requiredTypes.get(fqn);
-		}else {
-			return null;
-		}
 	}
 
 	public MethodDescriptor addMethodDescriptor(TypeDescriptor parentType, String signature) {
