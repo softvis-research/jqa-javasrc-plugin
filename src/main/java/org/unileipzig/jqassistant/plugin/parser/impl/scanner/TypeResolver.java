@@ -4,11 +4,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.unileipzig.jqassistant.plugin.parser.api.model.ClassTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.ConstructorDescriptor;
-import org.unileipzig.jqassistant.plugin.parser.api.model.EnumTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.FieldDescriptor;
-import org.unileipzig.jqassistant.plugin.parser.api.model.InterfaceTypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.MethodDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.ParameterDescriptor;
@@ -35,9 +32,6 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ThisExpr;
 import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
-import com.github.javaparser.ast.type.ReferenceType;
-import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedAnnotationDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedAnnotationMemberDeclaration;
@@ -52,7 +46,6 @@ import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaratio
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
-import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.javaparser.Navigator;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
@@ -89,12 +82,16 @@ public class TypeResolver {
 		this.scannerContext = scannerContext;
 	}
 
-	public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor,
-			Class<T> type) {
+	public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor, Class<T> type) {
 		TypeDescriptor resolvedTypeDescriptor = javaSourcefileDescriptor.resolveType(fqn);
-		T typeDescriptor = scannerContext.getStore().addDescriptorType(resolvedTypeDescriptor, type);
+		T typeDescriptor;
+		if (requiredTypes.containsKey(fqn)) {
+			typeDescriptor = scannerContext.getStore().migrate(requiredTypes.get(fqn), type);
+			requiredTypes.remove(fqn);
+		}else {
+			typeDescriptor = scannerContext.getStore().addDescriptorType(resolvedTypeDescriptor, type);
+		}
 		containedTypes.put(fqn, typeDescriptor);
-		requiredTypes.remove(fqn);
 		return typeDescriptor;
 	}
 	
@@ -107,51 +104,8 @@ public class TypeResolver {
 		} else {
 			String fileName = "/" + fqn.replace('.', '/') + ".java"; // Inner classes?
 			FileResolver fileResolver = scannerContext.peek(FileResolver.class);
-			JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName,
-					JavaSourceFileDescriptor.class, scannerContext);
+			JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName, JavaSourceFileDescriptor.class, scannerContext);
 			typeDescriptor = sourceFileDescriptor.resolveType(fqn);
-			requiredTypes.put(fqn, typeDescriptor);
-		}
-		return typeDescriptor;
-	}
-
-	public TypeDescriptor resolveType(ResolvedType resolvedType) {
-		TypeDescriptor typeDescriptor;
-		String fqn = "";
-		if (resolvedType.isVoid()) {
-			fqn = resolvedType.describe();
-		} else if (resolvedType.isPrimitive()) {
-			fqn = resolvedType.asPrimitive().describe();
-		} else if (resolvedType.isReferenceType()) {
-			fqn = resolvedType.asReferenceType().getTypeDeclaration().getQualifiedName();
-		} else {
-			throw new RuntimeException("Type could not be resolved: " + resolvedType.toString());
-		}
-		if (containedTypes.containsKey(fqn)) {
-			typeDescriptor = containedTypes.get(fqn);
-		} else if (requiredTypes.containsKey(fqn)) {
-			typeDescriptor = requiredTypes.get(fqn);
-		} else {
-			if (resolvedType.isReferenceType()) {// class, interface, enum
-				ResolvedReferenceTypeDeclaration resolvedReferenceTypeDeclaration = resolvedType.asReferenceType()
-						.getTypeDeclaration();
-				if (resolvedReferenceTypeDeclaration.isClass()) {
-					typeDescriptor = scannerContext.getStore().create(ClassTypeDescriptor.class);
-				} else if (resolvedReferenceTypeDeclaration.isInterface()) {
-					typeDescriptor = scannerContext.getStore().create(InterfaceTypeDescriptor.class);
-				} else if (resolvedReferenceTypeDeclaration.isEnum()) {
-					typeDescriptor = scannerContext.getStore().create(EnumTypeDescriptor.class);
-				} else {
-					typeDescriptor = null;
-				}
-			} else {// void or primitive type
-				String fileName = "/" + fqn.replace('.', '/') + ".java"; // Inner classes?
-				FileResolver fileResolver = scannerContext.peek(FileResolver.class);
-				JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName,
-						JavaSourceFileDescriptor.class, scannerContext);
-				typeDescriptor = sourceFileDescriptor.resolveType(fqn);
-			}
-			typeDescriptor.setFullQualifiedName(fqn);
 			requiredTypes.put(fqn, typeDescriptor);
 		}
 		return typeDescriptor;

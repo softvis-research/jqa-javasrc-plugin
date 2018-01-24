@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import org.unileipzig.jqassistant.plugin.parser.api.model.VisibilityModifier;
 
 import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.resolution.types.ResolvedType;
 
 public class Utils {
     
@@ -26,5 +27,25 @@ public class Utils {
         } else {
             return VisibilityModifier.DEFAULT;
         }
+    }
+    
+    /**
+     * Returns the full qualified name of a resolved type.
+     * 
+     * @param resolvedType
+     * @return full qualified name
+     */
+    public static String getQualifiedName(ResolvedType resolvedType) {
+		String fqn = "";
+		if (resolvedType.isVoid()) {
+			fqn = resolvedType.describe();
+		} else if (resolvedType.isPrimitive()) {
+			fqn = resolvedType.asPrimitive().describe();
+		} else if (resolvedType.isReferenceType()) {
+			fqn = resolvedType.asReferenceType().getTypeDeclaration().getQualifiedName();
+		} else {
+			throw new RuntimeException("Type could not be resolved: " + resolvedType.toString());
+		}
+		return fqn;
     }
 }

@@ -70,7 +70,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			// extends, implements
 			List<ResolvedReferenceType> resolvedSuperTypes = resolvedInterfaceDeclaration.getAncestors();
 			for (ResolvedReferenceType resolvedSuperType : resolvedSuperTypes) {
-				interfaceTypeDescriptor.setSuperClass(typeResolver.resolveType(resolvedSuperType));
+				interfaceTypeDescriptor.setSuperClass(typeResolver.resolveType(Utils.getQualifiedName(resolvedSuperType)));
 			}
 			
 			// inner class			
@@ -110,13 +110,13 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			
 			// extend
 			ResolvedReferenceType resolvedSuperType = resolvedClassDeclaration.getSuperClass();
-			TypeDescriptor superClassTypeDescriptor = typeResolver.resolveType(resolvedSuperType);
+			TypeDescriptor superClassTypeDescriptor = typeResolver.resolveType(Utils.getQualifiedName(resolvedSuperType));
 			classTypeDescriptor.setSuperClass(superClassTypeDescriptor);
 			
 			// implements
 			List<ResolvedReferenceType> resolvedInterfaces = resolvedClassDeclaration.getInterfaces();
 			for (ResolvedReferenceType resolvedInterface : resolvedInterfaces) {
-				classTypeDescriptor.getInterfaces().add(typeResolver.resolveType(resolvedInterface));
+				classTypeDescriptor.getInterfaces().add(typeResolver.resolveType(Utils.getQualifiedName(resolvedInterface)));
 			}
 			
 			// inner class			

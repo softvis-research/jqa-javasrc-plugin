@@ -31,7 +31,7 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 	public void visit(FieldDeclaration fieldDeclaration, TypeDescriptor typeDescriptor) {
 		// signature, name
 		ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solveDeclaration(fieldDeclaration, ResolvedFieldDeclaration.class);
-		TypeDescriptor fieldTypeDescriptor = typeResolver.resolveType(resolvedFieldDeclaration.getType()); 
+		TypeDescriptor fieldTypeDescriptor = typeResolver.resolveType(Utils.getQualifiedName(resolvedFieldDeclaration.getType())); 
 		FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(typeDescriptor, fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedFieldDeclaration.getName());
 		fieldDescriptor.setName(resolvedFieldDeclaration.getName());
 		
@@ -66,7 +66,7 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 	public void visit(EnumConstantDeclaration enumConstantDeclaration, TypeDescriptor typeDescriptor) {
 		// fqn, name
 		ResolvedEnumConstantDeclaration resolvedEnumConstantDeclaration = typeResolver.solveDeclaration(enumConstantDeclaration, ResolvedEnumConstantDeclaration.class);
-		TypeDescriptor fieldTypeDescriptor = typeResolver.resolveType(resolvedEnumConstantDeclaration.getType()); 
+		TypeDescriptor fieldTypeDescriptor = typeResolver.resolveType(Utils.getQualifiedName(resolvedEnumConstantDeclaration.getType())); 
 		FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(typeDescriptor, fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedEnumConstantDeclaration.getName());
 		fieldDescriptor.setName(resolvedEnumConstantDeclaration.getName());
 
