@@ -106,7 +106,6 @@ public class TypeResolver {
 			return typeDescriptor = requiredTypes.get(fqn);
 		} else {
 			String fileName = "/" + fqn.replace('.', '/') + ".java"; // Inner classes?
-			fileName = "/NestedInnerClasses.java";
 			FileResolver fileResolver = scannerContext.peek(FileResolver.class);
 			JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName,
 					JavaSourceFileDescriptor.class, scannerContext);
