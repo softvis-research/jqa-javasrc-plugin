@@ -62,15 +62,18 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeS
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
 /**
+ * The type resolver has two main tasks. First, it holds an instance of the
+ * java symbol solver to solve parsed java types. Second, it caches the parsed
+ * types and provides concrete descriptors.
+ * 
  * @author Richard Müller
  *
  */
 public class TypeResolver {
 	private TypeSolver javaTypeSolver;
+	private ScannerContext scannerContext;
 	private Map<String, TypeDescriptor> containedTypes = new HashMap<>();
 	private Map<String, TypeDescriptor> requiredTypes = new HashMap<>();
-	private static final String CONSTRUCTOR_METHOD = "void <init>";
-	private ScannerContext scannerContext;
 
 	public TypeResolver(String srcDir, ScannerContext scannerContext) {
 		this.javaTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(),
@@ -82,20 +85,21 @@ public class TypeResolver {
 		this.scannerContext = scannerContext;
 	}
 
-	public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor, Class<T> type) {
+	public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor,
+			Class<T> type) {
 		TypeDescriptor resolvedTypeDescriptor = javaSourcefileDescriptor.resolveType(fqn);
 		T typeDescriptor;
 		if (requiredTypes.containsKey(fqn)) {
 			typeDescriptor = scannerContext.getStore().migrate(requiredTypes.get(fqn), type);
 			requiredTypes.remove(fqn);
-		}else {
+		} else {
 			typeDescriptor = scannerContext.getStore().addDescriptorType(resolvedTypeDescriptor, type);
 		}
 		containedTypes.put(fqn, typeDescriptor);
 		return typeDescriptor;
 	}
-	
-    public TypeDescriptor resolveType(String fqn) {
+
+	public TypeDescriptor resolveType(String fqn) {
 		TypeDescriptor typeDescriptor;
 		if (containedTypes.containsKey(fqn)) {
 			return typeDescriptor = containedTypes.get(fqn);
@@ -104,7 +108,8 @@ public class TypeResolver {
 		} else {
 			String fileName = "/" + fqn.replace('.', '/') + ".java"; // Inner classes?
 			FileResolver fileResolver = scannerContext.peek(FileResolver.class);
-			JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName, JavaSourceFileDescriptor.class, scannerContext);
+			JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName,
+					JavaSourceFileDescriptor.class, scannerContext);
 			typeDescriptor = sourceFileDescriptor.resolveType(fqn);
 			requiredTypes.put(fqn, typeDescriptor);
 		}
@@ -113,7 +118,7 @@ public class TypeResolver {
 
 	public MethodDescriptor addMethodDescriptor(TypeDescriptor parentType, String signature) {
 		MethodDescriptor methodDescriptor;
-		if (signature.startsWith(CONSTRUCTOR_METHOD)) {
+		if (signature.startsWith(TypeResolverUtils.CONSTRUCTOR_METHOD)) {
 			methodDescriptor = scannerContext.getStore().create(ConstructorDescriptor.class);
 		} else {
 			methodDescriptor = scannerContext.getStore().create(MethodDescriptor.class);

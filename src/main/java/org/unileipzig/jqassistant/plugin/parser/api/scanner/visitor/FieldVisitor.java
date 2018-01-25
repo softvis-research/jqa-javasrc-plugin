@@ -6,7 +6,7 @@ import org.unileipzig.jqassistant.plugin.parser.api.model.FieldDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.PrimitiveValueDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.impl.scanner.TypeResolver;
-import org.unileipzig.jqassistant.plugin.parser.impl.scanner.Utils;
+import org.unileipzig.jqassistant.plugin.parser.impl.scanner.TypeResolverUtils;
 
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
@@ -17,6 +17,10 @@ import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclara
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 
 /**
+ * This visitor handles parsed fields and creates corresponding descriptors. The
+ * type resolver is used to get full qualified names of parsed declarations and
+ * to determine the field type.
+ * 
  * @author Richard Müller
  *
  */
@@ -29,20 +33,25 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 
 	@Override
 	public void visit(FieldDeclaration fieldDeclaration, TypeDescriptor typeDescriptor) {
+		super.visit(fieldDeclaration, typeDescriptor);
+
 		// signature, name
-		ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solveDeclaration(fieldDeclaration, ResolvedFieldDeclaration.class);
-		TypeDescriptor fieldTypeDescriptor = typeResolver.resolveType(Utils.getQualifiedName(resolvedFieldDeclaration.getType())); 
-		FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(typeDescriptor, fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedFieldDeclaration.getName());
+		ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solveDeclaration(fieldDeclaration,
+				ResolvedFieldDeclaration.class);
+		TypeDescriptor fieldTypeDescriptor = typeResolver
+				.resolveType(TypeResolverUtils.getQualifiedName(resolvedFieldDeclaration.getType()));
+		FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(typeDescriptor,
+				fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedFieldDeclaration.getName());
 		fieldDescriptor.setName(resolvedFieldDeclaration.getName());
-		
+
 		// visibility and access modifiers
-		fieldDescriptor.setVisibility(Utils.getAccessSpecifier(fieldDeclaration.getModifiers()).getValue());
+		fieldDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(fieldDeclaration.getModifiers()).getValue());
 		fieldDescriptor.setFinal(fieldDeclaration.isFinal());
 		fieldDescriptor.setStatic(fieldDeclaration.isStatic());
 
 		// type
 		fieldDescriptor.setType(fieldTypeDescriptor);
-		
+
 		// field value (of first variable)
 		// TODO many variables for one field, type of values
 		VariableDeclarator variable = fieldDeclaration.getVariables().get(0);
@@ -57,19 +66,19 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 
 			fieldDescriptor.setValue(valueDescriptor);
 		}
-       
-		
-		super.visit(fieldDeclaration, typeDescriptor);
 	}
-	
+
 	@Override
 	public void visit(EnumConstantDeclaration enumConstantDeclaration, TypeDescriptor typeDescriptor) {
-		// fqn, name
-		ResolvedEnumConstantDeclaration resolvedEnumConstantDeclaration = typeResolver.solveDeclaration(enumConstantDeclaration, ResolvedEnumConstantDeclaration.class);
-		TypeDescriptor fieldTypeDescriptor = typeResolver.resolveType(Utils.getQualifiedName(resolvedEnumConstantDeclaration.getType())); 
-		FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(typeDescriptor, fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedEnumConstantDeclaration.getName());
-		fieldDescriptor.setName(resolvedEnumConstantDeclaration.getName());
-
 		super.visit(enumConstantDeclaration, typeDescriptor);
+
+		// fqn, name
+		ResolvedEnumConstantDeclaration resolvedEnumConstantDeclaration = typeResolver
+				.solveDeclaration(enumConstantDeclaration, ResolvedEnumConstantDeclaration.class);
+		TypeDescriptor fieldTypeDescriptor = typeResolver
+				.resolveType(TypeResolverUtils.getQualifiedName(resolvedEnumConstantDeclaration.getType()));
+		FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(typeDescriptor,
+				fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedEnumConstantDeclaration.getName());
+		fieldDescriptor.setName(resolvedEnumConstantDeclaration.getName());
 	}
 }
