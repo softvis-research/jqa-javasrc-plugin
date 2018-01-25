@@ -29,7 +29,6 @@ import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaratio
 public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 
 	private TypeResolver typeResolver;
-	private static final String CONSTRUCTOR_METHOD = "void <init>";
 
 	public MethodVisitor(TypeResolver typeResolver) {
 		this.typeResolver = typeResolver;
@@ -80,7 +79,7 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 		final String constructorParameter = resolvedConstructorDeclaration.getSignature()
 				.replaceAll(resolvedConstructorDeclaration.getName(), "");
 		ConstructorDescriptor constructorDescriptor = (ConstructorDescriptor) typeResolver
-				.addMethodDescriptor(typeDescriptor, CONSTRUCTOR_METHOD + constructorParameter);
+				.addMethodDescriptor(typeDescriptor, TypeResolverUtils.CONSTRUCTOR_METHOD + constructorParameter);
 		constructorDescriptor.setName(resolvedConstructorDeclaration.getName());
 
 		// visibility
