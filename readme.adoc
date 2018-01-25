@@ -27,14 +27,14 @@ constructor (+ overloaded constructor, - implicit default constructor)
 + signature
 + name
 + visibility (public, protected, private, default)
-+ parameters (primitive type, reference type) 
++ parameters (primitive type, reference type, array type) 
 
 method
 + signature
 + name
 + visibility and access modifiers (public, protected, private, default, abstract, final, static)
 + parameters (primitive type, reference type)
-+ return type (void, primitive type, reference type)
++ return type (void, primitive type, reference type, array type)
 - reads
 - writes
 - invokes
@@ -45,12 +45,11 @@ field
 + signature
 + name
 + visibility and access modifiers (public, protected, private, default, final, static)
-+ type (primitive type, reference type)
++ type (primitive type, reference type, array type)
 + value (of first variable)
 
 == TODO
 - annotation
-- arrays
 - parameter types
 - comments
 - remove parameters in visitors?

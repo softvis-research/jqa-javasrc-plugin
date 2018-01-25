@@ -50,6 +50,8 @@ public class TypeResolverUtils {
 			fqn = resolvedType.asPrimitive().describe();
 		} else if (resolvedType.isReferenceType()) {
 			fqn = resolvedType.asReferenceType().getTypeDeclaration().getQualifiedName();
+		}else if (resolvedType.isArray()) {
+			fqn = resolvedType.asArrayType().describe();
 		} else {
 			throw new RuntimeException("Type could not be resolved: " + resolvedType.toString());
 		}
