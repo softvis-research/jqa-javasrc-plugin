@@ -11,6 +11,7 @@ import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.impl.scanner.TypeResolver;
 import org.unileipzig.jqassistant.plugin.parser.impl.scanner.TypeResolverUtils;
 
+import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
@@ -35,7 +36,6 @@ import com.github.javaparser.resolution.types.ResolvedReferenceType;
  */
 public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 	private TypeResolver typeResolver;
-
 	public TypeVisitor(TypeResolver typeResolver) {
 		this.typeResolver = typeResolver;
 	}
@@ -44,7 +44,8 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 	public void visit(ClassOrInterfaceDeclaration classOrInterfaceDeclaration,
 			JavaSourceFileDescriptor javaSourceFileDescriptor) {
 		super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
-
+		TypeDescriptor classOrInterfaceTypeDescriptor;
+		
 		if (classOrInterfaceDeclaration.isInterface()) {
 			// interface
 			// fqn, name
@@ -55,7 +56,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 					InterfaceTypeDescriptor.class);
 			interfaceTypeDescriptor.setFullQualifiedName(resolvedInterfaceDeclaration.getQualifiedName());
 			interfaceTypeDescriptor.setName(classOrInterfaceDeclaration.getNameAsString());
-
+			
 			// visibility and access modifiers
 			interfaceTypeDescriptor.setVisibility(
 					TypeResolverUtils.getAccessSpecifier(classOrInterfaceDeclaration.getModifiers()).getValue());
@@ -63,16 +64,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			interfaceTypeDescriptor.setFinal(classOrInterfaceDeclaration.isFinal());
 			interfaceTypeDescriptor.setStatic(classOrInterfaceDeclaration.isStatic());
 
-			// methods
-			for (MethodDeclaration method : classOrInterfaceDeclaration.getMethods()) {
-				method.accept(new MethodVisitor(typeResolver), interfaceTypeDescriptor);
-			}
-
-			// fields
-			for (FieldDeclaration field : classOrInterfaceDeclaration.getFields()) {
-				field.accept(new FieldVisitor(typeResolver), interfaceTypeDescriptor);
-			}
-
+			
 			// extends, implements
 			List<ResolvedReferenceType> resolvedSuperTypes = resolvedInterfaceDeclaration.getAncestors();
 			for (ResolvedReferenceType resolvedSuperType : resolvedSuperTypes) {
@@ -85,8 +77,10 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			for (ResolvedReferenceTypeDeclaration resolvedInnerClass : resolvedInnerClasses) {
 				interfaceTypeDescriptor.getDeclaredInnerClasses()
 						.add(typeResolver.resolveType(resolvedInnerClass.getQualifiedName()));
+			
 			}
-
+			
+			classOrInterfaceTypeDescriptor = interfaceTypeDescriptor;
 		} else {
 			// class
 			// fqn, name
@@ -96,7 +90,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 					resolvedClassDeclaration.getQualifiedName(), javaSourceFileDescriptor, ClassTypeDescriptor.class);
 			classTypeDescriptor.setFullQualifiedName(resolvedClassDeclaration.getQualifiedName());
 			classTypeDescriptor.setName(classOrInterfaceDeclaration.getNameAsString());
-
+			
 			// visibility and access modifiers
 			classTypeDescriptor.setVisibility(
 					TypeResolverUtils.getAccessSpecifier(classOrInterfaceDeclaration.getModifiers()).getValue());
@@ -104,22 +98,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			classTypeDescriptor.setFinal(classOrInterfaceDeclaration.isFinal());
 			classTypeDescriptor.setStatic(classOrInterfaceDeclaration.isStatic());
 
-			// constructors
-			for (ConstructorDeclaration constructor : classOrInterfaceDeclaration.getConstructors()) {
-				constructor.accept(new MethodVisitor(typeResolver), classTypeDescriptor);
-			}
-
-			// methods
-			for (MethodDeclaration method : classOrInterfaceDeclaration.getMethods()) {
-				method.accept(new MethodVisitor(typeResolver), classTypeDescriptor);
-			}
-
-			// fields
-			for (FieldDeclaration field : classOrInterfaceDeclaration.getFields()) {
-				field.accept(new FieldVisitor(typeResolver), classTypeDescriptor);
-			}
-
-			// extend
+			// extends
 			ResolvedReferenceType resolvedSuperType = resolvedClassDeclaration.getSuperClass();
 			TypeDescriptor superClassTypeDescriptor = typeResolver
 					.resolveType(TypeResolverUtils.getQualifiedName(resolvedSuperType));
@@ -138,6 +117,23 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 				classTypeDescriptor.getDeclaredInnerClasses()
 						.add(typeResolver.resolveType(resolvedInnerClass.getQualifiedName()));
 			}
+
+			// constructors
+			for (ConstructorDeclaration constructor : classOrInterfaceDeclaration.getConstructors()) {
+				constructor.accept(new MethodVisitor(typeResolver), classTypeDescriptor);
+			}
+			
+			classOrInterfaceTypeDescriptor = classTypeDescriptor;
+
+		}
+		// methods
+		for (MethodDeclaration method : classOrInterfaceDeclaration.getMethods()) {
+			method.accept(new MethodVisitor(typeResolver), classOrInterfaceTypeDescriptor);
+		}
+
+		// fields
+		for (FieldDeclaration field : classOrInterfaceDeclaration.getFields()) {
+			field.accept(new FieldVisitor(typeResolver), classOrInterfaceTypeDescriptor);
 		}
 	}
 
@@ -175,5 +171,4 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 		// constructor.accept(new MethodVisitor(typeResolver), enumTypeDescriptor);
 		// }
 	}
-
 }
