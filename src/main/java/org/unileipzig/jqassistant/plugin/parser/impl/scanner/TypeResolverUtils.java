@@ -52,6 +52,9 @@ public class TypeResolverUtils {
 			fqn = resolvedType.asReferenceType().getTypeDeclaration().getQualifiedName();
 		}else if (resolvedType.isArray()) {
 			fqn = resolvedType.asArrayType().describe();
+		}else if (resolvedType.isTypeVariable()) {
+			fqn = resolvedType.asTypeVariable().qualifiedName();
+			System.out.println(fqn);
 		} else {
 			throw new RuntimeException("Type could not be resolved: " + resolvedType.toString());
 		}
