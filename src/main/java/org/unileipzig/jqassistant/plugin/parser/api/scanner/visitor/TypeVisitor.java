@@ -22,14 +22,14 @@ import com.github.javaparser.resolution.types.ResolvedReferenceType;
 
 /**
  * This visitor handles parsed types, i.e. interfaces, classes, enums, and
- * (annotations), and creates corresponding descriptors. It explicitly calls the
- * visitors for its fields and methods.
+ * (annotations), and creates corresponding descriptors.
  * 
  * @author Richard Müller
  *
  */
 public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 	private TypeResolver typeResolver;
+
 	public TypeVisitor(TypeResolver typeResolver) {
 		this.typeResolver = typeResolver;
 	}
@@ -38,17 +38,18 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 	public void visit(ClassOrInterfaceDeclaration classOrInterfaceDeclaration,
 			JavaSourceFileDescriptor javaSourceFileDescriptor) {
 		super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
-		
+
 		if (classOrInterfaceDeclaration.isInterface()) {
 			// interface
 			// fqn, name
-			ResolvedInterfaceDeclaration resolvedInterfaceDeclaration = classOrInterfaceDeclaration.resolve().asInterface();
+			ResolvedInterfaceDeclaration resolvedInterfaceDeclaration = classOrInterfaceDeclaration.resolve()
+					.asInterface();
 			InterfaceTypeDescriptor interfaceTypeDescriptor = typeResolver.createType(
 					resolvedInterfaceDeclaration.getQualifiedName(), javaSourceFileDescriptor,
 					InterfaceTypeDescriptor.class);
 			interfaceTypeDescriptor.setFullQualifiedName(resolvedInterfaceDeclaration.getQualifiedName());
 			interfaceTypeDescriptor.setName(classOrInterfaceDeclaration.getNameAsString());
-			
+
 			// visibility and access modifiers
 			interfaceTypeDescriptor.setVisibility(
 					TypeResolverUtils.getAccessSpecifier(classOrInterfaceDeclaration.getModifiers()).getValue());
@@ -56,7 +57,6 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			interfaceTypeDescriptor.setFinal(classOrInterfaceDeclaration.isFinal());
 			interfaceTypeDescriptor.setStatic(classOrInterfaceDeclaration.isStatic());
 
-			
 			// extends, implements
 			List<ResolvedReferenceType> resolvedSuperTypes = resolvedInterfaceDeclaration.getAncestors();
 			for (ResolvedReferenceType resolvedSuperType : resolvedSuperTypes) {
@@ -69,9 +69,9 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			for (ResolvedReferenceTypeDeclaration resolvedInnerClass : resolvedInnerClasses) {
 				interfaceTypeDescriptor.getDeclaredInnerClasses()
 						.add(typeResolver.resolveType(resolvedInnerClass.getQualifiedName()));
-			
+
 			}
-			
+
 		} else {
 			// class
 			// fqn, name
@@ -80,7 +80,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 					resolvedClassDeclaration.getQualifiedName(), javaSourceFileDescriptor, ClassTypeDescriptor.class);
 			classTypeDescriptor.setFullQualifiedName(resolvedClassDeclaration.getQualifiedName());
 			classTypeDescriptor.setName(classOrInterfaceDeclaration.getNameAsString());
-			
+
 			// visibility and access modifiers
 			classTypeDescriptor.setVisibility(
 					TypeResolverUtils.getAccessSpecifier(classOrInterfaceDeclaration.getModifiers()).getValue());
@@ -117,8 +117,8 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 
 		// fqn, name
 		ResolvedEnumDeclaration resolvedEnumDeclaration = enumDeclaration.resolve();
-		EnumTypeDescriptor enumTypeDescriptor = typeResolver.createType(resolvedEnumDeclaration.getQualifiedName(), javaSourceFileDescriptor,
-				EnumTypeDescriptor.class);
+		EnumTypeDescriptor enumTypeDescriptor = typeResolver.createType(resolvedEnumDeclaration.getQualifiedName(),
+				javaSourceFileDescriptor, EnumTypeDescriptor.class);
 		enumTypeDescriptor.setFullQualifiedName(resolvedEnumDeclaration.getQualifiedName());
 		enumTypeDescriptor.setName(resolvedEnumDeclaration.getName().toString());
 

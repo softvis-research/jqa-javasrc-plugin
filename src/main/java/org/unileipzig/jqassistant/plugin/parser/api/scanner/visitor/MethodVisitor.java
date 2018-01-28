@@ -43,7 +43,8 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
 		ResolvedMethodDeclaration resolvedMethodDeclaration = methodDeclaration.resolve();
 		TypeDescriptor returnTypeDescriptor = typeResolver
 				.resolveType(TypeResolverUtils.getQualifiedName(resolvedMethodDeclaration.getReturnType()));
-		MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(resolvedMethodDeclaration.declaringType().getQualifiedName(),
+		MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(
+				resolvedMethodDeclaration.declaringType().getQualifiedName(),
 				returnTypeDescriptor.getFullQualifiedName() + " " + resolvedMethodDeclaration.getSignature());
 		methodDescriptor.setName(resolvedMethodDeclaration.getName());
 
@@ -69,23 +70,26 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
 	}
 
 	@Override
-	public void visit(ConstructorDeclaration constructorDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
+	public void visit(ConstructorDeclaration constructorDeclaration,
+			JavaSourceFileDescriptor javaSourceFileDescriptor) {
 		super.visit(constructorDeclaration, javaSourceFileDescriptor);
-		
-		// enum constructors are currently not supported: https://github.com/javaparser/javaparser/pull/1315
+
+		// enum constructors are currently not supported:
+		// https://github.com/javaparser/javaparser/pull/1315
 		Node parent = constructorDeclaration.getParentNode().get();
 		if (!(parent instanceof EnumDeclaration)) {
 			// signature, name
-			ResolvedConstructorDeclaration resolvedConstructorDeclaration =	constructorDeclaration.resolve();
+			ResolvedConstructorDeclaration resolvedConstructorDeclaration = constructorDeclaration.resolve();
 			final String constructorParameter = resolvedConstructorDeclaration.getSignature()
 					.replaceAll(resolvedConstructorDeclaration.getName(), "");
-			ConstructorDescriptor constructorDescriptor = (ConstructorDescriptor) typeResolver
-					.addMethodDescriptor(resolvedConstructorDeclaration.declaringType().getQualifiedName(), TypeResolverUtils.CONSTRUCTOR_METHOD + constructorParameter);
+			ConstructorDescriptor constructorDescriptor = (ConstructorDescriptor) typeResolver.addMethodDescriptor(
+					resolvedConstructorDeclaration.declaringType().getQualifiedName(),
+					TypeResolverUtils.CONSTRUCTOR_METHOD + constructorParameter);
 			constructorDescriptor.setName(resolvedConstructorDeclaration.getName());
 
 			// visibility
-			constructorDescriptor
-					.setVisibility(TypeResolverUtils.getAccessSpecifier(constructorDeclaration.getModifiers()).getValue());
+			constructorDescriptor.setVisibility(
+					TypeResolverUtils.getAccessSpecifier(constructorDeclaration.getModifiers()).getValue());
 
 			// parameters
 			List<Parameter> parameters = constructorDeclaration.getParameters();
