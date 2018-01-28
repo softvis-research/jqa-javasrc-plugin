@@ -165,10 +165,10 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			field.accept(new FieldVisitor(typeResolver), enumTypeDescriptor);
 		}
 
-		// constructors
-		// for (ConstructorDeclaration constructor : enumDeclaration.getConstructors())
-		// {
-		// constructor.accept(new MethodVisitor(typeResolver), enumTypeDescriptor);
-		// }
+		 //constructors
+		 for (ConstructorDeclaration constructor : enumDeclaration.getConstructors())
+		 {
+		 constructor.accept(new MethodVisitor(typeResolver), enumTypeDescriptor);
+		 }
 	}
 }
