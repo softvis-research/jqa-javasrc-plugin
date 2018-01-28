@@ -11,13 +11,8 @@ import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.impl.scanner.TypeResolver;
 import org.unileipzig.jqassistant.plugin.parser.impl.scanner.TypeResolverUtils;
 
-import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.ConstructorDeclaration;
-import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
-import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedClassDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedEnumDeclaration;
@@ -28,8 +23,7 @@ import com.github.javaparser.resolution.types.ResolvedReferenceType;
 /**
  * This visitor handles parsed types, i.e. interfaces, classes, enums, and
  * (annotations), and creates corresponding descriptors. It explicitly calls the
- * visitors for its fields and methods. The type resolver is used to get full
- * qualified names of parsed declarations.
+ * visitors for its fields and methods.
  * 
  * @author Richard Müller
  *
@@ -48,8 +42,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 		if (classOrInterfaceDeclaration.isInterface()) {
 			// interface
 			// fqn, name
-			ResolvedInterfaceDeclaration resolvedInterfaceDeclaration = typeResolver
-					.solveDeclaration(classOrInterfaceDeclaration, ResolvedInterfaceDeclaration.class);
+			ResolvedInterfaceDeclaration resolvedInterfaceDeclaration = classOrInterfaceDeclaration.resolve().asInterface();
 			InterfaceTypeDescriptor interfaceTypeDescriptor = typeResolver.createType(
 					resolvedInterfaceDeclaration.getQualifiedName(), javaSourceFileDescriptor,
 					InterfaceTypeDescriptor.class);
@@ -82,8 +75,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 		} else {
 			// class
 			// fqn, name
-			ResolvedClassDeclaration resolvedClassDeclaration = typeResolver
-					.solveDeclaration(classOrInterfaceDeclaration, ResolvedClassDeclaration.class);
+			ResolvedClassDeclaration resolvedClassDeclaration = classOrInterfaceDeclaration.resolve().asClass();
 			ClassTypeDescriptor classTypeDescriptor = typeResolver.createType(
 					resolvedClassDeclaration.getQualifiedName(), javaSourceFileDescriptor, ClassTypeDescriptor.class);
 			classTypeDescriptor.setFullQualifiedName(resolvedClassDeclaration.getQualifiedName());
@@ -124,12 +116,10 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 		super.visit(enumDeclaration, javaSourceFileDescriptor);
 
 		// fqn, name
-		ResolvedEnumDeclaration resolvedEnumDeclaration = typeResolver.solveDeclaration(enumDeclaration,
-				ResolvedEnumDeclaration.class);
-		String fqn = resolvedEnumDeclaration.getQualifiedName();
-		EnumTypeDescriptor enumTypeDescriptor = typeResolver.createType(fqn, javaSourceFileDescriptor,
+		ResolvedEnumDeclaration resolvedEnumDeclaration = enumDeclaration.resolve();
+		EnumTypeDescriptor enumTypeDescriptor = typeResolver.createType(resolvedEnumDeclaration.getQualifiedName(), javaSourceFileDescriptor,
 				EnumTypeDescriptor.class);
-		enumTypeDescriptor.setFullQualifiedName(fqn);
+		enumTypeDescriptor.setFullQualifiedName(resolvedEnumDeclaration.getQualifiedName());
 		enumTypeDescriptor.setName(resolvedEnumDeclaration.getName().toString());
 
 		// visibility and access modifiers

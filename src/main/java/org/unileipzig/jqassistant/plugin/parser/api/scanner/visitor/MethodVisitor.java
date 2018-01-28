@@ -22,9 +22,7 @@ import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaratio
 
 /**
  * This visitor handles parsed methods, i.e. methods and constructors, and
- * creates corresponding descriptors. The type resolver is used to get full
- * qualified names of parsed declarations and to solve types of return types and
- * parameters.
+ * creates corresponding descriptors.
  * 
  * @author Richard Müller
  *
@@ -42,8 +40,7 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
 		super.visit(methodDeclaration, javaSourceFileDescriptor);
 
 		// signature, name
-		ResolvedMethodDeclaration resolvedMethodDeclaration = typeResolver.solveDeclaration(methodDeclaration,
-				ResolvedMethodDeclaration.class);
+		ResolvedMethodDeclaration resolvedMethodDeclaration = methodDeclaration.resolve();
 		TypeDescriptor returnTypeDescriptor = typeResolver
 				.resolveType(TypeResolverUtils.getQualifiedName(resolvedMethodDeclaration.getReturnType()));
 		MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(resolvedMethodDeclaration.declaringType().getQualifiedName(),
@@ -60,8 +57,7 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
 		// parameters
 		List<Parameter> parameters = methodDeclaration.getParameters();
 		for (int i = 0; i < parameters.size(); i++) {
-			ResolvedParameterDeclaration resolvedParameterDeclaration = typeResolver.solveDeclaration(parameters.get(i),
-					ResolvedParameterDeclaration.class);
+			ResolvedParameterDeclaration resolvedParameterDeclaration = parameters.get(i).resolve();
 			TypeDescriptor parameterTypeDescriptor = typeResolver
 					.resolveType(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()));
 			ParameterDescriptor parameterDescriptor = typeResolver.addParameterDescriptor(methodDescriptor, i);
@@ -80,9 +76,7 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
 		Node parent = constructorDeclaration.getParentNode().get();
 		if (!(parent instanceof EnumDeclaration)) {
 			// signature, name
-			ResolvedConstructorDeclaration resolvedConstructorDeclaration =	
-					typeResolver
-					.solveDeclaration(constructorDeclaration, ResolvedConstructorDeclaration.class);
+			ResolvedConstructorDeclaration resolvedConstructorDeclaration =	constructorDeclaration.resolve();
 			final String constructorParameter = resolvedConstructorDeclaration.getSignature()
 					.replaceAll(resolvedConstructorDeclaration.getName(), "");
 			ConstructorDescriptor constructorDescriptor = (ConstructorDescriptor) typeResolver
@@ -96,8 +90,7 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
 			// parameters
 			List<Parameter> parameters = constructorDeclaration.getParameters();
 			for (int i = 0; i < parameters.size(); i++) {
-				ResolvedParameterDeclaration resolvedParameterDeclaration = typeResolver.solveDeclaration(parameters.get(i),
-						ResolvedParameterDeclaration.class);
+				ResolvedParameterDeclaration resolvedParameterDeclaration = parameters.get(i).resolve();
 				TypeDescriptor parameterTypeDescriptor = typeResolver
 						.resolveType(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()));
 				ParameterDescriptor parameterDescriptor = typeResolver.addParameterDescriptor(constructorDescriptor, i);
