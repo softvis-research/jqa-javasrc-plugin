@@ -116,7 +116,8 @@ public class TypeResolver {
 		return typeDescriptor;
 	}
 
-	public MethodDescriptor addMethodDescriptor(TypeDescriptor parentType, String signature) {
+	public MethodDescriptor addMethodDescriptor(String parentFQN, String signature) {
+		TypeDescriptor parentType = resolveType(parentFQN);
 		MethodDescriptor methodDescriptor;
 		if (signature.startsWith(TypeResolverUtils.CONSTRUCTOR_METHOD)) {
 			methodDescriptor = scannerContext.getStore().create(ConstructorDescriptor.class);
@@ -129,7 +130,8 @@ public class TypeResolver {
 		return methodDescriptor;
 	}
 
-	public FieldDescriptor addFieldDescriptor(TypeDescriptor parentType, String signature) {
+	public FieldDescriptor addFieldDescriptor(String parentFQN, String signature) {
+		TypeDescriptor parentType = resolveType(parentFQN);
 		FieldDescriptor fieldDescriptor = scannerContext.getStore().create(FieldDescriptor.class);
 		fieldDescriptor.setSignature(signature);
 		parentType.getDeclaredFields().add(fieldDescriptor);

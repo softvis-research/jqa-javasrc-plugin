@@ -3,6 +3,7 @@ package org.unileipzig.jqassistant.plugin.parser.api.scanner.visitor;
 import java.util.List;
 
 import org.unileipzig.jqassistant.plugin.parser.api.model.ConstructorDescriptor;
+import org.unileipzig.jqassistant.plugin.parser.api.model.JavaSourceFileDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.MethodDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.ParameterDescriptor;
 import org.unileipzig.jqassistant.plugin.parser.api.model.TypeDescriptor;
@@ -28,7 +29,7 @@ import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaratio
  * @author Richard Müller
  *
  */
-public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
+public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 
 	private TypeResolver typeResolver;
 
@@ -37,15 +38,15 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 	}
 
 	@Override
-	public void visit(MethodDeclaration methodDeclaration, TypeDescriptor typeDescriptor) {
-		super.visit(methodDeclaration, typeDescriptor);
+	public void visit(MethodDeclaration methodDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
+		super.visit(methodDeclaration, javaSourceFileDescriptor);
 
 		// signature, name
 		ResolvedMethodDeclaration resolvedMethodDeclaration = typeResolver.solveDeclaration(methodDeclaration,
 				ResolvedMethodDeclaration.class);
 		TypeDescriptor returnTypeDescriptor = typeResolver
 				.resolveType(TypeResolverUtils.getQualifiedName(resolvedMethodDeclaration.getReturnType()));
-		MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(typeDescriptor,
+		MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(resolvedMethodDeclaration.declaringType().getQualifiedName(),
 				returnTypeDescriptor.getFullQualifiedName() + " " + resolvedMethodDeclaration.getSignature());
 		methodDescriptor.setName(resolvedMethodDeclaration.getName());
 
@@ -72,8 +73,8 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 	}
 
 	@Override
-	public void visit(ConstructorDeclaration constructorDeclaration, TypeDescriptor typeDescriptor) {
-		super.visit(constructorDeclaration, typeDescriptor);
+	public void visit(ConstructorDeclaration constructorDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
+		super.visit(constructorDeclaration, javaSourceFileDescriptor);
 		
 		// enum constructors are currently not supported: https://github.com/javaparser/javaparser/pull/1315
 		Node parent = constructorDeclaration.getParentNode().get();
@@ -85,7 +86,7 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 			final String constructorParameter = resolvedConstructorDeclaration.getSignature()
 					.replaceAll(resolvedConstructorDeclaration.getName(), "");
 			ConstructorDescriptor constructorDescriptor = (ConstructorDescriptor) typeResolver
-					.addMethodDescriptor(typeDescriptor, TypeResolverUtils.CONSTRUCTOR_METHOD + constructorParameter);
+					.addMethodDescriptor(resolvedConstructorDeclaration.declaringType().getQualifiedName(), TypeResolverUtils.CONSTRUCTOR_METHOD + constructorParameter);
 			constructorDescriptor.setName(resolvedConstructorDeclaration.getName());
 
 			// visibility

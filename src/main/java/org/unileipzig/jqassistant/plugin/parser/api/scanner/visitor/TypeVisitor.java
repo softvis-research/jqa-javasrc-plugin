@@ -44,7 +44,6 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 	public void visit(ClassOrInterfaceDeclaration classOrInterfaceDeclaration,
 			JavaSourceFileDescriptor javaSourceFileDescriptor) {
 		super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
-		TypeDescriptor classOrInterfaceTypeDescriptor;
 		
 		if (classOrInterfaceDeclaration.isInterface()) {
 			// interface
@@ -80,7 +79,6 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 			
 			}
 			
-			classOrInterfaceTypeDescriptor = interfaceTypeDescriptor;
 		} else {
 			// class
 			// fqn, name
@@ -118,22 +116,6 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 						.add(typeResolver.resolveType(resolvedInnerClass.getQualifiedName()));
 			}
 
-			// constructors
-			for (ConstructorDeclaration constructor : classOrInterfaceDeclaration.getConstructors()) {
-				constructor.accept(new MethodVisitor(typeResolver), classTypeDescriptor);
-			}
-			
-			classOrInterfaceTypeDescriptor = classTypeDescriptor;
-
-		}
-		// methods
-		for (MethodDeclaration method : classOrInterfaceDeclaration.getMethods()) {
-			method.accept(new MethodVisitor(typeResolver), classOrInterfaceTypeDescriptor);
-		}
-
-		// fields
-		for (FieldDeclaration field : classOrInterfaceDeclaration.getFields()) {
-			field.accept(new FieldVisitor(typeResolver), classOrInterfaceTypeDescriptor);
 		}
 	}
 
@@ -155,20 +137,5 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 				.setVisibility(TypeResolverUtils.getAccessSpecifier(enumDeclaration.getModifiers()).getValue());
 		enumTypeDescriptor.setStatic(enumDeclaration.isStatic());
 
-		// enum constants
-		for (EnumConstantDeclaration field : enumDeclaration.getEntries()) {
-			field.accept(new FieldVisitor(typeResolver), enumTypeDescriptor);
-		}
-
-		// fields
-		for (FieldDeclaration field : enumDeclaration.getFields()) {
-			field.accept(new FieldVisitor(typeResolver), enumTypeDescriptor);
-		}
-
-		 //constructors
-		 for (ConstructorDeclaration constructor : enumDeclaration.getConstructors())
-		 {
-		 constructor.accept(new MethodVisitor(typeResolver), enumTypeDescriptor);
-		 }
 	}
 }

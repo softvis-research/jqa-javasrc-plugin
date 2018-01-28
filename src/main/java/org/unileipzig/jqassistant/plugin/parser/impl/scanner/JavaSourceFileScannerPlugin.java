@@ -27,6 +27,8 @@ import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionMethodDeclaration;
 import org.unileipzig.jqassistant.plugin.parser.api.model.*;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.JavaScope;
+import org.unileipzig.jqassistant.plugin.parser.api.scanner.visitor.FieldVisitor;
+import org.unileipzig.jqassistant.plugin.parser.api.scanner.visitor.MethodVisitor;
 import org.unileipzig.jqassistant.plugin.parser.api.scanner.visitor.TypeVisitor;
 
 import java.io.IOException;
@@ -38,7 +40,7 @@ import java.util.Set;
 
 @Requires(FileDescriptor.class)
 public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResource, JavaSourceFileDescriptor> {
-	private TypeResolver resolver;
+	private TypeResolver typeResolver;
 	private Store store;
 
 	@Override
@@ -50,13 +52,14 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
 	public JavaSourceFileDescriptor scan(FileResource item, String path, Scope scope, Scanner scanner) throws IOException {
 		ScannerContext context = scanner.getContext();
 		store = context.getStore();
-		resolver = context.peek(TypeResolver.class); // get it from context, it should be the same object throughout
+		typeResolver = context.peek(TypeResolver.class); // get it from context, it should be the same object throughout
 		FileDescriptor fileDescriptor = context.getCurrentDescriptor();
 		JavaSourceFileDescriptor javaSourceFileDescriptor = store.addDescriptorType(fileDescriptor, JavaSourceFileDescriptor.class);
-		TypeVisitor visitor = new TypeVisitor(resolver);
 		try (InputStream in = item.createStream()) {
 			CompilationUnit cu = JavaParser.parse(in);
-			cu.accept(visitor, javaSourceFileDescriptor);
+			cu.accept(new TypeVisitor(typeResolver), javaSourceFileDescriptor);
+			cu.accept(new FieldVisitor(typeResolver), javaSourceFileDescriptor);
+			cu.accept(new MethodVisitor(typeResolver), javaSourceFileDescriptor);
 		}
 		return javaSourceFileDescriptor;
 	}
