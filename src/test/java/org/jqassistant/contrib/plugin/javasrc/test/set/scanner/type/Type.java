@@ -6,7 +6,6 @@ public final class Type {
      * 
      */
     public Type() {
-        // TODO Auto-generated constructor stub
     }
 
 }

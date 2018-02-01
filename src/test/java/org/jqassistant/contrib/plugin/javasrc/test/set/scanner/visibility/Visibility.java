@@ -1,6 +1,6 @@
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner.visibility;
 
-public class Visibility {
+public final class Visibility {
 
     public int publicField;
 

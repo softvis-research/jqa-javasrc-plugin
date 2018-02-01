@@ -14,12 +14,15 @@ import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.junit.Test;
 
 /**
- * Contains test which verify correct scanning static field values.
+ * Contains tests to verify correct scanning static field values.
+ * 
+ * @author Richard Müller
+ * 
  */
 public class FieldValueIT extends AbstractPluginIT {
 
     @Test
-    public void testfieldValue() {
+    public void testFieldValue() {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String TYPE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/fieldvalue/";
         File directory = new File(TYPE_DIRECTORY_PATH);

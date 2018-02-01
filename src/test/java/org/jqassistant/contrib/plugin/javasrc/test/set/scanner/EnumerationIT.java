@@ -14,9 +14,13 @@ import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.enumeration.Enume
 import org.junit.Test;
 
 /**
- * Contains test which verify correct scanning of constructors.
+ * Contains tests to verify correct scanning of enums.
+ * 
+ * @author Richard Müller
+ * 
  */
 public class EnumerationIT extends AbstractPluginIT {
+    // TODO test constructor
 
     @Test
     public void testEnumerationType() throws NoSuchFieldException {
@@ -32,39 +36,6 @@ public class EnumerationIT extends AbstractPluginIT {
                 hasItem(fieldDescriptor(EnumerationType.class, "B")));
         assertThat(query("MATCH (e:Type:Enum)-[:DECLARES]->(f:Field) WHERE f.name = 'value' RETURN f").getColumn("f"),
                 hasItem(fieldDescriptor(EnumerationType.class, "value")));
-        // System.out.println(query("MATCH
-        // (e:Type:Enum)-[:DECLARES]->(c:Constructor) RETURN
-        // c").getColumn("c"));
         store.commitTransaction();
     }
-
-    /**
-     * Verifies scanning of {@link EnumerationType}.
-     * 
-     * @throws java.io.IOException
-     *             If the test fails.
-     * @throws NoSuchMethodException
-     *             If the test fails.
-     */
-    // @Test
-    // public void implicitDefaultConstructor() throws IOException,
-    // NoSuchMethodException, NoSuchFieldException {
-    // scanClasses(EnumerationType.class);
-    // store.beginTransaction();
-    // assertThat(query("MATCH (e:Type:Enum) RETURN e").getColumn("e"),
-    // hasItem(typeDescriptor(EnumerationType.class)));
-    // assertThat(query("MATCH (e:Type:Enum)-[:EXTENDS]->(s) RETURN
-    // s").getColumn("s"), hasItem(typeDescriptor(Enum.class)));
-    // assertThat(query("MATCH (e:Type:Enum)-[:DECLARES]->(f:Field) RETURN
-    // f").getColumn("f"), CoreMatchers.allOf(
-    // hasItem(fieldDescriptor(EnumerationType.class, "A")),
-    // hasItem(fieldDescriptor(EnumerationType.class, "B")),
-    // hasItem(fieldDescriptor(EnumerationType.class, "value"))));
-    // assertThat(query("MATCH (e:Type:Enum)-[:DECLARES]->(c:Constructor) RETURN
-    // c").getColumn("c"),
-    // hasItem(MethodDescriptorMatcher.constructorDescriptor(EnumerationType.class,
-    // String.class, int.class, boolean.class)));
-    // store.commitTransaction();
-    // }
-
 }

@@ -14,7 +14,10 @@ import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.constructor.Overl
 import org.junit.Test;
 
 /**
- * Contains test which verify correct scanning of constructors.
+ * Contains tests to verify correct scanning of constructors.
+ * 
+ * @author Richard Müller
+ * 
  */
 public class ConstructorIT extends AbstractPluginIT {
 

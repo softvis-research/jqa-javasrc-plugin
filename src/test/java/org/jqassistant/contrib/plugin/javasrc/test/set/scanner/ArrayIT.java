@@ -16,6 +16,13 @@ import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.array.Array;
 import org.junit.Test;
 
+/**
+ * 
+ * Contains tests to verify correct scanning of arrays.
+ *
+ * @author Richard Müller
+ *
+ */
 public class ArrayIT extends AbstractPluginIT {
 
     @Test

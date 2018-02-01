@@ -18,16 +18,14 @@ import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.innerclass.Nested
 import org.junit.Test;
 
 /**
- * Contains test on relations between outer and inner classes.
+ * Contains tests to verify correct scanning of relations between outer and inner
+ * classes.
+ * 
+ * @author Richard Müller
+ *
  */
 public class NestedInnerClassesIT extends AbstractPluginIT {
 
-    /**
-     * Scans an outer class.
-     * 
-     * @throws IOException
-     *             If the test fails.
-     */
     @Test
     public void nestedInnerClasses() throws IOException {
         final String TEST_DIRECTORY_PATH = "src/test/java/";

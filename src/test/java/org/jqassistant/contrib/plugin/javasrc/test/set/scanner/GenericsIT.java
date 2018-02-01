@@ -13,6 +13,12 @@ import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.generics.GenericType;
 import org.junit.Test;
 
+/**
+ * Contains tests to verify correct scanning generics.
+ * 
+ * @author Richard Müller
+ *
+ */
 public class GenericsIT extends AbstractPluginIT {
 
     @Test
