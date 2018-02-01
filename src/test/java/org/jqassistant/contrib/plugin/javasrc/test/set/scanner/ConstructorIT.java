@@ -1,6 +1,6 @@
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner;
 
-import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.jqassistant.contrib.plugin.javasrc.test.matcher.MethodDescriptorMatcher.constructorDescriptor;
 import static org.junit.Assert.assertThat;
 
@@ -25,10 +25,8 @@ public class ConstructorIT extends AbstractPluginIT {
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
-        assertThat(query("MATCH (c:Method:Constructor) WHERE c.signature='void <init>()' RETURN c").getColumn("c"),
-                hasItem(constructorDescriptor(OverloadedConstructor.class)));
-        assertThat(query("MATCH (c:Method:Constructor) WHERE c.signature='void <init>(java.lang.String)' RETURN c").getColumn("c"),
-                hasItem(constructorDescriptor(OverloadedConstructor.class, String.class)));
+        assertThat(query("MATCH (c:Method:Constructor) RETURN c").getColumn("c"),
+                hasItems(constructorDescriptor(OverloadedConstructor.class), constructorDescriptor(OverloadedConstructor.class, String.class)));
         store.commitTransaction();
     }
 }
