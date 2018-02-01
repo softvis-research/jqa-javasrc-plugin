@@ -52,5 +52,6 @@ field
 - annotation
 - parameter types
 - comments
-- remove parameters in visitors?
 - inner classes' fqn are with . instead of $
+- scanFile and scanDirectory for tests
+- TypeDescriptor for parameter types
