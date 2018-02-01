@@ -23,7 +23,8 @@ public interface JavaArtifactFileDescriptor extends JavaDescriptor, ArtifactFile
      * Resolves a required type with a given name from a dependency (direct or
      * transitive).
      *
-     * @param fqn The fully qualified name.
+     * @param fqn
+     *            The fully qualified name.
      * @return The type.
      */
     @ResultOf

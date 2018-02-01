@@ -1,13 +1,12 @@
 package org.jqassistant.contrib.plugin.javasrc.api.model;
 
-import com.buschmais.jqassistant.core.store.api.model.FullQualifiedNameDescriptor;
-import com.buschmais.xo.neo4j.api.annotation.Label;
-import com.buschmais.xo.neo4j.api.annotation.Relation.Incoming;
-
 import java.util.List;
 import java.util.Set;
 
-import static com.buschmais.xo.neo4j.api.annotation.Relation.Outgoing;
+import com.buschmais.jqassistant.core.store.api.model.FullQualifiedNameDescriptor;
+import com.buschmais.xo.neo4j.api.annotation.Label;
+import com.buschmais.xo.neo4j.api.annotation.Relation.Incoming;
+import com.buschmais.xo.neo4j.api.annotation.Relation.Outgoing;
 
 /**
  * Describes a Java type.

@@ -1,14 +1,14 @@
 package org.jqassistant.contrib.plugin.javasrc.api.model;
 
+import java.util.List;
+
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.MD5Descriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.ValidDescriptor;
 import com.buschmais.xo.neo4j.api.annotation.Relation;
 
-import java.util.List;
-
-public interface ClassFileDescriptor extends TypeDescriptor, FileDescriptor, AnnotatedDescriptor, AccessModifierDescriptor, MD5Descriptor,
-    AbstractDescriptor, ValidDescriptor {
+public interface ClassFileDescriptor
+        extends TypeDescriptor, FileDescriptor, AnnotatedDescriptor, AccessModifierDescriptor, MD5Descriptor, AbstractDescriptor, ValidDescriptor {
 
     /**
      * Return the super class.
@@ -21,7 +21,8 @@ public interface ClassFileDescriptor extends TypeDescriptor, FileDescriptor, Ann
     /**
      * Set the super class.
      *
-     * @param superClass The super class.
+     * @param superClass
+     *            The super class.
      */
     void setSuperClass(TypeDescriptor superClass);
 
@@ -43,7 +44,8 @@ public interface ClassFileDescriptor extends TypeDescriptor, FileDescriptor, Ann
     /**
      * Set the name of the source file.
      *
-     * @param sourceFileName The name of the source file.
+     * @param sourceFileName
+     *            The name of the source file.
      */
     void setSourceFileName(String sourceFileName);
 
@@ -57,7 +59,8 @@ public interface ClassFileDescriptor extends TypeDescriptor, FileDescriptor, Ann
     /**
      * Set the byte code version of the class file.
      *
-     * @param byteCodeVersion The byte code version of the class file.
+     * @param byteCodeVersion
+     *            The byte code version of the class file.
      */
     void setByteCodeVersion(int byteCodeVersion);
 }

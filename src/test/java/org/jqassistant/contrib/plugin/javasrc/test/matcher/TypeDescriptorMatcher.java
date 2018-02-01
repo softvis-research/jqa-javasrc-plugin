@@ -1,9 +1,8 @@
 package org.jqassistant.contrib.plugin.javasrc.test.matcher;
 
+import com.buschmais.jqassistant.core.store.test.matcher.AbstractDescriptorMatcher;
 import org.hamcrest.Matcher;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
-
-import com.buschmais.jqassistant.core.store.test.matcher.AbstractDescriptorMatcher;
 
 /**
  * A matcher for {@link TypeDescriptor}s.

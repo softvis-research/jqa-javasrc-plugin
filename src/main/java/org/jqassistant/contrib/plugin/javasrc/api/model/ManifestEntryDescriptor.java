@@ -18,7 +18,8 @@ public interface ManifestEntryDescriptor extends ValueDescriptor<String> {
     /**
      * Set the value.
      *
-     * @param value The value.
+     * @param value
+     *            The value.
      */
     void setValue(String value);
 }

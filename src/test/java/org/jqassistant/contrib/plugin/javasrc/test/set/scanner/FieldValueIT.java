@@ -7,31 +7,29 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
+import com.buschmais.jqassistant.plugin.common.test.scanner.MapBuilder;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.junit.Test;
-
-import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
-import com.buschmais.jqassistant.plugin.common.test.scanner.MapBuilder;
 
 /**
  * Contains test which verify correct scanning static field values.
  */
 public class FieldValueIT extends AbstractPluginIT {
 
-   
     @Test
     public void testfieldValue() {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
-    	final String TYPE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/fieldvalue/";
-    	File directory = new File(TYPE_DIRECTORY_PATH);
+        final String TYPE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/fieldvalue/";
+        File directory = new File(TYPE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
         verifyValue("stringValue", "StringValue");
         verifyValue("intValue", "1");
         store.commitTransaction();
     }
-    
+
     private <V> void verifyValue(String fieldName, V expectedValue) {
         Map<String, Object> params = MapBuilder.<String, Object> create("fieldName", fieldName).get();
         TestResult testResult = query("MATCH (:Type)-[:DECLARES]->(f:Field)-[:HAS]->(v:Value:Primitive) WHERE f.name={fieldName} RETURN v.value as value",

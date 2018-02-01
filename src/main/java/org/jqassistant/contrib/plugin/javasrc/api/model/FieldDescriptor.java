@@ -1,10 +1,10 @@
 package org.jqassistant.contrib.plugin.javasrc.api.model;
 
+import java.util.List;
+
 import com.buschmais.xo.neo4j.api.annotation.Label;
 import com.buschmais.xo.neo4j.api.annotation.Property;
 import com.buschmais.xo.neo4j.api.annotation.Relation;
-
-import java.util.List;
 
 /**
  * Describes a field (i.e. static or instance variable) of a Java class.
@@ -19,7 +19,8 @@ public interface FieldDescriptor extends MemberDescriptor, TypedDescriptor, Acce
     Boolean isTransient();
 
     /**
-     * @param transientField the transientField to set
+     * @param transientField
+     *            the transientField to set
      */
     void setTransient(Boolean transientField);
 
@@ -30,7 +31,8 @@ public interface FieldDescriptor extends MemberDescriptor, TypedDescriptor, Acce
     Boolean isVolatile();
 
     /**
-     * @param volatileField the volatileField to set
+     * @param volatileField
+     *            the volatileField to set
      */
     void setVolatile(Boolean volatileField);
 

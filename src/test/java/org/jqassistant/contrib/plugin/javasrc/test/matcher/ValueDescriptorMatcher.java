@@ -1,7 +1,6 @@
 package org.jqassistant.contrib.plugin.javasrc.test.matcher;
 
 import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
-
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -33,9 +32,7 @@ public class ValueDescriptorMatcher<T extends ValueDescriptor<?>> extends TypeSa
 
     @Override
     public void describeTo(Description description) {
-        description.appendText("a ").appendText(nameOfThing)
-                   .appendText(" with name '").appendText(this.expectedName)
-                   .appendText("' and value '");
+        description.appendText("a ").appendText(nameOfThing).appendText(" with name '").appendText(this.expectedName).appendText("' and value '");
         valueMatcher.describeTo(description);
         description.appendText("'");
     }

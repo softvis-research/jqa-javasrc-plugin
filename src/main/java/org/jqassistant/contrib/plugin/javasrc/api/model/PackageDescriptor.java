@@ -5,7 +5,6 @@ import com.buschmais.jqassistant.plugin.common.api.model.DirectoryDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.FileContainerDescriptor;
 import com.buschmais.xo.neo4j.api.annotation.Label;
 
-
 /**
  * Describes a Java package.
  */
