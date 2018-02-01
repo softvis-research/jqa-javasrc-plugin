@@ -1,8 +1,6 @@
 package org.unileipzig.jqassistant.plugin.parser.test.set.scanner;
 
-
 import static org.hamcrest.CoreMatchers.hasItem;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.unileipzig.jqassistant.plugin.parser.test.matcher.FieldDescriptorMatcher.fieldDescriptor;
 import static org.unileipzig.jqassistant.plugin.parser.test.matcher.MethodDescriptorMatcher.methodDescriptor;
@@ -45,8 +43,8 @@ public class ArrayIT extends AbstractPluginIT {
 		JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
 	    Map<String, Object> parameters = new HashMap<String, Object>();
 	    parameters.put("className", Array.class.getName());
-	    TestResult testResult = query("MATCH (t:Type)-[:DECLARES]->(m:Method) WHERE t.fqn={className} AND m.name='setStringArray' RETURN m.signature", parameters);
-	    assertEquals(testResult.getColumn("m.signature").get(0), "void setStringArray(java.lang.String[])");
+        TestResult testResult = query("MATCH (t:Type)-[:DECLARES]->(m:Method) WHERE t.fqn={className} AND m.name='setStringArray' RETURN m", parameters);
+        assertThat(testResult.getColumn("m"), hasItem(methodDescriptor(Array.class, "setStringArray", String[].class)));
 	    store.commitTransaction();
 	}
 
