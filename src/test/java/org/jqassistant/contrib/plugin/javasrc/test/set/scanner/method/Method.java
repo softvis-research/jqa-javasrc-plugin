@@ -1,7 +1,5 @@
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner.method;
 
-import java.util.List;
-
 public class Method {
 
     public Method() {
@@ -10,18 +8,23 @@ public class Method {
     public Method(String string) {
     }
 
-    private int returningPrimitiveType() {
+    private int returnPrimitiveType() {
         return 0;
     }
 
-    public void returningVoid() {
+    public void returnVoid() {
 
     }
 
-    protected String returningType() {
+    protected String returnType() {
         return "";
     }
-
+    
+    double[][] returnArray() {
+        double[][] doubleArray = new double[4][4];
+        return doubleArray;
+    }
+    
     public void parameterType(String string) {
 
     }
@@ -30,7 +33,7 @@ public class Method {
 
     }
 
-    public void parameterList(List<String> list) {
+    public void parameterArray(boolean [] booleanArray) {
 
     }
 

@@ -21,38 +21,36 @@ import org.junit.Test;
 public class MethodIT extends AbstractPluginIT {
 
     @Test
-    public void testReturnType() throws NoSuchMethodException {
-        final String TEST_DIRECTORY_PATH = "src/test/java/";
-        final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/method/";
-        File directory = new File(FILE_DIRECTORY_PATH);
-        store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
-        assertThat(query("MATCH (m:Method) WHERE m.signature='int returningPrimitiveType()' RETURN m").getColumn("m"),
-                hasItem(methodDescriptor(Method.class, "returningPrimitiveType")));
-        assertThat(query("MATCH (m:Method) WHERE m.signature='void returningVoid()' RETURN m").getColumn("m"),
-                hasItem(methodDescriptor(Method.class, "returningVoid")));
-        assertThat(query("MATCH (m:Method) WHERE m.signature='java.lang.String returningType()' RETURN m").getColumn("m"),
-                hasItem(methodDescriptor(Method.class, "returningType")));
-        store.commitTransaction();
-    }
-
-    @Test
     public void testParameter() throws NoSuchMethodException {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/method/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
-        // assertThat(query("MATCH (m:Method) WHERE m.signature='int
-        // returningPrimitiveType()' RETURN m").getColumn("m"),
-        // hasItem(methodDescriptor(Method.class, "returningPrimitiveType")));
-        // assertThat(query("MATCH (m:Method) WHERE m.signature='void
-        // returningVoid()' RETURN m").getColumn("m"),
-        // hasItem(methodDescriptor(Method.class, "returningVoid")));
-        // assertThat(query("MATCH (m:Method) WHERE
-        // m.signature='java.lang.String returningType()' RETURN
-        // m").getColumn("m"), hasItem(methodDescriptor(Method.class,
-        // "returningType")));
+        assertThat(query("MATCH (m:Method) WHERE m.name='parameterType' RETURN m").getColumn("m"),
+                hasItem(methodDescriptor(Method.class, "parameterType", String.class)));
+        assertThat(query("MATCH (m:Method) WHERE m.name='parameterPrimitiveType' RETURN m").getColumn("m"),
+                hasItem(methodDescriptor(Method.class, "parameterPrimitiveType", int.class)));
+        assertThat(query("MATCH (m:Method) WHERE m.name='parameterArray' RETURN m").getColumn("m"),
+                hasItem(methodDescriptor(Method.class, "parameterArray", boolean[].class)));
+        store.commitTransaction();
+    }
+
+    @Test
+    public void testReturnType() throws NoSuchMethodException {
+        final String TEST_DIRECTORY_PATH = "src/test/java/";
+        final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/method/";
+        File directory = new File(FILE_DIRECTORY_PATH);
+        store.beginTransaction();
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        assertThat(query("MATCH (m:Method) WHERE m.name='returnPrimitiveType' RETURN m").getColumn("m"),
+                hasItem(methodDescriptor(Method.class, "returnPrimitiveType")));
+        assertThat(query("MATCH (m:Method) WHERE m.name='returnVoid' RETURN m").getColumn("m"),
+                hasItem(methodDescriptor(Method.class, "returnVoid")));
+        assertThat(query("MATCH (m:Method) WHERE m.name='returnType' RETURN m").getColumn("m"),
+                hasItem(methodDescriptor(Method.class, "returnType")));
+        assertThat(query("MATCH (m:Method) WHERE m.name='returnArray' RETURN m").getColumn("m"),
+                hasItem(methodDescriptor(Method.class, "returnArray")));
         store.commitTransaction();
     }
 }
