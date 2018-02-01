@@ -27,7 +27,7 @@ import org.junit.Test;
 public class NestedInnerClassesIT extends AbstractPluginIT {
 
     @Test
-    public void nestedInnerClasses() throws IOException {
+    public void testNestedInnerClasses() throws IOException {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/innerclass/";
         File directory = new File(FILE_DIRECTORY_PATH);
