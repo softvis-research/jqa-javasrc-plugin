@@ -45,12 +45,9 @@ public class MethodIT extends AbstractPluginIT {
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
         assertThat(query("MATCH (m:Method) WHERE m.name='returnPrimitiveType' RETURN m").getColumn("m"),
                 hasItem(methodDescriptor(Method.class, "returnPrimitiveType")));
-        assertThat(query("MATCH (m:Method) WHERE m.name='returnVoid' RETURN m").getColumn("m"),
-                hasItem(methodDescriptor(Method.class, "returnVoid")));
-        assertThat(query("MATCH (m:Method) WHERE m.name='returnType' RETURN m").getColumn("m"),
-                hasItem(methodDescriptor(Method.class, "returnType")));
-        assertThat(query("MATCH (m:Method) WHERE m.name='returnArray' RETURN m").getColumn("m"),
-                hasItem(methodDescriptor(Method.class, "returnArray")));
+        assertThat(query("MATCH (m:Method) WHERE m.name='returnVoid' RETURN m").getColumn("m"), hasItem(methodDescriptor(Method.class, "returnVoid")));
+        assertThat(query("MATCH (m:Method) WHERE m.name='returnType' RETURN m").getColumn("m"), hasItem(methodDescriptor(Method.class, "returnType")));
+        assertThat(query("MATCH (m:Method) WHERE m.name='returnArray' RETURN m").getColumn("m"), hasItem(methodDescriptor(Method.class, "returnArray")));
         store.commitTransaction();
     }
 }

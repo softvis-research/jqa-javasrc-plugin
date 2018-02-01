@@ -19,12 +19,12 @@ public class Method {
     protected String returnType() {
         return "";
     }
-    
+
     double[][] returnArray() {
         double[][] doubleArray = new double[4][4];
         return doubleArray;
     }
-    
+
     public void parameterType(String string) {
 
     }
@@ -33,7 +33,7 @@ public class Method {
 
     }
 
-    public void parameterArray(boolean [] booleanArray) {
+    public void parameterArray(boolean[] booleanArray) {
 
     }
 

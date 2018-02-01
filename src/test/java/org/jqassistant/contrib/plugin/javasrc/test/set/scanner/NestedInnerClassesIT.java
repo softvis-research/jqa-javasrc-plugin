@@ -18,8 +18,8 @@ import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.innerclass.Nested
 import org.junit.Test;
 
 /**
- * Contains tests to verify correct scanning of relations between outer and inner
- * classes.
+ * Contains tests to verify correct scanning of relations between outer and
+ * inner classes.
  * 
  * @author Richard Müller
  *

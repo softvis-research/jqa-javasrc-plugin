@@ -43,7 +43,7 @@ public class InheritanceIT extends AbstractPluginIT {
         assertThat(query("MATCH (t:Type)-[:IMPLEMENTS]->(i:Type:Interface) RETURN i").getColumn("i"), hasItem(typeDescriptor(SuperInterface.class)));
         store.commitTransaction();
     }
-    
+
     @Test
     public void testClassExtendsClass() {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
