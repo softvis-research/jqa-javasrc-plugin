@@ -14,6 +14,8 @@ import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ConstructorDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
@@ -105,5 +107,17 @@ public class TypeResolver {
 
     public <T extends ValueDescriptor<?>> T getValueDescriptor(Class<T> valueDescriptorType) {
         return scannerContext.getStore().create(valueDescriptorType);
+    }
+
+    AnnotationValueDescriptor addAnnotation(String fqn, String typeName) {
+        if (typeName != null) {
+            TypeDescriptor type = resolveType(fqn);
+            AnnotatedDescriptor annotatedDescriptor = (AnnotatedDescriptor) type;
+            AnnotationValueDescriptor annotationDescriptor = scannerContext.getStore().create(AnnotationValueDescriptor.class);
+            annotationDescriptor.setType(type);
+            annotatedDescriptor.getAnnotatedBy().add(annotationDescriptor);
+            return annotationDescriptor;
+        }
+        return null;
     }
 }
