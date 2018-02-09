@@ -90,6 +90,7 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
                 ParameterDescriptor parameterDescriptor = typeResolver.addParameterDescriptor(constructorDescriptor, i);
                 parameterDescriptor.setType(parameterTypeDescriptor);
             }
+
         }
 
     }

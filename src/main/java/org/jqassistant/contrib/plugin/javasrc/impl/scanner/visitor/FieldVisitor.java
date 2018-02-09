@@ -80,5 +80,6 @@ public class FieldVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(declaringType.resolve().getQualifiedName(),
                 fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedEnumConstantDeclaration.getName());
         fieldDescriptor.setName(resolvedEnumConstantDeclaration.getName());
+        System.out.println("enumConstantDeclaration: " + enumConstantDeclaration.getName());
     }
 }

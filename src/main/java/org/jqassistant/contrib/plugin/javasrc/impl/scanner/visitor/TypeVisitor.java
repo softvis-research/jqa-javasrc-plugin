@@ -98,6 +98,14 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
             }
 
         }
+        // System.out.println("classOrInterfaceDeclaration: " +
+        // classOrInterfaceDeclaration.getNameAsString());
+        // List<AnnotationExpr> annotations =
+        // classOrInterfaceDeclaration.getAnnotations();
+        // for (AnnotationExpr annotation : annotations) {
+        // System.out.println(annotation.getNameAsString());
+        //
+        // }
     }
 
     @Override
