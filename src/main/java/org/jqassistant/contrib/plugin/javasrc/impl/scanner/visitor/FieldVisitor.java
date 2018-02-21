@@ -58,6 +58,7 @@ public class FieldVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         if (value.isPresent()) {
             PrimitiveValueDescriptor valueDescriptor = typeResolver.getValueDescriptor(PrimitiveValueDescriptor.class);
             if (value.get().isLiteralStringValueExpr()) {
+                // TODO get correct type of value and remove replace()
                 valueDescriptor.setValue(value.get().toString().replace("\"", ""));
             } else {
                 valueDescriptor.setValue(value.get());
@@ -80,6 +81,5 @@ public class FieldVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(declaringType.resolve().getQualifiedName(),
                 fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedEnumConstantDeclaration.getName());
         fieldDescriptor.setName(resolvedEnumConstantDeclaration.getName());
-        System.out.println("enumConstantDeclaration: " + enumConstantDeclaration.getName());
     }
 }

@@ -15,7 +15,6 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.AnnotationVisitor;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.FieldVisitor;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.MethodVisitor;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.TypeVisitor;
@@ -45,7 +44,6 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             cu.accept(new TypeVisitor(typeResolver), javaSourceFileDescriptor);
             cu.accept(new FieldVisitor(typeResolver), javaSourceFileDescriptor);
             cu.accept(new MethodVisitor(typeResolver), javaSourceFileDescriptor);
-            cu.accept(new AnnotationVisitor(typeResolver), javaSourceFileDescriptor);
         }
         return javaSourceFileDescriptor;
     }

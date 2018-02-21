@@ -3,14 +3,18 @@ package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 import java.util.List;
 import java.util.Set;
 
+import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.resolution.declarations.ResolvedAnnotationDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedClassDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedEnumDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedInterfaceDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.EnumTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.InterfaceTypeDescriptor;
@@ -62,7 +66,11 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
             Set<ResolvedReferenceTypeDeclaration> resolvedInnerClasses = resolvedInterfaceDeclaration.internalTypes();
             for (ResolvedReferenceTypeDeclaration resolvedInnerClass : resolvedInnerClasses) {
                 interfaceTypeDescriptor.getDeclaredInnerClasses().add(typeResolver.resolveType(resolvedInnerClass.getQualifiedName()));
+            }
 
+            // annotations
+            for (AnnotationExpr annotation : classOrInterfaceDeclaration.getAnnotations()) {
+                annotation.accept(new AnnotationVisitor(typeResolver), interfaceTypeDescriptor);
             }
 
         } else {
@@ -97,15 +105,11 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
                 classTypeDescriptor.getDeclaredInnerClasses().add(typeResolver.resolveType(resolvedInnerClass.getQualifiedName()));
             }
 
+            // annotations
+            for (AnnotationExpr annotation : classOrInterfaceDeclaration.getAnnotations()) {
+                annotation.accept(new AnnotationVisitor(typeResolver), classTypeDescriptor);
+            }
         }
-        // System.out.println("classOrInterfaceDeclaration: " +
-        // classOrInterfaceDeclaration.getNameAsString());
-        // List<AnnotationExpr> annotations =
-        // classOrInterfaceDeclaration.getAnnotations();
-        // for (AnnotationExpr annotation : annotations) {
-        // System.out.println(annotation.getNameAsString());
-        //
-        // }
     }
 
     @Override
@@ -123,5 +127,22 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         enumTypeDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(enumDeclaration.getModifiers()).getValue());
         enumTypeDescriptor.setStatic(enumDeclaration.isStatic());
 
+        // annotations
+        for (AnnotationExpr annotation : enumDeclaration.getAnnotations()) {
+            annotation.accept(new AnnotationVisitor(typeResolver), enumTypeDescriptor);
+        }
+
+    }
+
+    @Override
+    public void visit(AnnotationDeclaration annotationDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
+        super.visit(annotationDeclaration, javaSourceFileDescriptor);
+        // fqn, name
+        ResolvedAnnotationDeclaration resolvedAnnotationDeclaration = annotationDeclaration.resolve();
+
+        AnnotationTypeDescriptor annotationTypeDescriptor = typeResolver.createType(resolvedAnnotationDeclaration.getQualifiedName(), javaSourceFileDescriptor,
+                AnnotationTypeDescriptor.class);
+        annotationTypeDescriptor.setFullQualifiedName(resolvedAnnotationDeclaration.getQualifiedName());
+        annotationTypeDescriptor.setName(resolvedAnnotationDeclaration.getName().toString());
     }
 }

@@ -3,6 +3,7 @@ package org.jqassistant.contrib.plugin.javasrc.impl.scanner;
 import java.util.EnumSet;
 
 import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.resolution.types.ResolvedType;
 import org.jqassistant.contrib.plugin.javasrc.api.model.VisibilityModifier;
 
@@ -57,5 +58,33 @@ public class TypeResolverUtils {
             throw new RuntimeException("Type could not be resolved: " + resolvedType.toString());
         }
         return fqn;
+    }
+
+    /**
+     * Returns the value of a literal expression as Object.
+     * 
+     * @param expression
+     * @return value as Object
+     */
+    public static Object getLiteralExpressionValue(Expression expression) {
+        if (expression.isBooleanLiteralExpr()) {
+            return expression.asBooleanLiteralExpr().getValue();
+        } else if (expression.isStringLiteralExpr()) {
+            return expression.asStringLiteralExpr().getValue();
+        } else if (expression.isLiteralStringValueExpr()) {
+            return expression.asLiteralStringValueExpr().getValue();
+        } else if (expression.isDoubleLiteralExpr()) {
+            return expression.asDoubleLiteralExpr().getValue();
+        } else if (expression.isLongLiteralExpr()) {
+            return expression.asLongLiteralExpr().getValue();
+        } else if (expression.isCharLiteralExpr()) {
+            return expression.asCharLiteralExpr().getValue();
+        } else if (expression.isIntegerLiteralExpr()) {
+            return expression.asIntegerLiteralExpr().getValue();
+        } else if (expression.isNullLiteralExpr()) {
+            return null;
+        } else {
+            throw new RuntimeException("Expression value could not be resolved: " + expression.toString());
+        }
     }
 }

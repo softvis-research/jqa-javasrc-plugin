@@ -1,11 +1,28 @@
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner;
 
+import static org.hamcrest.CoreMatchers.anything;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.jqassistant.contrib.plugin.javasrc.test.matcher.AnnotationValueDescriptorMatcher.annotationValueDescriptor;
+import static org.jqassistant.contrib.plugin.javasrc.test.matcher.FieldDescriptorMatcher.fieldDescriptor;
+import static org.jqassistant.contrib.plugin.javasrc.test.matcher.TypeDescriptorMatcher.typeDescriptor;
+import static org.jqassistant.contrib.plugin.javasrc.test.matcher.ValueDescriptorMatcher.valueDescriptor;
+import static org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation.Enumeration.NON_DEFAULT;
+import static org.junit.Assert.assertThat;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
+import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation.AnnotatedType;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation.Annotation;
 import org.junit.Test;
 
 /**
@@ -29,31 +46,22 @@ public class AnnotationIT extends AbstractPluginIT {
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
-        // TestResult testResult = query("MATCH
-        // (t:Type:Class)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:OF_TYPE]->(at:Type:Annotation)
-        // RETURN t, a, at");
-        // assertThat(testResult.getRows().size(), equalTo(1));
-        // Map<String, Object> row = testResult.getRows().get(0);
-        // assertThat((TypeDescriptor) row.get("t"),
-        // typeDescriptor(AnnotatedType.class));
-        // assertThat((AnnotationValueDescriptor) row.get("a"),
-        // annotationValueDescriptor(Annotation.class, anything()));
-        // assertThat((TypeDescriptor) row.get("at"),
-        // typeDescriptor(Annotation.class));
-        // // verify values
-        // testResult = query("MATCH
-        // (t:Type:Class)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:HAS]->(value:Value)
-        // RETURN value");
-        // assertThat(testResult.getRows().size(), equalTo(6));
-        // List<Object> values = testResult.getColumn("value");
-        // assertThat(values, hasItem(valueDescriptor("value", is("class"))));
-        // assertThat(values, hasItem(valueDescriptor("classValue",
-        // typeDescriptor(Number.class))));
+        TestResult testResult = query("MATCH (t:Type:Class)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:OF_TYPE]->(at:Type:Annotation) RETURN t, a, at");
+        assertThat(testResult.getRows().size(), equalTo(1));
+        Map<String, Object> row = testResult.getRows().get(0);
+        assertThat((TypeDescriptor) row.get("t"), typeDescriptor(AnnotatedType.class));
+        assertThat((AnnotationValueDescriptor) row.get("a"), annotationValueDescriptor(Annotation.class, anything()));
+        assertThat((TypeDescriptor) row.get("at"), typeDescriptor(Annotation.class));
+        // verify values
+        testResult = query("MATCH (t:Type:Class)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:HAS]->(value:Value) RETURN value");
+        assertThat(testResult.getRows().size(), equalTo(4));// TODO change to 6
+        List<Object> values = testResult.getColumn("value");
+        assertThat(values, hasItem(valueDescriptor("value", is("class"))));
+        assertThat(values, hasItem(valueDescriptor("classValue", typeDescriptor(Number.class))));
         // assertThat(values, hasItem(valueDescriptor("arrayValue",
         // hasItems(valueDescriptor("[0]", is("a")),
         // hasItem(valueDescriptor("[1]", is("b")))))));
-        // assertThat(values, hasItem(valueDescriptor("enumerationValue",
-        // fieldDescriptor(NON_DEFAULT))));
+        assertThat(values, hasItem(valueDescriptor("enumerationValue", fieldDescriptor(NON_DEFAULT))));
         // assertThat(values, hasItem(valueDescriptor("nestedAnnotationValue",
         // hasItem(valueDescriptor("value", is("nestedClass"))))));
         // assertThat(values,
