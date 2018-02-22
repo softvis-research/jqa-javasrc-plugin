@@ -57,13 +57,7 @@ public class FieldVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         Optional<Expression> value = variable.getInitializer();
         if (value.isPresent()) {
             PrimitiveValueDescriptor valueDescriptor = typeResolver.getValueDescriptor(PrimitiveValueDescriptor.class);
-            if (value.get().isLiteralStringValueExpr()) {
-                // TODO get correct type of value and remove replace()
-                valueDescriptor.setValue(value.get().toString().replace("\"", ""));
-            } else {
-                valueDescriptor.setValue(value.get());
-            }
-
+            valueDescriptor.setValue(TypeResolverUtils.getLiteralExpressionValue(value.get()));
             fieldDescriptor.setValue(valueDescriptor);
         }
     }
