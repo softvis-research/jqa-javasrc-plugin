@@ -79,14 +79,8 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
 
         AnnotationValueDescriptor annotationValueDescriptor = typeResolver.addAnnotationValueDescriptor(normalAnnotationExpr, annotatedDescriptor);
         for (MemberValuePair memberValuePair : normalAnnotationExpr.getPairs()) {
-            if (!memberValuePair.getValue().isSingleMemberAnnotationExpr()) {
-                annotationValueDescriptor.getValue().add(createValueDescriptor(memberValuePair.getNameAsString(), memberValuePair.getValue()));
-            } else {
-                // TODO get parent for nested annotation
-                // visit(memberValuePair.getValue().asSingleMemberAnnotationExpr(),
-                // annotationValueDescriptor.getDelegate());
-            }
 
+            annotationValueDescriptor.getValue().add(createValueDescriptor(memberValuePair.getNameAsString(), memberValuePair.getValue()));
         }
     }
 
@@ -119,7 +113,7 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
             arrayValueDescriptor.setName(name);
             int i = 0;
             for (Expression arrayValue : value.asArrayInitializerExpr().getValues()) {
-                arrayValueDescriptor.getValue().add(createValueDescriptor("[" + i + "]", arrayValue));
+                arrayValueDescriptor.getValue().add(createValueDescriptor(("[" + i + "]"), arrayValue));
                 i++;
             }
             return arrayValueDescriptor;
@@ -131,6 +125,12 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
                     .resolveField(TypeResolverUtils.getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName());
             enumValueDescriptor.setValue(fieldDescriptor);
             return enumValueDescriptor;
+        } else if (value.isSingleMemberAnnotationExpr()) {
+            SingleMemberAnnotationExpr singleMemberAnnotationExpr = value.asSingleMemberAnnotationExpr();
+            AnnotationValueDescriptor annotationValueDescriptor = typeResolver.getValueDescriptor(AnnotationValueDescriptor.class);
+            annotationValueDescriptor.setName(name);
+            annotationValueDescriptor.getValue().add(createValueDescriptor("value", singleMemberAnnotationExpr.getMemberValue()));
+            return annotationValueDescriptor;
         } else
             throw new RuntimeException("Type of annotation value is not supported: " + value.getClass());
     }

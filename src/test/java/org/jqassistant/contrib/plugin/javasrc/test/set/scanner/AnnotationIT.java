@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.anything;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.jqassistant.contrib.plugin.javasrc.test.matcher.AnnotationValueDescriptorMatcher.annotationValueDescriptor;
 import static org.jqassistant.contrib.plugin.javasrc.test.matcher.FieldDescriptorMatcher.fieldDescriptor;
 import static org.jqassistant.contrib.plugin.javasrc.test.matcher.TypeDescriptorMatcher.typeDescriptor;
@@ -38,8 +39,6 @@ public class AnnotationIT extends AbstractPluginIT {
      */
     @Test
     public void testAnnotatedClass() throws IOException, NoSuchFieldException {
-        // scanClasses(AnnotatedType.class, Annotation.class,
-        // NestedAnnotation.class, Enumeration.class);
         // verify annotation type
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/annotation/";
@@ -54,16 +53,14 @@ public class AnnotationIT extends AbstractPluginIT {
         assertThat((TypeDescriptor) row.get("at"), typeDescriptor(Annotation.class));
         // verify values
         testResult = query("MATCH (t:Type:Class)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:HAS]->(value:Value) RETURN value");
-        assertThat(testResult.getRows().size(), equalTo(4));// TODO change to 6
+        assertThat(testResult.getRows().size(), equalTo(6));
         List<Object> values = testResult.getColumn("value");
         assertThat(values, hasItem(valueDescriptor("value", is("class"))));
         assertThat(values, hasItem(valueDescriptor("classValue", typeDescriptor(Number.class))));
-        // assertThat(values, hasItem(valueDescriptor("arrayValue",
-        // hasItems(valueDescriptor("[0]", is("a")),
-        // hasItem(valueDescriptor("[1]", is("b")))))));
+        assertThat(values, hasItem(valueDescriptor("arrayValue", hasItems(valueDescriptor("[0]", is("a")), (valueDescriptor("[1]", is("b")))))));
         assertThat(values, hasItem(valueDescriptor("enumerationValue", fieldDescriptor(NON_DEFAULT))));
-        // assertThat(values, hasItem(valueDescriptor("nestedAnnotationValue",
-        // hasItem(valueDescriptor("value", is("nestedClass"))))));
+        assertThat(values, hasItem(valueDescriptor("nestedAnnotationValue", hasItem(valueDescriptor("value", is("nestedClass"))))));
+        // TODO make this test working
         // assertThat(values,
         // hasItem(valueDescriptor("nestedAnnotationValues",
         // hasItem(valueDescriptor("[0]", hasItem(valueDescriptor("value",
