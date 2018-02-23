@@ -13,6 +13,7 @@ type (+ class, + interface, + inner class)
 + getDeclaredFields(), getDeclaredMembers()
 + extends
 + implements
++ annotation
 - depends
 
 type (enum)
@@ -21,20 +22,28 @@ type (enum)
 + visibility and access modifiers (public, protected, private, default, static)
 + getDeclaredFields(), getDeclaredMembers()
 + enum constants (primitive type, reference type)
++ annotation
 - constructor
+
+type (annotation)
++ name
++ fqn
++ nested annotation
 
 constructor (+ overloaded constructor, - implicit default constructor)
 + signature
 + name
 + visibility (public, protected, private, default)
-+ parameters (primitive type, reference type, array type) 
++ parameters (primitive type, reference type, array type, annotation)
++ annotation
 
 method
 + signature
 + name
 + visibility and access modifiers (public, protected, private, default, abstract, final, static)
-+ parameters (primitive type, reference type)
++ parameters (primitive type, reference type, annotation)
 + return type (void, primitive type, reference type, array type)
++ annotation
 - reads
 - writes
 - invokes
