@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.github.javaparser.ast.body.AnnotationDeclaration;
+import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -144,5 +145,14 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
                 AnnotationTypeDescriptor.class);
         annotationTypeDescriptor.setFullQualifiedName(resolvedAnnotationDeclaration.getQualifiedName());
         annotationTypeDescriptor.setName(resolvedAnnotationDeclaration.getName().toString());
+
+        // annotation members
+        for (BodyDeclaration<?> member : annotationDeclaration.getMembers()) {
+            if (member.isAnnotationMemberDeclaration()) {
+                member.accept(new AnnotationVisitor(typeResolver), annotationTypeDescriptor);
+            }
+        }
+
+        // TODO annotations, fields, methods, visibility and access modifiers?
     }
 }

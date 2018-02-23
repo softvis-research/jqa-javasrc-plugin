@@ -168,20 +168,21 @@ public class TypeResolver {
     }
 
     public AnnotationValueDescriptor addAnnotationValueDescriptor(AnnotationExpr annotation, AnnotatedDescriptor annotatedDescriptor) {
-        AnnotationValueDescriptor annotationValueDescriptor = scannerContext.getStore().create(AnnotationValueDescriptor.class);
-        annotationValueDescriptor.setType(resolveType(resolveAnnotation(annotation).getQualifiedName()));
-        annotationValueDescriptor.setName(annotation.getNameAsString());
-        annotatedDescriptor.getAnnotatedBy().add(annotationValueDescriptor);
-        return annotationValueDescriptor;
+        if (annotatedDescriptor != null) {
+            AnnotationValueDescriptor annotationValueDescriptor = scannerContext.getStore().create(AnnotationValueDescriptor.class);
+            annotationValueDescriptor.setType(resolveType(resolveAnnotation(annotation).getQualifiedName()));
+            annotationValueDescriptor.setName(annotation.getNameAsString());
+            annotatedDescriptor.getAnnotatedBy().add(annotationValueDescriptor);
+            return annotationValueDescriptor;
+        } else {
+            AnnotationValueDescriptor annotationValueDescriptor = scannerContext.getStore().create(AnnotationValueDescriptor.class);
+            annotationValueDescriptor.setType(resolveType(resolveAnnotation(annotation).getQualifiedName()));
+            annotationValueDescriptor.setName(annotation.getNameAsString());
+            return annotationValueDescriptor;
+        }
     }
 
     private ResolvedTypeDeclaration resolveAnnotation(AnnotationExpr annotationExpr) {
-        // bug in
-        // com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade.solve(com.github.javaparser.ast.expr.AnnotationExpr):
-        // return
-        // JavaParserFacade.get(typeSolver).solve(annotationExpr).getCorrespondingDeclaration();
-        // // fails for builtin annotations, e.g. @Debug!
-
         Context context = JavaParserFactory.getContext(annotationExpr, javaTypeSolver);
         return context.solveType(annotationExpr.getNameAsString(), javaTypeSolver).getCorrespondingDeclaration();
     }

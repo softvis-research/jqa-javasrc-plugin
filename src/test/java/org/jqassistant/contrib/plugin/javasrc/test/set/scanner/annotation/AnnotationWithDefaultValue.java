@@ -9,7 +9,7 @@ public @interface AnnotationWithDefaultValue {
 
     Enumeration enumerationValue() default Enumeration.DEFAULT;
 
-    double primitiveValue() default 0;
+    double primitiveValue() default 0.0;
 
     Class<?>[] arrayValue() default { Integer.class, Double.class };
 

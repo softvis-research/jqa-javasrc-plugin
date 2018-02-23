@@ -29,6 +29,7 @@ type (annotation)
 + name
 + fqn
 + nested annotation
++ annotation member with default values
 
 constructor (+ overloaded constructor, - implicit default constructor)
 + signature
@@ -59,7 +60,6 @@ field
 + annotation
 
 == TODO
-- annotation
 - parameter types
 - comments
 - inner classes' fqn are with . instead of $

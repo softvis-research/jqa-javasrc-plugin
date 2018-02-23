@@ -69,18 +69,18 @@ public class TypeResolverUtils {
     public static Object getLiteralExpressionValue(Expression expression) {
         if (expression.isBooleanLiteralExpr()) {
             return expression.asBooleanLiteralExpr().getValue();
+        } else if (expression.isDoubleLiteralExpr()) {
+            return Double.parseDouble(expression.asDoubleLiteralExpr().getValue());
+        } else if (expression.isLongLiteralExpr()) {
+            return Long.parseLong(expression.asLongLiteralExpr().getValue());
+        } else if (expression.isIntegerLiteralExpr()) {
+            return Integer.parseInt(expression.asIntegerLiteralExpr().getValue());
+        } else if (expression.isCharLiteralExpr()) {
+            return expression.asCharLiteralExpr().getValue();
         } else if (expression.isStringLiteralExpr()) {
             return expression.asStringLiteralExpr().getValue();
         } else if (expression.isLiteralStringValueExpr()) {
             return expression.asLiteralStringValueExpr().getValue();
-        } else if (expression.isDoubleLiteralExpr()) {
-            return expression.asDoubleLiteralExpr().getValue();
-        } else if (expression.isLongLiteralExpr()) {
-            return expression.asLongLiteralExpr().getValue();
-        } else if (expression.isCharLiteralExpr()) {
-            return expression.asCharLiteralExpr().getValue();
-        } else if (expression.isIntegerLiteralExpr()) {
-            return expression.asIntegerLiteralExpr().getValue();
         } else if (expression.isNullLiteralExpr()) {
             return null;
         } else {

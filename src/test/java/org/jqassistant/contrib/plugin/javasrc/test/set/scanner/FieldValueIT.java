@@ -29,7 +29,7 @@ public class FieldValueIT extends AbstractPluginIT {
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
         verifyValue("stringValue", "StringValue");
-        verifyValue("intValue", "1");
+        verifyValue("intValue", 1);
         store.commitTransaction();
     }
 

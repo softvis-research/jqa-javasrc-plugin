@@ -111,9 +111,6 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
             for (AnnotationExpr annotation : constructorDeclaration.getAnnotations()) {
                 annotation.accept(new AnnotationVisitor(typeResolver), constructorDescriptor);
             }
-
         }
-
     }
-
 }
