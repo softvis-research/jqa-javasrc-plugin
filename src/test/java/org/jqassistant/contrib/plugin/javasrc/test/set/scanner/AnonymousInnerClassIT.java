@@ -30,7 +30,7 @@ public class AnonymousInnerClassIT extends AbstractPluginIT {
      */
     @Test
     @Ignore
-    public void assertOuterClassContainsInnerClass() throws NoSuchMethodException {
+    public void testOuterClassContainsInnerClass() throws NoSuchMethodException {
         // TODO get this test working
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/innerclass/";
