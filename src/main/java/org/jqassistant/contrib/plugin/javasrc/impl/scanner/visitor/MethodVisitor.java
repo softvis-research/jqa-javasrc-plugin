@@ -59,6 +59,11 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
             TypeDescriptor parameterTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()));
             ParameterDescriptor parameterDescriptor = typeResolver.addParameterDescriptor(methodDescriptor, i);
             parameterDescriptor.setType(parameterTypeDescriptor);
+
+            // annotations
+            for (AnnotationExpr annotation : parameters.get(i).getAnnotations()) {
+                annotation.accept(new AnnotationVisitor(typeResolver), parameterDescriptor);
+            }
         }
 
         // return type
@@ -95,6 +100,11 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
                 TypeDescriptor parameterTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()));
                 ParameterDescriptor parameterDescriptor = typeResolver.addParameterDescriptor(constructorDescriptor, i);
                 parameterDescriptor.setType(parameterTypeDescriptor);
+
+                // annotations
+                for (AnnotationExpr annotation : parameters.get(i).getAnnotations()) {
+                    annotation.accept(new AnnotationVisitor(typeResolver), parameterDescriptor);
+                }
             }
 
             // annotations
