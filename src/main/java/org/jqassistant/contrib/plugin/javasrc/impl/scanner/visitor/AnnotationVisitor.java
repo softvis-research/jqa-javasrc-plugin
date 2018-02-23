@@ -6,7 +6,6 @@ import com.buschmais.jqassistant.plugin.common.api.model.ArrayValueDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
@@ -44,24 +43,16 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
         super.visit(singleMemberAnnotationExpr, annotatedDescriptor);
 
         AnnotationValueDescriptor annotationValueDescriptor = typeResolver.addAnnotationValueDescriptor(singleMemberAnnotationExpr, annotatedDescriptor);
-        annotationValueDescriptor.getValue().add(createValueDescriptor("value", singleMemberAnnotationExpr.getMemberValue()));
-    }
-
-    @Override
-    public void visit(MarkerAnnotationExpr markerAnnotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        super.visit(markerAnnotationExpr, annotatedDescriptor);
-        System.out.println("AnnotatedDescriptor: " + annotatedDescriptor.toString());
-        System.out.println("MarkerAnnotationExpr: " + markerAnnotationExpr.getNameAsString());
+        annotationValueDescriptor.getValue()
+                .add(createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME, singleMemberAnnotationExpr.getMemberValue()));
     }
 
     @Override
     public void visit(NormalAnnotationExpr normalAnnotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        // TODO uncomment?
-        // not calling super to avoid duplication of nested annotations
+        // TODO uncommented to avoid duplication of nested annotations,
         // super.visit(normalAnnotationExpr, annotatedDescriptor);
         AnnotationValueDescriptor annotationValueDescriptor = typeResolver.addAnnotationValueDescriptor(normalAnnotationExpr, annotatedDescriptor);
         for (MemberValuePair memberValuePair : normalAnnotationExpr.getPairs()) {
-
             annotationValueDescriptor.getValue().add(createValueDescriptor(memberValuePair.getNameAsString(), memberValuePair.getValue()));
         }
     }
@@ -73,13 +64,13 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
         // signature, name
         TypeDescriptor returnTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(annotationMemberDeclaration.getType().resolve()));
         MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(((TypeDescriptor) annotatedDescriptor).getFullQualifiedName(),
-                returnTypeDescriptor.getFullQualifiedName() + " " + "()");
+                returnTypeDescriptor.getFullQualifiedName() + " " + TypeResolverUtils.ANNOTATION_MEMBER_SIGNATURE);
         methodDescriptor.setName(annotationMemberDeclaration.getNameAsString());
 
         // default value
         Optional<Expression> value = annotationMemberDeclaration.getDefaultValue();
         if (value.isPresent()) {
-            methodDescriptor.setHasDefault(createValueDescriptor("null", value.get()));
+            methodDescriptor.setHasDefault(createValueDescriptor(TypeResolverUtils.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value.get()));
         }
 
     }
@@ -116,7 +107,8 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
             SingleMemberAnnotationExpr singleMemberAnnotationExpr = value.asSingleMemberAnnotationExpr();
             AnnotationValueDescriptor annotationValueDescriptor = typeResolver.addAnnotationValueDescriptor(singleMemberAnnotationExpr, null);
             annotationValueDescriptor.setName(name);
-            annotationValueDescriptor.getValue().add(createValueDescriptor("value", singleMemberAnnotationExpr.getMemberValue()));
+            annotationValueDescriptor.getValue()
+                    .add(createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME, singleMemberAnnotationExpr.getMemberValue()));
             return annotationValueDescriptor;
         } else if (value.isNameExpr()) {
             NameExpr nameExpr = value.asNameExpr();

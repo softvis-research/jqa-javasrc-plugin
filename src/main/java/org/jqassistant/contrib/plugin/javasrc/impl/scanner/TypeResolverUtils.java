@@ -17,6 +17,9 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.VisibilityModifier;
 public class TypeResolverUtils {
 
     public static final String CONSTRUCTOR_METHOD = "void <init>";
+    public static final String ANNOTATION_MEMBER_SIGNATURE = "()";
+    public static final String ANNOTATION_MEMBER_DEFAULT_VALUE_NAME = "null";
+    public static final String SINGLE_MEMBER_ANNOTATION_NAME = "value";
 
     /**
      * Returns the VisibilityModifier for an EnumSet<Modifier> from java parser.
