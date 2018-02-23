@@ -8,6 +8,7 @@ import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
@@ -43,7 +44,7 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
         ResolvedMethodDeclaration resolvedMethodDeclaration = methodDeclaration.resolve();
         TypeDescriptor returnTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedMethodDeclaration.getReturnType()));
         MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(resolvedMethodDeclaration.declaringType().getQualifiedName(),
-                returnTypeDescriptor.getFullQualifiedName() + " " + resolvedMethodDeclaration.getSignature());
+                TypeResolverUtils.getMethodSignature(resolvedMethodDeclaration));
         methodDescriptor.setName(resolvedMethodDeclaration.getName());
 
         // visibility and access modifiers
@@ -73,6 +74,9 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
         for (AnnotationExpr annotation : methodDeclaration.getAnnotations()) {
             annotation.accept(new AnnotationVisitor(typeResolver), methodDescriptor);
         }
+
+        // invokes
+        methodDeclaration.getBody().ifPresent((body) -> setInvokes(body, methodDescriptor));
     }
 
     @Override
@@ -85,9 +89,9 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
         if (!(parent instanceof EnumDeclaration)) {
             // signature, name
             ResolvedConstructorDeclaration resolvedConstructorDeclaration = constructorDeclaration.resolve();
-            final String constructorParameter = resolvedConstructorDeclaration.getSignature().replaceAll(resolvedConstructorDeclaration.getName(), "");
             ConstructorDescriptor constructorDescriptor = (ConstructorDescriptor) typeResolver.addMethodDescriptor(
-                    resolvedConstructorDeclaration.declaringType().getQualifiedName(), TypeResolverUtils.CONSTRUCTOR_METHOD + constructorParameter);
+                    resolvedConstructorDeclaration.declaringType().getQualifiedName(),
+                    TypeResolverUtils.getConstructorSignature(resolvedConstructorDeclaration));
             constructorDescriptor.setName(resolvedConstructorDeclaration.getName());
 
             // visibility
@@ -112,5 +116,9 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
                 annotation.accept(new AnnotationVisitor(typeResolver), constructorDescriptor);
             }
         }
+    }
+
+    private void setInvokes(BlockStmt body, MethodDescriptor methodDescriptor) {
+        body.accept(new BodyVisitor(typeResolver), methodDescriptor);
     }
 }

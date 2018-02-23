@@ -37,6 +37,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ConstructorDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.InvokesDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
@@ -180,6 +181,11 @@ public class TypeResolver {
             annotationValueDescriptor.setName(annotation.getNameAsString());
             return annotationValueDescriptor;
         }
+    }
+
+    public void addInvokes(MethodDescriptor methodDescriptor, final Integer lineNumber, MethodDescriptor invokedMethodDescriptor) {
+        InvokesDescriptor invokesDescriptor = scannerContext.getStore().create(methodDescriptor, InvokesDescriptor.class, invokedMethodDescriptor);
+        invokesDescriptor.setLineNumber(lineNumber);
     }
 
     private ResolvedTypeDeclaration resolveAnnotation(AnnotationExpr annotationExpr) {

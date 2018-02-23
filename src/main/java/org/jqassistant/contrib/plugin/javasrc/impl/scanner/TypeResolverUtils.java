@@ -4,6 +4,8 @@ import java.util.EnumSet;
 
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
 import org.jqassistant.contrib.plugin.javasrc.api.model.VisibilityModifier;
 
@@ -89,5 +91,16 @@ public class TypeResolverUtils {
         } else {
             throw new RuntimeException("Expression value could not be resolved: " + expression.toString());
         }
+    }
+
+    public static String getMethodSignature(ResolvedMethodDeclaration resolvedMethodDeclaration) {
+        final String signature = TypeResolverUtils.getQualifiedName(resolvedMethodDeclaration.getReturnType()) + " " + resolvedMethodDeclaration.getSignature();
+        return signature;
+    }
+
+    public static String getConstructorSignature(ResolvedConstructorDeclaration resolvedConstructorDeclaration) {
+        final String constructorParameter = resolvedConstructorDeclaration.getSignature().replaceAll(resolvedConstructorDeclaration.getName(), "");
+        final String signature = TypeResolverUtils.CONSTRUCTOR_METHOD + constructorParameter;
+        return signature;
     }
 }
