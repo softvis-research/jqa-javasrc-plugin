@@ -56,6 +56,7 @@ field
 + visibility and access modifiers (public, protected, private, default, final, static)
 + type (primitive type, reference type, array type)
 + value (of first variable)
++ annotation
 
 == TODO
 - annotation
