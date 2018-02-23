@@ -6,6 +6,7 @@ import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
@@ -60,6 +61,11 @@ public class FieldVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
             valueDescriptor.setValue(TypeResolverUtils.getLiteralExpressionValue(value.get()));
             fieldDescriptor.setValue(valueDescriptor);
         }
+
+        // annotations
+        for (AnnotationExpr annotation : fieldDeclaration.getAnnotations()) {
+            annotation.accept(new AnnotationVisitor(typeResolver), fieldDescriptor);
+        }
     }
 
     @Override
@@ -75,5 +81,10 @@ public class FieldVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(declaringType.resolve().getQualifiedName(),
                 fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedEnumConstantDeclaration.getName());
         fieldDescriptor.setName(resolvedEnumConstantDeclaration.getName());
+
+        // annotations
+        for (AnnotationExpr annotation : enumConstantDeclaration.getAnnotations()) {
+            annotation.accept(new AnnotationVisitor(typeResolver), fieldDescriptor);
+        }
     }
 }
