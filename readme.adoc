@@ -60,8 +60,8 @@ field
 + annotation
 
 == TODO
-- parameter types
+- anonymous classes
+- generics
 - comments
 - inner classes' fqn are with . instead of $
 - scanFile and scanDirectory for tests
-- TypeDescriptor for parameter types
