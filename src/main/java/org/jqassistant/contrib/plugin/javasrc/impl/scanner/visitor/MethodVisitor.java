@@ -7,6 +7,7 @@ import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
@@ -62,6 +63,11 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
 
         // return type
         methodDescriptor.setReturns(returnTypeDescriptor);
+
+        // annotations
+        for (AnnotationExpr annotation : methodDeclaration.getAnnotations()) {
+            annotation.accept(new AnnotationVisitor(typeResolver), methodDescriptor);
+        }
     }
 
     @Override
@@ -89,6 +95,11 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
                 TypeDescriptor parameterTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()));
                 ParameterDescriptor parameterDescriptor = typeResolver.addParameterDescriptor(constructorDescriptor, i);
                 parameterDescriptor.setType(parameterTypeDescriptor);
+            }
+
+            // annotations
+            for (AnnotationExpr annotation : constructorDeclaration.getAnnotations()) {
+                annotation.accept(new AnnotationVisitor(typeResolver), constructorDescriptor);
             }
 
         }

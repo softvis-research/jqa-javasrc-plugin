@@ -15,7 +15,6 @@ import com.github.javaparser.resolution.declarations.ResolvedAnnotationMemberDec
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.EnumValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
@@ -61,7 +60,6 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
 
         AnnotationValueDescriptor annotationValueDescriptor = typeResolver.addAnnotationValueDescriptor(singleMemberAnnotationExpr, annotatedDescriptor);
         annotationValueDescriptor.getValue().add(createValueDescriptor("value", singleMemberAnnotationExpr.getMemberValue()));
-        System.out.println("SM " + ((ClassTypeDescriptor) annotatedDescriptor).getFullQualifiedName());
     }
 
     @Override

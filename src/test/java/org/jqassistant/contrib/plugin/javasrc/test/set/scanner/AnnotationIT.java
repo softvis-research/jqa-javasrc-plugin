@@ -7,6 +7,7 @@ import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.jqassistant.contrib.plugin.javasrc.test.matcher.AnnotationValueDescriptorMatcher.annotationValueDescriptor;
 import static org.jqassistant.contrib.plugin.javasrc.test.matcher.FieldDescriptorMatcher.fieldDescriptor;
+import static org.jqassistant.contrib.plugin.javasrc.test.matcher.MethodDescriptorMatcher.methodDescriptor;
 import static org.jqassistant.contrib.plugin.javasrc.test.matcher.TypeDescriptorMatcher.typeDescriptor;
 import static org.jqassistant.contrib.plugin.javasrc.test.matcher.ValueDescriptorMatcher.valueDescriptor;
 import static org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation.Enumeration.NON_DEFAULT;
@@ -20,6 +21,7 @@ import java.util.Map;
 import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation.AnnotatedType;
@@ -68,39 +70,35 @@ public class AnnotationIT extends AbstractPluginIT {
         store.commitTransaction();
     }
 
-    // /**
-    // * Verifies an annotation on method level.
-    // *
-    // * @throws IOException
-    // * If the test fails.
-    // */
-    // @Test
-    // public void annotatedMethod() throws IOException, NoSuchFieldException,
-    // NoSuchMethodException {
-    // scanClasses(AnnotatedType.class, Annotation.class,
-    // NestedAnnotation.class);
-    // // verify annotation type on method level
-    // store.beginTransaction();
-    // TestResult testResult = query("MATCH
-    // (m:Method)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:OF_TYPE]->(at:Type:Annotation)
-    // RETURN m, a, at");
-    // assertThat(testResult.getRows().size(), equalTo(1));
-    // Map<String, Object> row = testResult.getRows().get(0);
-    // assertThat((MethodDescriptor) row.get("m"),
-    // methodDescriptor(AnnotatedType.class, "annotatedMethod", String.class));
-    // assertThat((AnnotationValueDescriptor) row.get("a"),
-    // annotationValueDescriptor(Annotation.class, anything()));
-    // assertThat((TypeDescriptor) row.get("at"),
-    // typeDescriptor(Annotation.class));
-    // // verify values on method level
-    // testResult = query("MATCH
-    // (m:Method)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:HAS]->(value:Value)
-    // RETURN value");
-    // assertThat(testResult.getRows().size(), equalTo(1));
-    // List<Object> values = testResult.getColumn("value");
-    // assertThat(values, hasItem(valueDescriptor("value", is("method"))));
-    // store.commitTransaction();
-    // }
+    /**
+     * Verifies an annotation on method level.
+     *
+     * @throws IOException
+     *             If the test fails.
+     */
+    @Test
+    public void testAnnotatedMethod() throws IOException, NoSuchFieldException, NoSuchMethodException {
+        // scanClasses(AnnotatedType.class, Annotation.class,
+        // NestedAnnotation.class);
+        // verify annotation type on method level
+        final String TEST_DIRECTORY_PATH = "src/test/java/";
+        final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/annotation/";
+        File directory = new File(FILE_DIRECTORY_PATH);
+        store.beginTransaction();
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        TestResult testResult = query("MATCH (m:Method)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:OF_TYPE]->(at:Type:Annotation) RETURN m, a, at");
+        assertThat(testResult.getRows().size(), equalTo(1));
+        Map<String, Object> row = testResult.getRows().get(0);
+        assertThat((MethodDescriptor) row.get("m"), methodDescriptor(AnnotatedType.class, "annotatedMethod", String.class));
+        assertThat((AnnotationValueDescriptor) row.get("a"), annotationValueDescriptor(Annotation.class, anything()));
+        assertThat((TypeDescriptor) row.get("at"), typeDescriptor(Annotation.class));
+        // verify values on method level
+        testResult = query("MATCH (m:Method)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:HAS]->(value:Value) RETURN value");
+        assertThat(testResult.getRows().size(), equalTo(1));
+        List<Object> values = testResult.getColumn("value");
+        assertThat(values, hasItem(valueDescriptor("value", is("method"))));
+        store.commitTransaction();
+    }
 
     // /**
     // * Verifies an annotation on method parameter level.
