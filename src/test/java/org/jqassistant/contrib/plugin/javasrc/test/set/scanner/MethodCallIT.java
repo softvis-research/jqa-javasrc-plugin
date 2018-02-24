@@ -1,22 +1,23 @@
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.jqassistant.contrib.plugin.javasrc.test.matcher.MethodDescriptorMatcher.methodDescriptor;
+import static org.junit.Assert.assertThat;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 
 import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.call.Callee;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.call.Caller;
 import org.junit.Test;
 
 /**
  * Contains tests to verify correct scanning of methods calls.
  * 
- * @author Cornelius Wilhelm, Richard Müller
+ * @author Richard Müller
  *
  */
 public class MethodCallIT extends AbstractPluginIT {
@@ -25,36 +26,14 @@ public class MethodCallIT extends AbstractPluginIT {
     public void testMethodCall() throws NoSuchMethodException {
         // TODO refactor test
         final String TEST_DIRECTORY_PATH = "src/test/java/";
-        final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/invoke/";
+        final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/call/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
-        JavaSourceFileDescriptor fileDescriptor = (JavaSourceFileDescriptor) javaSourceDirectoryDescriptor.getContains().get(0);
-        fileDescriptor.getTypes().forEach((type) -> {
-            // assertEquals("MethodCall", type.getName());
-            for (Object o : type.getDeclaredMethods()) {
-                if (o instanceof MethodDescriptor) {
-                    MethodDescriptor method = (MethodDescriptor) o;
-                    // System.out.println(method.getSignature()); // why is this
-                    // redundantly in type.getDeclaredMethods()?
-                    // -> solved: the redundancy came from adding methods and
-                    // fields (also) to the List of memberDescriptors
-                    // assertEquals("MethodCall",
-                    // method.getDeclaringType().getName());
-                    Set<String> signaturesOfCalledMethods = new HashSet<>();
-                    Set<String> expectedSignaturesOfCalledMethods = new HashSet<>();
-                    expectedSignaturesOfCalledMethods.add("void calledMethod0()");
-                    expectedSignaturesOfCalledMethods.add("void calledMethod1()");
-                    expectedSignaturesOfCalledMethods.add("void calledMethod2()");
-                    if (method.getName().equals("callingMethod")) {
-                        method.getInvokes().forEach(invoke -> {
-                            signaturesOfCalledMethods.add(invoke.getInvokedMethod().getSignature());
-                        });
-                        assertEquals(expectedSignaturesOfCalledMethods, signaturesOfCalledMethods);
-                    }
-                }
-            }
-        });
+        TestResult testResult = query("MATCH (caller:Method)-[INVOKES]->(callee:Method) WHERE caller.name='callingMethod' RETURN callee");
+        assertThat(testResult.getColumn("callee").size(), equalTo(3));
+        assertThat(testResult.getColumn("callee"), hasItems(methodDescriptor(Caller.class, "calledMethod0"), methodDescriptor(Caller.class, "calledMethod1"),
+                methodDescriptor(Callee.class, "calledMethod2")));
     }
 
 }

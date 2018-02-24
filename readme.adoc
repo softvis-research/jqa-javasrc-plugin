@@ -44,6 +44,7 @@ method
 + parameters (primitive type, reference type, annotation)
 + return type (void, primitive type, reference type, array type)
 + annotation
++ calls
 
 field
 + signature
@@ -56,7 +57,6 @@ field
 == TODO
 - reads
 - writes
-- invokes
 - loc
 - complexity
 - depends
