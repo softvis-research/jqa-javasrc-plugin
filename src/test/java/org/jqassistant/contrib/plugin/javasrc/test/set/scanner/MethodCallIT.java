@@ -24,16 +24,23 @@ public class MethodCallIT extends AbstractPluginIT {
 
     @Test
     public void testMethodCall() throws NoSuchMethodException {
-        // TODO refactor test
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/call/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
         TestResult testResult = query("MATCH (caller:Method)-[INVOKES]->(callee:Method) WHERE caller.name='callingMethod' RETURN callee");
+        // verify methods
         assertThat(testResult.getColumn("callee").size(), equalTo(3));
         assertThat(testResult.getColumn("callee"), hasItems(methodDescriptor(Caller.class, "calledMethod0"), methodDescriptor(Caller.class, "calledMethod1"),
                 methodDescriptor(Callee.class, "calledMethod2")));
+        // verify line numbers
+        assertThat(query("MATCH (:Method)-[i:INVOKES]->(callee:Method) WHERE callee.name='calledMethod0' RETURN i.lineNumber as lineNumber")
+                .getColumn("lineNumber").get(0), equalTo(5));
+        assertThat(query("MATCH (:Method)-[i:INVOKES]->(callee:Method) WHERE callee.name='calledMethod1' RETURN i.lineNumber as lineNumber")
+                .getColumn("lineNumber").get(0), equalTo(6));
+        assertThat(query("MATCH (:Method)-[i:INVOKES]->(callee:Method) WHERE callee.name='calledMethod2' RETURN i.lineNumber as lineNumber")
+                .getColumn("lineNumber").get(0), equalTo(8));
     }
 
 }
