@@ -90,8 +90,7 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
             // signature, name
             ResolvedConstructorDeclaration resolvedConstructorDeclaration = constructorDeclaration.resolve();
             ConstructorDescriptor constructorDescriptor = (ConstructorDescriptor) typeResolver.addMethodDescriptor(
-                    resolvedConstructorDeclaration.declaringType().getQualifiedName(),
-                    TypeResolverUtils.getConstructorSignature(resolvedConstructorDeclaration));
+                    resolvedConstructorDeclaration.declaringType().getQualifiedName(), TypeResolverUtils.getMethodSignature(resolvedConstructorDeclaration));
             constructorDescriptor.setName(resolvedConstructorDeclaration.getName());
 
             // visibility

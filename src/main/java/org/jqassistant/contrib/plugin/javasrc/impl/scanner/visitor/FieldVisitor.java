@@ -41,7 +41,7 @@ public class FieldVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         ResolvedFieldDeclaration resolvedFieldDeclaration = fieldDeclaration.resolve();
         TypeDescriptor fieldTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedFieldDeclaration.getType()));
         FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(resolvedFieldDeclaration.declaringType().getQualifiedName(),
-                fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedFieldDeclaration.getName());
+                TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration));
         fieldDescriptor.setName(resolvedFieldDeclaration.getName());
 
         // visibility and access modifiers
@@ -79,7 +79,7 @@ public class FieldVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         TypeDescriptor fieldTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedEnumConstantDeclaration.getType()));
 
         FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(declaringType.resolve().getQualifiedName(),
-                fieldTypeDescriptor.getFullQualifiedName() + " " + resolvedEnumConstantDeclaration.getName());
+                TypeResolverUtils.getFieldSignature(resolvedEnumConstantDeclaration));
         fieldDescriptor.setName(resolvedEnumConstantDeclaration.getName());
 
         // annotations

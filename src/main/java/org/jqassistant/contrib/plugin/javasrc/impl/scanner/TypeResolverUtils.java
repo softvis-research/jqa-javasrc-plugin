@@ -5,6 +5,8 @@ import java.util.EnumSet;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
 import org.jqassistant.contrib.plugin.javasrc.api.model.VisibilityModifier;
@@ -98,9 +100,20 @@ public class TypeResolverUtils {
         return signature;
     }
 
-    public static String getConstructorSignature(ResolvedConstructorDeclaration resolvedConstructorDeclaration) {
+    public static String getMethodSignature(ResolvedConstructorDeclaration resolvedConstructorDeclaration) {
         final String constructorParameter = resolvedConstructorDeclaration.getSignature().replaceAll(resolvedConstructorDeclaration.getName(), "");
         final String signature = TypeResolverUtils.CONSTRUCTOR_METHOD + constructorParameter;
+        return signature;
+    }
+
+    public static String getFieldSignature(ResolvedFieldDeclaration resolvedFieldDeclaration) {
+        final String signature = TypeResolverUtils.getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName();
+        return signature;
+    }
+
+    public static String getFieldSignature(ResolvedEnumConstantDeclaration resolvedEnumConstantDeclaration) {
+        final String signature = TypeResolverUtils.getQualifiedName(resolvedEnumConstantDeclaration.getType()) + " "
+                + resolvedEnumConstantDeclaration.getName();
         return signature;
     }
 }
