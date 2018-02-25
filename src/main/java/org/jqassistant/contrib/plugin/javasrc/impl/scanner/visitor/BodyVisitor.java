@@ -5,7 +5,9 @@ package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
@@ -59,4 +61,28 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
             }
         }
     }
+
+    @Override
+    public void visit(FieldAccessExpr fieldAccessExpr, MethodDescriptor methodDescriptor) {
+        super.visit(fieldAccessExpr, methodDescriptor);
+        // this.FIELD
+        SymbolReference<ResolvedFieldDeclaration> resolvedFieldDeclaration = typeResolver.solve(fieldAccessExpr);
+        FieldDescriptor fieldDescriptor = typeResolver
+                .resolveField(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration.getCorrespondingDeclaration()));
+        fieldAccessExpr.getBegin().ifPresent((position) -> typeResolver.addReads(methodDescriptor, position.line, fieldDescriptor));
+    }
+
+    @Override
+    public void visit(NameExpr nameExpr, MethodDescriptor methodDescriptor) {
+        super.visit(nameExpr, methodDescriptor);
+        ResolvedValueDeclaration resolvedValueDeclaration = nameExpr.resolve();
+
+        if (resolvedValueDeclaration.isField()) {
+            // FIELD
+            ResolvedFieldDeclaration resolvedFieldDeclaration = resolvedValueDeclaration.asField();
+            FieldDescriptor fieldDescriptor = typeResolver.resolveField(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration));
+            nameExpr.getBegin().ifPresent((position) -> typeResolver.addReads(methodDescriptor, position.line, fieldDescriptor));
+        }
+    }
+
 }
