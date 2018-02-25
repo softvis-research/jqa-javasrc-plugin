@@ -41,7 +41,9 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.InvokesDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.ReadsDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.WritesDescriptor;
 
 /**
  * The type resolver has two main tasks. First, it holds an instance of the java
@@ -186,6 +188,16 @@ public class TypeResolver {
     public void addInvokes(MethodDescriptor methodDescriptor, final Integer lineNumber, MethodDescriptor invokedMethodDescriptor) {
         InvokesDescriptor invokesDescriptor = scannerContext.getStore().create(methodDescriptor, InvokesDescriptor.class, invokedMethodDescriptor);
         invokesDescriptor.setLineNumber(lineNumber);
+    }
+
+    public void addReads(MethodDescriptor methodDescriptor, final Integer lineNumber, FieldDescriptor fieldDescriptor) {
+        ReadsDescriptor readsDescriptor = scannerContext.getStore().create(methodDescriptor, ReadsDescriptor.class, fieldDescriptor);
+        readsDescriptor.setLineNumber(lineNumber);
+    }
+
+    public void addWrites(MethodDescriptor methodDescriptor, final Integer lineNumber, FieldDescriptor fieldDescriptor) {
+        WritesDescriptor writesDescriptor = scannerContext.getStore().create(methodDescriptor, WritesDescriptor.class, fieldDescriptor);
+        writesDescriptor.setLineNumber(lineNumber);
     }
 
     private ResolvedTypeDeclaration resolveAnnotation(AnnotationExpr annotationExpr) {

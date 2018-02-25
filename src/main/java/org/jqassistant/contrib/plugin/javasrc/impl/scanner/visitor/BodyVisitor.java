@@ -3,9 +3,15 @@
  */
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
+import com.github.javaparser.ast.expr.AssignExpr;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
+import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
+import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolver;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
@@ -32,5 +38,25 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
                 TypeResolverUtils.getMethodSignature(resolvedInvokedMethodDeclaration));
         methodCallExpr.getBegin().ifPresent((position) -> typeResolver.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor));
 
+    }
+
+    @Override
+    public void visit(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
+        super.visit(assignExpr, methodDescriptor);
+        Expression target = assignExpr.getTarget();
+        if (target.isFieldAccessExpr()) {
+            // this.FIELD = VALUE;
+            SymbolReference<ResolvedFieldDeclaration> resolvedFieldDeclaration = typeResolver.solve(target.asFieldAccessExpr());
+            FieldDescriptor fieldDescriptor = typeResolver
+                    .resolveField(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration.getCorrespondingDeclaration()));
+            assignExpr.getBegin().ifPresent((position) -> typeResolver.addWrites(methodDescriptor, position.line, fieldDescriptor));
+        } else if (target.isNameExpr()) {
+            ResolvedValueDeclaration resolvedValueDeclaration = target.asNameExpr().resolve();
+            if (resolvedValueDeclaration.isField()) {
+                // FIELD = VALUE;
+                FieldDescriptor fieldDescriptor = typeResolver.resolveField(TypeResolverUtils.getFieldSignature(resolvedValueDeclaration.asField()));
+                assignExpr.getBegin().ifPresent((position) -> typeResolver.addWrites(methodDescriptor, position.line, fieldDescriptor));
+            }
+        }
     }
 }
