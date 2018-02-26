@@ -44,7 +44,7 @@ public class ThrowableIT extends AbstractPluginIT {
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
-        assertThat(query("MATCH (c:Method:Constructor)-[:THROWS]->(exception:Type) WHERE c.name = 'Throwable' RETURN exception").getColumn("exception"),
+        assertThat(query("MATCH (c:Method:Constructor)-[:THROWS]->(exception:Type) RETURN exception").getColumn("exception"),
                 hasItem(typeDescriptor(NoSuchMethodError.class)));
         store.commitTransaction();
     }

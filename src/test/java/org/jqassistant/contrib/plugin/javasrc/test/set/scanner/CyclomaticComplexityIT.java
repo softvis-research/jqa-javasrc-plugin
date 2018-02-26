@@ -28,7 +28,7 @@ public class CyclomaticComplexityIT extends AbstractPluginIT {
     @Test
     public void testCyclomaticComplexity() throws IOException {
         Map<String, Integer> expectedComplexities = new HashMap<>();
-        expectedComplexities.put("CyclomaticComplexityType", valueOf(1));
+        expectedComplexities.put("<init>", valueOf(1));
         expectedComplexities.put("ifStatement", valueOf(2));
         expectedComplexities.put("nestedIfStatement", valueOf(5));
         expectedComplexities.put("caseStatement", valueOf(3));

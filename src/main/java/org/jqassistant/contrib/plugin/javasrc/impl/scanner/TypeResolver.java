@@ -130,7 +130,7 @@ public class TypeResolver {
         } else {
             TypeDescriptor parentType = resolveType(parentFQN);
             MethodDescriptor methodDescriptor;
-            if (signature.startsWith(TypeResolverUtils.CONSTRUCTOR_METHOD)) {
+            if (signature.startsWith(TypeResolverUtils.VOID + " " + TypeResolverUtils.CONSTRUCTOR_NAME)) {
                 methodDescriptor = scannerContext.getStore().create(ConstructorDescriptor.class);
             } else {
                 methodDescriptor = scannerContext.getStore().create(MethodDescriptor.class);

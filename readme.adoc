@@ -62,7 +62,6 @@ field
 + annotation
 
 == TODO
-- change name of constructors to <init>
 - depends
 - check effective line count (comments, empty methods)
 - method variables
