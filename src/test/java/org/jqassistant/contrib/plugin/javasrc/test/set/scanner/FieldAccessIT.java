@@ -42,6 +42,7 @@ public class FieldAccessIT extends AbstractPluginIT {
         assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE m.name='setA' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(12));
         assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE m.name='getB' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(17));
         assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE m.name='setB' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(21));
+        store.commitTransaction();
     }
 
     @Test
@@ -62,5 +63,6 @@ public class FieldAccessIT extends AbstractPluginIT {
         // verify line numbers
         assertThat(query("MATCH (:Method)-[w:WRITES]->(field:Field) WHERE field.name='a' RETURN w.lineNumber").getColumn("w.lineNumber").get(0), equalTo(12));
         assertThat(query("MATCH (:Method)-[w:WRITES]->(field:Field) WHERE field.name='b' RETURN w.lineNumber").getColumn("w.lineNumber").get(0), equalTo(21));
+        store.commitTransaction();
     }
 }

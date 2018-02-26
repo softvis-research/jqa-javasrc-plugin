@@ -41,6 +41,7 @@ public class MethodCallIT extends AbstractPluginIT {
                 .getColumn("lineNumber").get(0), equalTo(6));
         assertThat(query("MATCH (:Method)-[i:INVOKES]->(callee:Method) WHERE callee.name='calledMethod2' RETURN i.lineNumber as lineNumber")
                 .getColumn("lineNumber").get(0), equalTo(8));
+        store.commitTransaction();
     }
 
 }
