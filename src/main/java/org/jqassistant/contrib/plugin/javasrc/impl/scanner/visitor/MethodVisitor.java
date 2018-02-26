@@ -84,6 +84,15 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
             methodDescriptor.getDeclaredThrowables().add(typeResolver.resolveType(exception.asReferenceType().getQualifiedName()));
         }
 
+        // loc
+        methodDeclaration.getBegin().ifPresent(position -> {
+            methodDescriptor.setFirstLineNumber(position.line);
+        });
+        methodDeclaration.getEnd().ifPresent(position -> {
+            methodDescriptor.setLastLineNumber(position.line);
+        });
+        // TODO what is effective line count?
+        methodDescriptor.setEffectiveLineCount(methodDescriptor.getLastLineNumber() - methodDescriptor.getFirstLineNumber() + 1);
     }
 
     @Override
@@ -126,6 +135,16 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
             for (ResolvedType exception : resolvedConstructorDeclaration.getSpecifiedExceptions()) {
                 constructorDescriptor.getDeclaredThrowables().add(typeResolver.resolveType(exception.asReferenceType().getQualifiedName()));
             }
+
+            // loc
+            constructorDeclaration.getBegin().ifPresent(position -> {
+                constructorDescriptor.setFirstLineNumber(position.line);
+            });
+            constructorDeclaration.getEnd().ifPresent(position -> {
+                constructorDescriptor.setLastLineNumber(position.line);
+            });
+            // TODO what is effective line count?
+            constructorDescriptor.setEffectiveLineCount(constructorDescriptor.getLastLineNumber() - constructorDescriptor.getFirstLineNumber() + 1);
         }
     }
 

@@ -36,6 +36,7 @@ constructor (+ overloaded constructor)
 + parameters (primitive type, reference type, array type, annotation)
 + annotation
 + exceptions
++ loc (firstLineNumber, lastLineNumber, effectiveLineCount)
 
 method
 + signature
@@ -48,6 +49,7 @@ method
 + writes
 + reads
 + exceptions
++ loc (firstLineNumber, lastLineNumber, effectiveLineCount)
 
 field
 + signature
@@ -58,9 +60,9 @@ field
 + annotation
 
 == TODO
-- loc
 - complexity
 - depends
+- check effective line count (comments, empty methods)
 - method variables
 - implicit default constructor
 - enum constructor
