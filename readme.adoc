@@ -22,7 +22,7 @@ type (enum)
 + getDeclaredFields(), getDeclaredMembers()
 + enum constants (primitive type, reference type)
 + annotation
-- constructor
+
 
 type (annotation)
 + name
@@ -36,6 +36,7 @@ constructor (+ overloaded constructor, - implicit default constructor)
 + visibility (public, protected, private, default)
 + parameters (primitive type, reference type, array type, annotation)
 + annotation
++ exceptions
 
 method
 + signature
@@ -47,6 +48,7 @@ method
 + calls
 + writes
 + reads
++ exceptions
 
 field
 + signature
@@ -60,9 +62,9 @@ field
 - loc
 - complexity
 - depends
-- exceptions
+- enum constructor
 - anonymous classes
 - generics
-- comments
 - inner classes' fqn are with . instead of $
 - scanFile and scanDirectory for tests
+- comments

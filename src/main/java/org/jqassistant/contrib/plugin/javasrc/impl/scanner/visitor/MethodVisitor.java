@@ -13,6 +13,7 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaration;
+import com.github.javaparser.resolution.types.ResolvedType;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ConstructorDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
@@ -77,6 +78,12 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
 
         // invokes
         methodDeclaration.getBody().ifPresent((body) -> setInvokes(body, methodDescriptor));
+
+        // exceptions
+        for (ResolvedType exception : resolvedMethodDeclaration.getSpecifiedExceptions()) {
+            methodDescriptor.getDeclaredThrowables().add(typeResolver.resolveType(exception.asReferenceType().getQualifiedName()));
+        }
+
     }
 
     @Override
@@ -113,6 +120,11 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
             // annotations
             for (AnnotationExpr annotation : constructorDeclaration.getAnnotations()) {
                 annotation.accept(new AnnotationVisitor(typeResolver), constructorDescriptor);
+            }
+
+            // exceptions
+            for (ResolvedType exception : resolvedConstructorDeclaration.getSpecifiedExceptions()) {
+                constructorDescriptor.getDeclaredThrowables().add(typeResolver.resolveType(exception.asReferenceType().getQualifiedName()));
             }
         }
     }
