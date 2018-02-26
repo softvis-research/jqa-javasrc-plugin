@@ -61,6 +61,7 @@ field
 - loc
 - complexity
 - depends
+- method variables
 - implicit default constructor
 - enum constructor
 - anonymous classes
