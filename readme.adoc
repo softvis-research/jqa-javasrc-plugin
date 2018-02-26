@@ -23,14 +23,13 @@ type (enum)
 + enum constants (primitive type, reference type)
 + annotation
 
-
 type (annotation)
 + name
 + fqn
 + nested annotation
 + annotation member with default values
 
-constructor (+ overloaded constructor, - implicit default constructor)
+constructor (+ overloaded constructor)
 + signature
 + name
 + visibility (public, protected, private, default)
@@ -62,6 +61,7 @@ field
 - loc
 - complexity
 - depends
+- implicit default constructor
 - enum constructor
 - anonymous classes
 - generics
