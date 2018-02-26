@@ -17,6 +17,20 @@ public class CyclomaticComplexityType {
         }
     }
 
+    public void nestedIfStatement(int value) {
+        if (value == 0) {
+
+        } else if (value > 0) {
+            if (value == 1) {
+
+            } else {
+
+            }
+        } else {
+
+        }
+    }
+
     public void caseStatement(int value) {
         switch (value) {
         case 0:

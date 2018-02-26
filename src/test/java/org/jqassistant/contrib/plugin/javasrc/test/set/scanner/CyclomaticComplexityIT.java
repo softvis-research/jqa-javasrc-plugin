@@ -15,7 +15,6 @@ import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -27,19 +26,19 @@ import org.junit.Test;
 public class CyclomaticComplexityIT extends AbstractPluginIT {
 
     @Test
-    @Ignore
     public void testCyclomaticComplexity() throws IOException {
         Map<String, Integer> expectedComplexities = new HashMap<>();
-        expectedComplexities.put("<init>", valueOf(1));
+        expectedComplexities.put("CyclomaticComplexityType", valueOf(1));
         expectedComplexities.put("ifStatement", valueOf(2));
+        expectedComplexities.put("nestedIfStatement", valueOf(5));
         expectedComplexities.put("caseStatement", valueOf(3));
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/metric/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
-        List<MethodDescriptor> methods = query("match (:Class)-[:DECLARES]->(m:Method) return m").getColumn("m");
-        assertThat(methods.size(), equalTo(3));
+        List<MethodDescriptor> methods = query("Match (:Class)-[:DECLARES]->(m:Method) return m").getColumn("m");
+        assertThat(methods.size(), equalTo(4));
         for (MethodDescriptor methodDescriptor : methods) {
             String name = methodDescriptor.getName();
             int cyclomaticComplexity = methodDescriptor.getCyclomaticComplexity();

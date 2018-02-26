@@ -9,6 +9,10 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.stmt.SwitchEntryStmt;
+import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
@@ -93,6 +97,9 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
         });
         // TODO what is effective line count?
         methodDescriptor.setEffectiveLineCount(methodDescriptor.getLastLineNumber() - methodDescriptor.getFirstLineNumber() + 1);
+
+        // complexity
+        methodDescriptor.setCyclomaticComplexity(calculateCyclomaticComplexity(methodDeclaration));
     }
 
     @Override
@@ -145,10 +152,38 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
             });
             // TODO what is effective line count?
             constructorDescriptor.setEffectiveLineCount(constructorDescriptor.getLastLineNumber() - constructorDescriptor.getFirstLineNumber() + 1);
+
+            // complexity
+            constructorDescriptor.setCyclomaticComplexity(calculateCyclomaticComplexity(constructorDeclaration));
         }
     }
 
     private void setInvokes(BlockStmt body, MethodDescriptor methodDescriptor) {
         body.accept(new BodyVisitor(typeResolver), methodDescriptor);
+    }
+
+    private int calculateCyclomaticComplexity(Node methodOrConstructorDeclaration) {
+        int complexity = 0;
+        for (IfStmt ifStmt : methodOrConstructorDeclaration.findAll(IfStmt.class)) {
+            // increase complexity for "if"
+            complexity++;
+            if (ifStmt.getElseStmt().isPresent()) {
+                // this "if" has an "else"
+                Statement elseStmt = ifStmt.getElseStmt().get();
+                if (elseStmt instanceof IfStmt) {
+                    // it's an "else-if" that is already counted above
+                } else {
+                    // it's an "else-something"
+                    complexity++;
+                }
+            }
+        }
+        for (SwitchStmt switchStmt : methodOrConstructorDeclaration.findAll(SwitchStmt.class)) {
+            for (SwitchEntryStmt switchEntryStmt : switchStmt.getEntries()) {
+                // increase complexity for each "case" and "default"
+                complexity++;
+            }
+        }
+        return (complexity == 0) ? 1 : complexity;
     }
 }

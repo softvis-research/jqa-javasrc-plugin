@@ -37,6 +37,7 @@ constructor (+ overloaded constructor)
 + annotation
 + exceptions
 + loc (firstLineNumber, lastLineNumber, effectiveLineCount)
++ complexity (if, else if, else, case, default)
 
 method
 + signature
@@ -50,6 +51,7 @@ method
 + reads
 + exceptions
 + loc (firstLineNumber, lastLineNumber, effectiveLineCount)
++ complexity (if, else if, else, case, default)
 
 field
 + signature
@@ -60,7 +62,7 @@ field
 + annotation
 
 == TODO
-- complexity
+- change name of constructors to <init>
 - depends
 - check effective line count (comments, empty methods)
 - method variables
