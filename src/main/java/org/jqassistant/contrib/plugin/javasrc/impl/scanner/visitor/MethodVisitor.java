@@ -80,9 +80,6 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
             annotation.accept(new AnnotationVisitor(typeResolver), methodDescriptor);
         }
 
-        // invokes
-        methodDeclaration.getBody().ifPresent((body) -> setInvokes(body, methodDescriptor));
-
         // exceptions
         for (ResolvedType exception : resolvedMethodDeclaration.getSpecifiedExceptions()) {
             methodDescriptor.getDeclaredThrowables().add(typeResolver.resolveDependency(exception.asReferenceType().getQualifiedName(), typeDescriptor));
@@ -100,6 +97,9 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 
         // complexity
         methodDescriptor.setCyclomaticComplexity(calculateCyclomaticComplexity(methodDeclaration));
+
+        // invokes
+        methodDeclaration.getBody().ifPresent((body) -> setInvokes(body, methodDescriptor));
     }
 
     @Override
@@ -157,6 +157,9 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 
             // complexity
             constructorDescriptor.setCyclomaticComplexity(calculateCyclomaticComplexity(constructorDeclaration));
+
+            // invokes
+            constructorDeclaration.getBody().accept(new BodyVisitor(typeResolver), constructorDescriptor);
         }
     }
 

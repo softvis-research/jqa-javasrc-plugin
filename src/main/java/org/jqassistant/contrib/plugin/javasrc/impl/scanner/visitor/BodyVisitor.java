@@ -36,7 +36,6 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
     @Override
     public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
         super.visit(methodCallExpr, methodDescriptor);
-        // TODO handle constructor calls
         ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = methodCallExpr.resolveInvokedMethod();
         TypeDescriptor invokedMethodParent = typeResolver.resolveType(resolvedInvokedMethodDeclaration.declaringType().getQualifiedName());
         MethodDescriptor invokedMethodDescriptor = typeResolver.addMethodDescriptor(TypeResolverUtils.getMethodSignature(resolvedInvokedMethodDeclaration),

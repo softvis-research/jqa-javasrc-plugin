@@ -65,8 +65,6 @@ field
 + annotation
 
 == TODO
-- add calls from constructor
-- fix field access of typedescriptor: methodDescriptor.getDeclaringType().getDeclaredFields().forEach(fieldDescriptor{});
 - check complexity calculation
 - check effective line count (comments, empty methods)
 - add method variables
@@ -77,3 +75,4 @@ field
 - inner classes' fqn are with . instead of $
 - scanFile and scanDirectory for tests
 - comments
+- why does typeDescriptor.getDeclaredFields() return fields, methods, or classes (same for other getDeclaredMethods)?
