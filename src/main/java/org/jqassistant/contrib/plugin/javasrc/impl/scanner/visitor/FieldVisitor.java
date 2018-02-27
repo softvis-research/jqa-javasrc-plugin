@@ -3,7 +3,6 @@ package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 import java.util.Optional;
 
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
-import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -38,8 +37,7 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
         ResolvedFieldDeclaration resolvedFieldDeclaration = fieldDeclaration.resolve();
         TypeDescriptor fieldTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedFieldDeclaration.getType()),
                 typeDescriptor);
-        FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration), typeDescriptor);
-        fieldDescriptor.setName(resolvedFieldDeclaration.getName());
+        FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration), typeDescriptor);
 
         // visibility and access modifiers
         fieldDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(fieldDeclaration.getModifiers()).getValue());
@@ -69,16 +67,11 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 
     @Override
     public void visit(EnumConstantDeclaration enumConstantDeclaration, TypeDescriptor typeDescriptor) {
-        EnumDeclaration declaringType = (EnumDeclaration) enumConstantDeclaration.getParentNode().get();
-
         // fqn, name
         ResolvedEnumConstantDeclaration resolvedEnumConstantDeclaration = enumConstantDeclaration.resolve();
-        TypeDescriptor fieldTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedEnumConstantDeclaration.getType()),
-                typeDescriptor);
+        FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedEnumConstantDeclaration), typeDescriptor);
 
-        FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedEnumConstantDeclaration), typeDescriptor);
-        fieldDescriptor.setName(resolvedEnumConstantDeclaration.getName());
-
+        // TODO remove?
         // annotations
         for (AnnotationExpr annotation : enumConstantDeclaration.getAnnotations()) {
             annotation.accept(new AnnotationVisitor(typeResolver), fieldDescriptor);

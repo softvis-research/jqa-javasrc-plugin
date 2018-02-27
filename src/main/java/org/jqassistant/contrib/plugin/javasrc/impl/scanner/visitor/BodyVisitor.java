@@ -37,7 +37,7 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
     public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
         ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = methodCallExpr.resolveInvokedMethod();
         TypeDescriptor invokedMethodParent = typeResolver.resolveType(resolvedInvokedMethodDeclaration.declaringType().getQualifiedName());
-        MethodDescriptor invokedMethodDescriptor = typeResolver.addMethodDescriptor(TypeResolverUtils.getMethodSignature(resolvedInvokedMethodDeclaration),
+        MethodDescriptor invokedMethodDescriptor = typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature(resolvedInvokedMethodDeclaration),
                 invokedMethodParent);
         methodCallExpr.getBegin().ifPresent((position) -> typeResolver.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor));
         super.visit(methodCallExpr, methodDescriptor);
@@ -49,14 +49,14 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
         if (target.isFieldAccessExpr()) {
             // this.FIELD = VALUE;
             ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solve(target.asFieldAccessExpr()).getCorrespondingDeclaration();
-            FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration),
+            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration),
                     methodDescriptor.getDeclaringType());
             assignExpr.getBegin().ifPresent((position) -> typeResolver.addWrites(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
         } else if (target.isNameExpr()) {
             ResolvedValueDeclaration resolvedValueDeclaration = target.asNameExpr().resolve();
             if (resolvedValueDeclaration.isField()) {
                 // FIELD = VALUE;
-                FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedValueDeclaration.asField()),
+                FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedValueDeclaration.asField()),
                         methodDescriptor.getDeclaringType());
                 assignExpr.getBegin().ifPresent((position) -> typeResolver.addWrites(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
             }
@@ -68,7 +68,7 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
     public void visit(FieldAccessExpr fieldAccessExpr, MethodDescriptor methodDescriptor) {
         // this.FIELD
         ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solve(fieldAccessExpr).getCorrespondingDeclaration();
-        FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration),
+        FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration),
                 methodDescriptor.getDeclaringType());
         fieldAccessExpr.getBegin().ifPresent((position) -> typeResolver.addReads(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
         super.visit(fieldAccessExpr, methodDescriptor);
@@ -79,7 +79,7 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
         ResolvedValueDeclaration resolvedValueDeclaration = nameExpr.resolve();
         if (resolvedValueDeclaration.isField()) {
             // FIELD
-            FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedValueDeclaration.asField()),
+            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedValueDeclaration.asField()),
                     methodDescriptor.getDeclaringType());
             nameExpr.getBegin().ifPresent((position) -> typeResolver.addReads(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
         }

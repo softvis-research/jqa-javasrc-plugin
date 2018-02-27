@@ -35,6 +35,7 @@ import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionClassDeclara
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import org.apache.commons.lang.StringUtils;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ConstructorDescriptor;
@@ -124,7 +125,7 @@ public class TypeResolver {
         }
     }
 
-    public MethodDescriptor addMethodDescriptor(String signature, TypeDescriptor parent) {
+    public MethodDescriptor getMethodDescriptor(String signature, TypeDescriptor parent) {
         MethodDescriptor methodDescriptor = null;
         for (Iterator iterator = parent.getDeclaredFields().iterator(); iterator.hasNext();) {
             Object member = iterator.next();
@@ -140,15 +141,17 @@ public class TypeResolver {
         }
         if (signature.startsWith(TypeResolverUtils.CONSTRUCTOR_SIGNATURE)) {
             methodDescriptor = scannerContext.getStore().create(ConstructorDescriptor.class);
+            methodDescriptor.setName(TypeResolverUtils.CONSTRUCTOR_NAME);
         } else {
             methodDescriptor = scannerContext.getStore().create(MethodDescriptor.class);
+            methodDescriptor.setName(StringUtils.substringBetween(signature, " ", "("));
         }
         methodDescriptor.setSignature(signature);
         parent.getDeclaredMethods().add(methodDescriptor);
         return methodDescriptor;
     }
 
-    public FieldDescriptor addFieldDescriptor(String signature, TypeDescriptor parent) {
+    public FieldDescriptor getFieldDescriptor(String signature, TypeDescriptor parent) {
         FieldDescriptor fieldDescriptor = null;
         for (Iterator iterator = parent.getDeclaredFields().iterator(); iterator.hasNext();) {
             Object member = iterator.next();
@@ -163,6 +166,7 @@ public class TypeResolver {
             return fieldDescriptor;
         }
         fieldDescriptor = scannerContext.getStore().create(FieldDescriptor.class);
+        fieldDescriptor.setName(signature.substring(signature.indexOf(" ") + 1));
         fieldDescriptor.setSignature(signature);
         parent.getDeclaredFields().add(fieldDescriptor);
         return fieldDescriptor;

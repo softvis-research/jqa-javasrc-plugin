@@ -3,6 +3,7 @@ package org.jqassistant.contrib.plugin.javasrc.impl.scanner;
 import java.util.EnumSet;
 
 import com.github.javaparser.ast.Modifier;
+import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
@@ -104,6 +105,12 @@ public class TypeResolverUtils {
     public static String getMethodSignature(ResolvedConstructorDeclaration resolvedConstructorDeclaration) {
         final String constructorParameter = resolvedConstructorDeclaration.getSignature().replaceAll(resolvedConstructorDeclaration.getName(), "");
         final String signature = TypeResolverUtils.CONSTRUCTOR_SIGNATURE + constructorParameter;
+        return signature;
+    }
+
+    public static String getAnnotationMemberSignature(AnnotationMemberDeclaration annotationMemberDeclaration) {
+        final String signature = TypeResolverUtils.getQualifiedName(annotationMemberDeclaration.getType().resolve()) + " "
+                + TypeResolverUtils.ANNOTATION_MEMBER_SIGNATURE;
         return signature;
     }
 

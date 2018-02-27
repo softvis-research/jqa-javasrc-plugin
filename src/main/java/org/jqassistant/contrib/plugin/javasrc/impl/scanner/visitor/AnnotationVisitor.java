@@ -62,11 +62,9 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
         super.visit(annotationMemberDeclaration, annotatedDescriptor);
 
         // signature, name
-        TypeDescriptor returnTypeDescriptor = typeResolver
-                .resolveDependency(TypeResolverUtils.getQualifiedName(annotationMemberDeclaration.getType().resolve()), ((TypeDescriptor) annotatedDescriptor));
-        // TODO extract to util method
-        MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(
-                returnTypeDescriptor.getFullQualifiedName() + " " + TypeResolverUtils.ANNOTATION_MEMBER_SIGNATURE, ((TypeDescriptor) annotatedDescriptor));
+        MethodDescriptor methodDescriptor = typeResolver.getMethodDescriptor(TypeResolverUtils.getAnnotationMemberSignature(annotationMemberDeclaration),
+                ((TypeDescriptor) annotatedDescriptor));
+        // name must be overwritten here as it is not in the signature
         methodDescriptor.setName(annotationMemberDeclaration.getNameAsString());
 
         // default value
@@ -103,7 +101,7 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
             ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solve(value.asFieldAccessExpr()).getCorrespondingDeclaration();
             TypeDescriptor enumType = typeResolver.resolveDependency(resolvedFieldDeclaration.getType().asReferenceType().getQualifiedName(),
                     ((TypeDescriptor) annotatedDescriptor));
-            FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration), enumType);
+            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration), enumType);
             enumValueDescriptor.setValue(fieldDescriptor);
             return enumValueDescriptor;
         } else if (value.isSingleMemberAnnotationExpr()) {

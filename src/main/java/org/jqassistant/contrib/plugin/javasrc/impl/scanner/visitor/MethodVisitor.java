@@ -45,8 +45,7 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
         ResolvedMethodDeclaration resolvedMethodDeclaration = methodDeclaration.resolve();
         TypeDescriptor returnTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedMethodDeclaration.getReturnType()),
                 typeDescriptor);
-        MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(TypeResolverUtils.getMethodSignature(resolvedMethodDeclaration), typeDescriptor);
-        methodDescriptor.setName(resolvedMethodDeclaration.getName());
+        MethodDescriptor methodDescriptor = typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature(resolvedMethodDeclaration), typeDescriptor);
 
         // visibility and access modifiers
         methodDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(methodDeclaration.getModifiers()).getValue());
@@ -112,8 +111,7 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
             // signature, name
             ResolvedConstructorDeclaration resolvedConstructorDeclaration = constructorDeclaration.resolve();
             ConstructorDescriptor constructorDescriptor = (ConstructorDescriptor) typeResolver
-                    .addMethodDescriptor(TypeResolverUtils.getMethodSignature(resolvedConstructorDeclaration), typeDescriptor);
-            constructorDescriptor.setName(TypeResolverUtils.CONSTRUCTOR_NAME);
+                    .getMethodDescriptor(TypeResolverUtils.getMethodSignature(resolvedConstructorDeclaration), typeDescriptor);
 
             // visibility
             constructorDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(constructorDeclaration.getModifiers()).getValue());
