@@ -220,6 +220,8 @@ public class TypeResolver {
             }
         }
 
+        dependencies.clear();
+
     }
 
     private ResolvedTypeDeclaration resolveAnnotation(AnnotationExpr annotationExpr) {

@@ -35,9 +35,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             CompilationUnit cu = JavaParser.parse(in);
             cu.accept(new TypeVisitor(typeResolver), javaSourceFileDescriptor);
         }
-
-        // typeResolver.storeDependencies();
-
+        typeResolver.storeDependencies();
         return javaSourceFileDescriptor;
     }
 }

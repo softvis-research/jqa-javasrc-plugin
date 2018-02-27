@@ -14,6 +14,7 @@ type (+ class, + interface, + inner class)
 + extends
 + implements
 + annotation
++ depends
 
 type (enum)
 + name
@@ -22,12 +23,14 @@ type (enum)
 + getDeclaredFields(), getDeclaredMembers()
 + enum constants (primitive type, reference type)
 + annotation
++ depends
 
 type (annotation)
 + name
 + fqn
 + nested annotation
 + annotation member with default values
++ depends
 
 constructor (+ overloaded constructor)
 + signature
@@ -62,9 +65,8 @@ field
 + annotation
 
 == TODO
-- depends
-- fix field access of typedescriptor: methodDescriptor.getDeclaringType().getDeclaredFields().forEach(fieldDescriptor{});
 - add calls from constructor
+- fix field access of typedescriptor: methodDescriptor.getDeclaringType().getDeclaredFields().forEach(fieldDescriptor{});
 - check complexity calculation
 - check effective line count (comments, empty methods)
 - add method variables
