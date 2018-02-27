@@ -35,17 +35,16 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
 
     @Override
     public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        super.visit(methodCallExpr, methodDescriptor);
         ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = methodCallExpr.resolveInvokedMethod();
         TypeDescriptor invokedMethodParent = typeResolver.resolveType(resolvedInvokedMethodDeclaration.declaringType().getQualifiedName());
         MethodDescriptor invokedMethodDescriptor = typeResolver.addMethodDescriptor(TypeResolverUtils.getMethodSignature(resolvedInvokedMethodDeclaration),
                 invokedMethodParent);
         methodCallExpr.getBegin().ifPresent((position) -> typeResolver.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor));
+        super.visit(methodCallExpr, methodDescriptor);
     }
 
     @Override
     public void visit(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
-        super.visit(assignExpr, methodDescriptor);
         Expression target = assignExpr.getTarget();
         if (target.isFieldAccessExpr()) {
             // this.FIELD = VALUE;
@@ -62,21 +61,21 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
                 assignExpr.getBegin().ifPresent((position) -> typeResolver.addWrites(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
             }
         }
+        super.visit(assignExpr, methodDescriptor);
     }
 
     @Override
     public void visit(FieldAccessExpr fieldAccessExpr, MethodDescriptor methodDescriptor) {
-        super.visit(fieldAccessExpr, methodDescriptor);
         // this.FIELD
         ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solve(fieldAccessExpr).getCorrespondingDeclaration();
         FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration),
                 methodDescriptor.getDeclaringType());
         fieldAccessExpr.getBegin().ifPresent((position) -> typeResolver.addReads(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
+        super.visit(fieldAccessExpr, methodDescriptor);
     }
 
     @Override
     public void visit(NameExpr nameExpr, MethodDescriptor methodDescriptor) {
-        super.visit(nameExpr, methodDescriptor);
         ResolvedValueDeclaration resolvedValueDeclaration = nameExpr.resolve();
         if (resolvedValueDeclaration.isField()) {
             // FIELD
@@ -84,5 +83,6 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
                     methodDescriptor.getDeclaringType());
             nameExpr.getBegin().ifPresent((position) -> typeResolver.addReads(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
         }
+        super.visit(nameExpr, methodDescriptor);
     }
 }

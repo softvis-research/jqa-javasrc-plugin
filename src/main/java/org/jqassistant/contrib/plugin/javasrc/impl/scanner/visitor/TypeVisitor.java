@@ -149,8 +149,6 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 
     @Override
     public void visit(EnumDeclaration enumDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
-        super.visit(enumDeclaration, javaSourceFileDescriptor);
-
         // fqn, name
         ResolvedEnumDeclaration resolvedEnumDeclaration = enumDeclaration.resolve();
         EnumTypeDescriptor enumTypeDescriptor = typeResolver.createType(resolvedEnumDeclaration.getQualifiedName(), javaSourceFileDescriptor,
@@ -183,11 +181,12 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
             annotation.accept(new AnnotationVisitor(typeResolver), enumTypeDescriptor);
         }
 
+        super.visit(enumDeclaration, javaSourceFileDescriptor);
     }
 
     @Override
     public void visit(AnnotationDeclaration annotationDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
-        super.visit(annotationDeclaration, javaSourceFileDescriptor);
+
         // fqn, name
         ResolvedAnnotationDeclaration resolvedAnnotationDeclaration = annotationDeclaration.resolve();
 
@@ -204,5 +203,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         }
 
         // TODO annotations, fields, methods, visibility and access modifiers?
+
+        super.visit(annotationDeclaration, javaSourceFileDescriptor);
     }
 }

@@ -41,8 +41,6 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 
     @Override
     public void visit(MethodDeclaration methodDeclaration, TypeDescriptor typeDescriptor) {
-        // super.visit(methodDeclaration, typeDescriptor);
-
         // signature, name
         ResolvedMethodDeclaration resolvedMethodDeclaration = methodDeclaration.resolve();
         TypeDescriptor returnTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedMethodDeclaration.getReturnType()),
@@ -101,13 +99,13 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
         methodDeclaration.getBody().ifPresent((body) -> {
             body.accept(new BodyVisitor(typeResolver), methodDescriptor);
         });
+
+        super.visit(methodDeclaration, typeDescriptor);
     }
 
     @Override
     public void visit(ConstructorDeclaration constructorDeclaration, TypeDescriptor typeDescriptor) {
-        // super.visit(constructorDeclaration, typeDescriptor);
-
-        // enum constructors are currently not supported:
+        // TODO: enum constructors are currently not supported:
         // https://github.com/javaparser/javaparser/pull/1315
         Node parent = constructorDeclaration.getParentNode().get();
         if (!(parent instanceof EnumDeclaration)) {
@@ -162,6 +160,8 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
             // invokes
             constructorDeclaration.getBody().accept(new BodyVisitor(typeResolver), constructorDescriptor);
         }
+
+        super.visit(constructorDeclaration, typeDescriptor);
     }
 
     private int calculateCyclomaticComplexity(Node methodOrConstructorDeclaration) {

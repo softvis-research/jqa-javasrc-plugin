@@ -34,8 +34,6 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 
     @Override
     public void visit(FieldDeclaration fieldDeclaration, TypeDescriptor typeDescriptor) {
-        super.visit(fieldDeclaration, typeDescriptor);
-
         // signature, name
         ResolvedFieldDeclaration resolvedFieldDeclaration = fieldDeclaration.resolve();
         TypeDescriptor fieldTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedFieldDeclaration.getType()),
@@ -65,12 +63,12 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
         for (AnnotationExpr annotation : fieldDeclaration.getAnnotations()) {
             annotation.accept(new AnnotationVisitor(typeResolver), fieldDescriptor);
         }
+
+        super.visit(fieldDeclaration, typeDescriptor);
     }
 
     @Override
     public void visit(EnumConstantDeclaration enumConstantDeclaration, TypeDescriptor typeDescriptor) {
-        super.visit(enumConstantDeclaration, typeDescriptor);
-
         EnumDeclaration declaringType = (EnumDeclaration) enumConstantDeclaration.getParentNode().get();
 
         // fqn, name
@@ -85,5 +83,7 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
         for (AnnotationExpr annotation : enumConstantDeclaration.getAnnotations()) {
             annotation.accept(new AnnotationVisitor(typeResolver), fieldDescriptor);
         }
+
+        super.visit(enumConstantDeclaration, typeDescriptor);
     }
 }
