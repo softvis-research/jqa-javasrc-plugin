@@ -19,7 +19,6 @@ import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ConstructorDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
@@ -33,7 +32,7 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
  * @author Richard Müller
  *
  */
-public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
+public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 
     private TypeResolver typeResolver;
 
@@ -42,14 +41,14 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
     }
 
     @Override
-    public void visit(MethodDeclaration methodDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
-        super.visit(methodDeclaration, javaSourceFileDescriptor);
+    public void visit(MethodDeclaration methodDeclaration, TypeDescriptor typeDescriptor) {
+        // super.visit(methodDeclaration, typeDescriptor);
 
         // signature, name
         ResolvedMethodDeclaration resolvedMethodDeclaration = methodDeclaration.resolve();
-        TypeDescriptor returnTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedMethodDeclaration.getReturnType()));
-        MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(resolvedMethodDeclaration.declaringType().getQualifiedName(),
-                TypeResolverUtils.getMethodSignature(resolvedMethodDeclaration));
+        TypeDescriptor returnTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedMethodDeclaration.getReturnType()),
+                typeDescriptor);
+        MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(TypeResolverUtils.getMethodSignature(resolvedMethodDeclaration), typeDescriptor);
         methodDescriptor.setName(resolvedMethodDeclaration.getName());
 
         // visibility and access modifiers
@@ -62,7 +61,8 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
         List<Parameter> parameters = methodDeclaration.getParameters();
         for (int i = 0; i < parameters.size(); i++) {
             ResolvedParameterDeclaration resolvedParameterDeclaration = parameters.get(i).resolve();
-            TypeDescriptor parameterTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()));
+            TypeDescriptor parameterTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()),
+                    typeDescriptor);
             ParameterDescriptor parameterDescriptor = typeResolver.addParameterDescriptor(methodDescriptor, i);
             parameterDescriptor.setType(parameterTypeDescriptor);
 
@@ -85,7 +85,7 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
 
         // exceptions
         for (ResolvedType exception : resolvedMethodDeclaration.getSpecifiedExceptions()) {
-            methodDescriptor.getDeclaredThrowables().add(typeResolver.resolveType(exception.asReferenceType().getQualifiedName()));
+            methodDescriptor.getDeclaredThrowables().add(typeResolver.resolveDependency(exception.asReferenceType().getQualifiedName(), typeDescriptor));
         }
 
         // loc
@@ -103,8 +103,8 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
     }
 
     @Override
-    public void visit(ConstructorDeclaration constructorDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
-        super.visit(constructorDeclaration, javaSourceFileDescriptor);
+    public void visit(ConstructorDeclaration constructorDeclaration, TypeDescriptor typeDescriptor) {
+        // super.visit(constructorDeclaration, typeDescriptor);
 
         // enum constructors are currently not supported:
         // https://github.com/javaparser/javaparser/pull/1315
@@ -112,8 +112,8 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
         if (!(parent instanceof EnumDeclaration)) {
             // signature, name
             ResolvedConstructorDeclaration resolvedConstructorDeclaration = constructorDeclaration.resolve();
-            ConstructorDescriptor constructorDescriptor = (ConstructorDescriptor) typeResolver.addMethodDescriptor(
-                    resolvedConstructorDeclaration.declaringType().getQualifiedName(), TypeResolverUtils.getMethodSignature(resolvedConstructorDeclaration));
+            ConstructorDescriptor constructorDescriptor = (ConstructorDescriptor) typeResolver
+                    .addMethodDescriptor(TypeResolverUtils.getMethodSignature(resolvedConstructorDeclaration), typeDescriptor);
             constructorDescriptor.setName(TypeResolverUtils.CONSTRUCTOR_NAME);
 
             // visibility
@@ -123,7 +123,8 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
             List<Parameter> parameters = constructorDeclaration.getParameters();
             for (int i = 0; i < parameters.size(); i++) {
                 ResolvedParameterDeclaration resolvedParameterDeclaration = parameters.get(i).resolve();
-                TypeDescriptor parameterTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()));
+                TypeDescriptor parameterTypeDescriptor = typeResolver
+                        .resolveDependency(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()), typeDescriptor);
                 ParameterDescriptor parameterDescriptor = typeResolver.addParameterDescriptor(constructorDescriptor, i);
                 parameterDescriptor.setType(parameterTypeDescriptor);
 
@@ -140,7 +141,8 @@ public class MethodVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> 
 
             // exceptions
             for (ResolvedType exception : resolvedConstructorDeclaration.getSpecifiedExceptions()) {
-                constructorDescriptor.getDeclaredThrowables().add(typeResolver.resolveType(exception.asReferenceType().getQualifiedName()));
+                constructorDescriptor.getDeclaredThrowables()
+                        .add(typeResolver.resolveDependency(exception.asReferenceType().getQualifiedName(), typeDescriptor));
             }
 
             // loc

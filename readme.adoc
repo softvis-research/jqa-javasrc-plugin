@@ -63,8 +63,11 @@ field
 
 == TODO
 - depends
+- fix field access of typedescriptor: methodDescriptor.getDeclaringType().getDeclaredFields().forEach(fieldDescriptor{});
+- add calls from constructor
+- check complexity calculation
 - check effective line count (comments, empty methods)
-- method variables
+- add method variables
 - implicit default constructor
 - enum constructor
 - anonymous classes

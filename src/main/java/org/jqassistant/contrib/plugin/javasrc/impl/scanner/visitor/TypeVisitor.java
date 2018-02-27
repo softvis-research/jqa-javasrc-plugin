@@ -6,7 +6,11 @@ import java.util.Set;
 import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedAnnotationDeclaration;
@@ -60,13 +64,25 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
             // extends, implements
             List<ResolvedReferenceType> resolvedSuperTypes = resolvedInterfaceDeclaration.getAncestors();
             for (ResolvedReferenceType resolvedSuperType : resolvedSuperTypes) {
-                interfaceTypeDescriptor.setSuperClass(typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedSuperType)));
+                interfaceTypeDescriptor
+                        .setSuperClass(typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedSuperType), interfaceTypeDescriptor));
             }
 
             // inner class
             Set<ResolvedReferenceTypeDeclaration> resolvedInnerClasses = resolvedInterfaceDeclaration.internalTypes();
             for (ResolvedReferenceTypeDeclaration resolvedInnerClass : resolvedInnerClasses) {
-                interfaceTypeDescriptor.getDeclaredInnerClasses().add(typeResolver.resolveType(resolvedInnerClass.getQualifiedName()));
+                interfaceTypeDescriptor.getDeclaredInnerClasses()
+                        .add(typeResolver.resolveDependency(resolvedInnerClass.getQualifiedName(), interfaceTypeDescriptor));
+            }
+
+            // fields
+            for (FieldDeclaration field : classOrInterfaceDeclaration.getFields()) {
+                field.accept(new FieldVisitor(typeResolver), interfaceTypeDescriptor);
+            }
+
+            // methods
+            for (MethodDeclaration method : classOrInterfaceDeclaration.getMethods()) {
+                method.accept(new MethodVisitor(typeResolver), interfaceTypeDescriptor);
             }
 
             // annotations
@@ -91,19 +107,37 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 
             // extends
             ResolvedReferenceType resolvedSuperType = resolvedClassDeclaration.getSuperClass();
-            TypeDescriptor superClassTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedSuperType));
+            TypeDescriptor superClassTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedSuperType),
+                    classTypeDescriptor);
             classTypeDescriptor.setSuperClass(superClassTypeDescriptor);
 
             // implements
             List<ResolvedReferenceType> resolvedInterfaces = resolvedClassDeclaration.getInterfaces();
             for (ResolvedReferenceType resolvedInterface : resolvedInterfaces) {
-                classTypeDescriptor.getInterfaces().add(typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedInterface)));
+                classTypeDescriptor.getInterfaces()
+                        .add(typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedInterface), classTypeDescriptor));
             }
 
             // inner class
+            // TODO is it a dependency?
             Set<ResolvedReferenceTypeDeclaration> resolvedInnerClasses = resolvedClassDeclaration.internalTypes();
             for (ResolvedReferenceTypeDeclaration resolvedInnerClass : resolvedInnerClasses) {
-                classTypeDescriptor.getDeclaredInnerClasses().add(typeResolver.resolveType(resolvedInnerClass.getQualifiedName()));
+                classTypeDescriptor.getDeclaredInnerClasses().add(typeResolver.resolveDependency(resolvedInnerClass.getQualifiedName(), classTypeDescriptor));
+            }
+
+            // fields
+            for (FieldDeclaration field : classOrInterfaceDeclaration.getFields()) {
+                field.accept(new FieldVisitor(typeResolver), classTypeDescriptor);
+            }
+
+            // methods
+            for (MethodDeclaration method : classOrInterfaceDeclaration.getMethods()) {
+                method.accept(new MethodVisitor(typeResolver), classTypeDescriptor);
+            }
+
+            // constructors
+            for (ConstructorDeclaration constructor : classOrInterfaceDeclaration.getConstructors()) {
+                constructor.accept(new MethodVisitor(typeResolver), classTypeDescriptor);
             }
 
             // annotations
@@ -127,6 +161,22 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         // visibility and access modifiers
         enumTypeDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(enumDeclaration.getModifiers()).getValue());
         enumTypeDescriptor.setStatic(enumDeclaration.isStatic());
+
+        // fields
+        // TODO remove?
+        for (FieldDeclaration field : enumDeclaration.getFields()) {
+            field.accept(new FieldVisitor(typeResolver), enumTypeDescriptor);
+        }
+
+        // enum constants
+        for (EnumConstantDeclaration entry : enumDeclaration.getEntries()) {
+            entry.accept(new FieldVisitor(typeResolver), enumTypeDescriptor);
+        }
+
+        // methods
+        for (MethodDeclaration method : enumDeclaration.getMethods()) {
+            method.accept(new MethodVisitor(typeResolver), enumTypeDescriptor);
+        }
 
         // annotations
         for (AnnotationExpr annotation : enumDeclaration.getAnnotations()) {

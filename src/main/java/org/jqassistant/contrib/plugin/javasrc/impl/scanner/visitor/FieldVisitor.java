@@ -12,7 +12,6 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolver;
@@ -26,7 +25,7 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
  * @author Richard Müller
  *
  */
-public class FieldVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
+public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
     private TypeResolver typeResolver;
 
     public FieldVisitor(TypeResolver typeResolver) {
@@ -34,14 +33,14 @@ public class FieldVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
     }
 
     @Override
-    public void visit(FieldDeclaration fieldDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
-        super.visit(fieldDeclaration, javaSourceFileDescriptor);
+    public void visit(FieldDeclaration fieldDeclaration, TypeDescriptor typeDescriptor) {
+        super.visit(fieldDeclaration, typeDescriptor);
 
         // signature, name
         ResolvedFieldDeclaration resolvedFieldDeclaration = fieldDeclaration.resolve();
-        TypeDescriptor fieldTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedFieldDeclaration.getType()));
-        FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(resolvedFieldDeclaration.declaringType().getQualifiedName(),
-                TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration));
+        TypeDescriptor fieldTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedFieldDeclaration.getType()),
+                typeDescriptor);
+        FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration), typeDescriptor);
         fieldDescriptor.setName(resolvedFieldDeclaration.getName());
 
         // visibility and access modifiers
@@ -69,17 +68,17 @@ public class FieldVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
     }
 
     @Override
-    public void visit(EnumConstantDeclaration enumConstantDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
-        super.visit(enumConstantDeclaration, javaSourceFileDescriptor);
+    public void visit(EnumConstantDeclaration enumConstantDeclaration, TypeDescriptor typeDescriptor) {
+        super.visit(enumConstantDeclaration, typeDescriptor);
 
         EnumDeclaration declaringType = (EnumDeclaration) enumConstantDeclaration.getParentNode().get();
 
         // fqn, name
         ResolvedEnumConstantDeclaration resolvedEnumConstantDeclaration = enumConstantDeclaration.resolve();
-        TypeDescriptor fieldTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(resolvedEnumConstantDeclaration.getType()));
+        TypeDescriptor fieldTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedEnumConstantDeclaration.getType()),
+                typeDescriptor);
 
-        FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(declaringType.resolve().getQualifiedName(),
-                TypeResolverUtils.getFieldSignature(resolvedEnumConstantDeclaration));
+        FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedEnumConstantDeclaration), typeDescriptor);
         fieldDescriptor.setName(resolvedEnumConstantDeclaration.getName());
 
         // annotations

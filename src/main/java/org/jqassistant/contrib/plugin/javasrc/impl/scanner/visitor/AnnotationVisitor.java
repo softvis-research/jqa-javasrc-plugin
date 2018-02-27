@@ -44,7 +44,7 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
 
         AnnotationValueDescriptor annotationValueDescriptor = typeResolver.addAnnotationValueDescriptor(singleMemberAnnotationExpr, annotatedDescriptor);
         annotationValueDescriptor.getValue()
-                .add(createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME, singleMemberAnnotationExpr.getMemberValue()));
+                .add(createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME, singleMemberAnnotationExpr.getMemberValue(), annotatedDescriptor));
     }
 
     @Override
@@ -53,7 +53,7 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
         // super.visit(normalAnnotationExpr, annotatedDescriptor);
         AnnotationValueDescriptor annotationValueDescriptor = typeResolver.addAnnotationValueDescriptor(normalAnnotationExpr, annotatedDescriptor);
         for (MemberValuePair memberValuePair : normalAnnotationExpr.getPairs()) {
-            annotationValueDescriptor.getValue().add(createValueDescriptor(memberValuePair.getNameAsString(), memberValuePair.getValue()));
+            annotationValueDescriptor.getValue().add(createValueDescriptor(memberValuePair.getNameAsString(), memberValuePair.getValue(), annotatedDescriptor));
         }
     }
 
@@ -62,20 +62,22 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
         super.visit(annotationMemberDeclaration, annotatedDescriptor);
 
         // signature, name
-        TypeDescriptor returnTypeDescriptor = typeResolver.resolveType(TypeResolverUtils.getQualifiedName(annotationMemberDeclaration.getType().resolve()));
-        MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(((TypeDescriptor) annotatedDescriptor).getFullQualifiedName(),
-                returnTypeDescriptor.getFullQualifiedName() + " " + TypeResolverUtils.ANNOTATION_MEMBER_SIGNATURE);
+        TypeDescriptor returnTypeDescriptor = typeResolver
+                .resolveDependency(TypeResolverUtils.getQualifiedName(annotationMemberDeclaration.getType().resolve()), ((TypeDescriptor) annotatedDescriptor));
+        // TODO extract to util method
+        MethodDescriptor methodDescriptor = typeResolver.addMethodDescriptor(
+                returnTypeDescriptor.getFullQualifiedName() + " " + TypeResolverUtils.ANNOTATION_MEMBER_SIGNATURE, ((TypeDescriptor) annotatedDescriptor));
         methodDescriptor.setName(annotationMemberDeclaration.getNameAsString());
 
         // default value
         Optional<Expression> value = annotationMemberDeclaration.getDefaultValue();
         if (value.isPresent()) {
-            methodDescriptor.setHasDefault(createValueDescriptor(TypeResolverUtils.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value.get()));
+            methodDescriptor.setHasDefault(createValueDescriptor(TypeResolverUtils.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value.get(), annotatedDescriptor));
         }
 
     }
 
-    private ValueDescriptor<?> createValueDescriptor(String name, Expression value) {
+    private ValueDescriptor<?> createValueDescriptor(String name, Expression value, AnnotatedDescriptor annotatedDescriptor) {
         if (value.isLiteralExpr()) {
             PrimitiveValueDescriptor primitiveValueDescriptor = typeResolver.getValueDescriptor(PrimitiveValueDescriptor.class);
             primitiveValueDescriptor.setName(name);
@@ -91,7 +93,7 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
             arrayValueDescriptor.setName(name);
             int i = 0;
             for (Expression arrayValue : value.asArrayInitializerExpr().getValues()) {
-                arrayValueDescriptor.getValue().add(createValueDescriptor(("[" + i + "]"), arrayValue));
+                arrayValueDescriptor.getValue().add(createValueDescriptor(("[" + i + "]"), arrayValue, annotatedDescriptor));
                 i++;
             }
             return arrayValueDescriptor;
@@ -99,16 +101,17 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
             EnumValueDescriptor enumValueDescriptor = typeResolver.getValueDescriptor(EnumValueDescriptor.class);
             enumValueDescriptor.setName(name);
             ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solve(value.asFieldAccessExpr()).getCorrespondingDeclaration();
-            FieldDescriptor fieldDescriptor = typeResolver
-                    .resolveField(TypeResolverUtils.getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName());
+            TypeDescriptor enumType = typeResolver.resolveDependency(resolvedFieldDeclaration.getType().asReferenceType().getQualifiedName(),
+                    ((TypeDescriptor) annotatedDescriptor));
+            FieldDescriptor fieldDescriptor = typeResolver.addFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration), enumType);
             enumValueDescriptor.setValue(fieldDescriptor);
             return enumValueDescriptor;
         } else if (value.isSingleMemberAnnotationExpr()) {
             SingleMemberAnnotationExpr singleMemberAnnotationExpr = value.asSingleMemberAnnotationExpr();
             AnnotationValueDescriptor annotationValueDescriptor = typeResolver.addAnnotationValueDescriptor(singleMemberAnnotationExpr, null);
             annotationValueDescriptor.setName(name);
-            annotationValueDescriptor.getValue()
-                    .add(createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME, singleMemberAnnotationExpr.getMemberValue()));
+            annotationValueDescriptor.getValue().add(
+                    createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME, singleMemberAnnotationExpr.getMemberValue(), annotatedDescriptor));
             return annotationValueDescriptor;
         } else if (value.isNameExpr()) {
             NameExpr nameExpr = value.asNameExpr();

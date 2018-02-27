@@ -21,6 +21,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.VisibilityModifier;
 public class TypeResolverUtils {
     public static final String CONSTRUCTOR_NAME = "<init>";
     public static final String VOID = "void";
+    public static final String CONSTRUCTOR_SIGNATURE = "void <init>";
     public static final String ANNOTATION_MEMBER_SIGNATURE = "()";
     public static final String ANNOTATION_MEMBER_DEFAULT_VALUE_NAME = "null";
     public static final String SINGLE_MEMBER_ANNOTATION_NAME = "value";
@@ -102,7 +103,7 @@ public class TypeResolverUtils {
 
     public static String getMethodSignature(ResolvedConstructorDeclaration resolvedConstructorDeclaration) {
         final String constructorParameter = resolvedConstructorDeclaration.getSignature().replaceAll(resolvedConstructorDeclaration.getName(), "");
-        final String signature = TypeResolverUtils.VOID + " " + TypeResolverUtils.CONSTRUCTOR_NAME + constructorParameter;
+        final String signature = TypeResolverUtils.CONSTRUCTOR_SIGNATURE + constructorParameter;
         return signature;
     }
 

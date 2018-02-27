@@ -4,7 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
@@ -42,6 +44,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ReadsDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDependsOnDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.WritesDescriptor;
 
@@ -57,16 +60,13 @@ public class TypeResolver {
     private TypeSolver javaTypeSolver;
     private ScannerContext scannerContext;
     private Map<String, TypeDescriptor> containedTypes = new HashMap<>();
-    private Map<String, FieldDescriptor> containedFields = new HashMap<>();
-    private Map<String, MethodDescriptor> containedMethods = new HashMap<>();
     private Map<String, TypeDescriptor> requiredTypes = new HashMap<>();
+    private Map<TypeDescriptor, Map<TypeDescriptor, Integer>> dependencies = new HashMap<>();
 
     public TypeResolver(String srcDir, ScannerContext scannerContext) {
         this.javaTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(), new JavaParserTypeSolver(new File(srcDir)));
         JavaParser.setStaticConfiguration(new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver(javaTypeSolver)));
         this.containedTypes = new HashMap<>();
-        this.containedFields = new HashMap<>();
-        this.containedMethods = new HashMap<>();
         this.requiredTypes = new HashMap<>();
         this.scannerContext = scannerContext;
     }
@@ -84,79 +84,88 @@ public class TypeResolver {
         return typeDescriptor;
     }
 
-    public TypeDescriptor resolveType(String fqn) {
-        // TODO remove returns?
-        TypeDescriptor typeDescriptor;
-        if (containedTypes.containsKey(fqn)) {
-            return typeDescriptor = containedTypes.get(fqn);
-        } else if (requiredTypes.containsKey(fqn)) {
-            return typeDescriptor = requiredTypes.get(fqn);
+    public TypeDescriptor resolveDependency(String dependencyFQN, TypeDescriptor dependent) {
+        TypeDescriptor dependency = resolveType(dependencyFQN);
+        if (dependencies.containsKey(dependent)) {
+            // dependent type exists
+            Map<TypeDescriptor, Integer> tmpDependencies = dependencies.get(dependent);
+            // dependency exists
+            if (tmpDependencies.containsKey(dependency)) {
+                Integer weight = tmpDependencies.get(dependency);
+                weight++;
+                tmpDependencies.put(dependency, weight);
+            } else {
+                // dependency does not exist
+                tmpDependencies.put(dependency, 1);
+            }
         } else {
-            String fileName = "/" + fqn.replace('.', '/') + ".java"; // Inner
-                                                                     // classes?
+            // dependent type does not exist
+            Map<TypeDescriptor, Integer> tmpDependencies = new HashMap<>();
+            tmpDependencies.put(dependency, 1);
+            dependencies.put(dependent, tmpDependencies);
+
+        }
+        return dependency;
+    }
+
+    public TypeDescriptor resolveType(String fqn) {
+        if (containedTypes.containsKey(fqn)) {
+            return containedTypes.get(fqn);
+        } else if (requiredTypes.containsKey(fqn)) {
+            return requiredTypes.get(fqn);
+        } else {
+            // TODO handle inner classes
+            String fileName = "/" + fqn.replace('.', '/') + ".java";
             FileResolver fileResolver = scannerContext.peek(FileResolver.class);
             JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName, JavaSourceFileDescriptor.class, scannerContext);
-            typeDescriptor = sourceFileDescriptor.resolveType(fqn);
+            TypeDescriptor typeDescriptor = sourceFileDescriptor.resolveType(fqn);
             requiredTypes.put(fqn, typeDescriptor);
-        }
-        return typeDescriptor;
-    }
-
-    public FieldDescriptor resolveField(String signature) {
-        FieldDescriptor fieldDescriptor = null;
-        if (containedFields.containsKey(signature)) {
-            return fieldDescriptor = containedFields.get(signature);
-        } else {
-            String fqn = signature.substring(0, signature.indexOf(" "));
-            TypeDescriptor typeDescriptor = resolveType(fqn);
-            fieldDescriptor = addFieldDescriptor(fqn, signature);
-            return fieldDescriptor;
+            return typeDescriptor;
         }
     }
 
-    public MethodDescriptor resolveMethod(String signature) {
+    public MethodDescriptor addMethodDescriptor(String signature, TypeDescriptor parent) {
         MethodDescriptor methodDescriptor = null;
-        if (containedMethods.containsKey(signature)) {
-            methodDescriptor = containedMethods.get(signature);
-        } else {
-            throw new RuntimeException("MethodDescriptor not found: " + signature);
+        for (Iterator iterator = parent.getDeclaredFields().iterator(); iterator.hasNext();) {
+            Object member = iterator.next();
+            if (member instanceof MethodDescriptor) {
+                MethodDescriptor existingMethodDescriptor = (MethodDescriptor) member;
+                if (existingMethodDescriptor.getSignature().equals(signature)) {
+                    methodDescriptor = existingMethodDescriptor;
+                }
+            }
         }
+        if (methodDescriptor != null) {
+            return methodDescriptor;
+        }
+        if (signature.startsWith(TypeResolverUtils.CONSTRUCTOR_SIGNATURE)) {
+            methodDescriptor = scannerContext.getStore().create(ConstructorDescriptor.class);
+        } else {
+            methodDescriptor = scannerContext.getStore().create(MethodDescriptor.class);
+        }
+        methodDescriptor.setSignature(signature);
+        parent.getDeclaredMethods().add(methodDescriptor);
         return methodDescriptor;
     }
 
-    public MethodDescriptor addMethodDescriptor(String parentFQN, String signature) {
-        if (containedMethods.containsKey(signature)) {
-            return containedMethods.get(signature);
-        } else {
-            TypeDescriptor parentType = resolveType(parentFQN);
-            MethodDescriptor methodDescriptor;
-            if (signature.startsWith(TypeResolverUtils.VOID + " " + TypeResolverUtils.CONSTRUCTOR_NAME)) {
-                methodDescriptor = scannerContext.getStore().create(ConstructorDescriptor.class);
-            } else {
-                methodDescriptor = scannerContext.getStore().create(MethodDescriptor.class);
+    public FieldDescriptor addFieldDescriptor(String signature, TypeDescriptor parent) {
+        FieldDescriptor fieldDescriptor = null;
+        for (Iterator iterator = parent.getDeclaredFields().iterator(); iterator.hasNext();) {
+            Object member = iterator.next();
+            if (member instanceof FieldDescriptor) {
+                FieldDescriptor existingFieldDescriptor = (FieldDescriptor) member;
+                if (existingFieldDescriptor.getSignature().equals(signature)) {
+                    fieldDescriptor = existingFieldDescriptor;
+                }
             }
-            methodDescriptor.setSignature(signature);
-            parentType.getDeclaredMethods().add(methodDescriptor);
-
-            containedMethods.put(signature, methodDescriptor);
-
-            return methodDescriptor;
         }
-    }
-
-    public FieldDescriptor addFieldDescriptor(String parentFQN, String signature) {
-        if (containedFields.containsKey(signature)) {
-            return containedFields.get(signature);
-        } else {
-            TypeDescriptor parentType = resolveType(parentFQN);
-            FieldDescriptor fieldDescriptor = scannerContext.getStore().create(FieldDescriptor.class);
-            fieldDescriptor.setSignature(signature);
-            parentType.getDeclaredFields().add(fieldDescriptor);
-
-            containedFields.put(signature, fieldDescriptor);
-
+        if (fieldDescriptor != null) {
             return fieldDescriptor;
         }
+        fieldDescriptor = scannerContext.getStore().create(FieldDescriptor.class);
+        fieldDescriptor.setSignature(signature);
+        parent.getDeclaredFields().add(fieldDescriptor);
+        return fieldDescriptor;
     }
 
     public ParameterDescriptor addParameterDescriptor(MethodDescriptor methodDescriptor, int index) {
@@ -198,6 +207,19 @@ public class TypeResolver {
     public void addWrites(MethodDescriptor methodDescriptor, final Integer lineNumber, FieldDescriptor fieldDescriptor) {
         WritesDescriptor writesDescriptor = scannerContext.getStore().create(methodDescriptor, WritesDescriptor.class, fieldDescriptor);
         writesDescriptor.setLineNumber(lineNumber);
+    }
+
+    void storeDependencies() {
+        for (Entry<TypeDescriptor, Map<TypeDescriptor, Integer>> dependentEntry : dependencies.entrySet()) {
+            for (Map.Entry<TypeDescriptor, Integer> dependencyEntry : dependentEntry.getValue().entrySet()) {
+                TypeDescriptor dependency = dependencyEntry.getKey();
+                final Integer weight = dependencyEntry.getValue();
+                TypeDescriptor dependent = dependentEntry.getKey();
+                TypeDependsOnDescriptor dependsOnDescriptor = scannerContext.getStore().create(dependent, TypeDependsOnDescriptor.class, dependency);
+                dependsOnDescriptor.setWeight(weight);
+            }
+        }
+
     }
 
     private ResolvedTypeDeclaration resolveAnnotation(AnnotationExpr annotationExpr) {
