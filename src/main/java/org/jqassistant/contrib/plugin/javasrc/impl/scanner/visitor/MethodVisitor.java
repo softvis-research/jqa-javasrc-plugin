@@ -8,7 +8,6 @@ import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.SwitchEntryStmt;
@@ -99,7 +98,9 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
         methodDescriptor.setCyclomaticComplexity(calculateCyclomaticComplexity(methodDeclaration));
 
         // invokes
-        methodDeclaration.getBody().ifPresent((body) -> setInvokes(body, methodDescriptor));
+        methodDeclaration.getBody().ifPresent((body) -> {
+            body.accept(new BodyVisitor(typeResolver), methodDescriptor);
+        });
     }
 
     @Override
@@ -161,10 +162,6 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
             // invokes
             constructorDeclaration.getBody().accept(new BodyVisitor(typeResolver), constructorDescriptor);
         }
-    }
-
-    private void setInvokes(BlockStmt body, MethodDescriptor methodDescriptor) {
-        body.accept(new BodyVisitor(typeResolver), methodDescriptor);
     }
 
     private int calculateCyclomaticComplexity(Node methodOrConstructorDeclaration) {
