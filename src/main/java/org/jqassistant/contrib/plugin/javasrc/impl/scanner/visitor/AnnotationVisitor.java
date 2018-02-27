@@ -40,11 +40,11 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
 
     @Override
     public void visit(SingleMemberAnnotationExpr singleMemberAnnotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        super.visit(singleMemberAnnotationExpr, annotatedDescriptor);
-
         AnnotationValueDescriptor annotationValueDescriptor = typeResolver.addAnnotationValueDescriptor(singleMemberAnnotationExpr, annotatedDescriptor);
         annotationValueDescriptor.getValue()
                 .add(createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME, singleMemberAnnotationExpr.getMemberValue(), annotatedDescriptor));
+
+        super.visit(singleMemberAnnotationExpr, annotatedDescriptor);
     }
 
     @Override
@@ -59,8 +59,6 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
 
     @Override
     public void visit(AnnotationMemberDeclaration annotationMemberDeclaration, AnnotatedDescriptor annotatedDescriptor) {
-        super.visit(annotationMemberDeclaration, annotatedDescriptor);
-
         // signature, name
         MethodDescriptor methodDescriptor = typeResolver.getMethodDescriptor(TypeResolverUtils.getAnnotationMemberSignature(annotationMemberDeclaration),
                 ((TypeDescriptor) annotatedDescriptor));
@@ -73,6 +71,7 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
             methodDescriptor.setHasDefault(createValueDescriptor(TypeResolverUtils.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value.get(), annotatedDescriptor));
         }
 
+        super.visit(annotationMemberDeclaration, annotatedDescriptor);
     }
 
     private ValueDescriptor<?> createValueDescriptor(String name, Expression value, AnnotatedDescriptor annotatedDescriptor) {
