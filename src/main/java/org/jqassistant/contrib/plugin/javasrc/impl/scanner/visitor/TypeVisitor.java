@@ -18,7 +18,10 @@ import com.github.javaparser.resolution.declarations.ResolvedClassDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedEnumDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedInterfaceDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.utils.Pair;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.EnumTypeDescriptor;
@@ -64,6 +67,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
             for (ResolvedReferenceType resolvedSuperType : resolvedSuperTypes) {
                 interfaceTypeDescriptor
                         .setSuperClass(typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedSuperType), interfaceTypeDescriptor));
+                addTypeParameterDependency(resolvedSuperType, interfaceTypeDescriptor);
             }
 
             // inner class
@@ -106,12 +110,14 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
             TypeDescriptor superClassTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedSuperType),
                     classTypeDescriptor);
             classTypeDescriptor.setSuperClass(superClassTypeDescriptor);
+            addTypeParameterDependency(resolvedSuperType, classTypeDescriptor);
 
             // implements
             List<ResolvedReferenceType> resolvedInterfaces = resolvedClassDeclaration.getInterfaces();
             for (ResolvedReferenceType resolvedInterface : resolvedInterfaces) {
                 classTypeDescriptor.getInterfaces()
                         .add(typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedInterface), classTypeDescriptor));
+                addTypeParameterDependency(resolvedSuperType, classTypeDescriptor);
             }
 
             // inner class
@@ -196,5 +202,11 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         }
 
         super.visit(annotationDeclaration, javaSourceFileDescriptor);
+    }
+
+    private void addTypeParameterDependency(ResolvedReferenceType type, TypeDescriptor typeDescriptor) {
+        for (Pair<ResolvedTypeParameterDeclaration, ResolvedType> typeParamter : type.getTypeParametersMap()) {
+            typeResolver.resolveDependency(typeParamter.b.asReferenceType().getQualifiedName(), typeDescriptor);
+        }
     }
 }
