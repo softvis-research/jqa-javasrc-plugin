@@ -1,9 +1,9 @@
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation;
 
+import static org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation.Enumeration.DEFAULT;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-
-import static org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation.Enumeration.DEFAULT;
 
 /**
  * An annotation containing values of all supported types.

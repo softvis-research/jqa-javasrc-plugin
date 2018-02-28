@@ -195,14 +195,16 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         annotationTypeDescriptor.setFullQualifiedName(resolvedAnnotationDeclaration.getQualifiedName());
         annotationTypeDescriptor.setName(resolvedAnnotationDeclaration.getName().toString());
 
+        // visibility and access modifiers (public, abstract)
+        annotationTypeDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(annotationDeclaration.getModifiers()).getValue());
+        annotationTypeDescriptor.setAbstract(annotationDeclaration.isAbstract());
+
         // annotation members
         for (BodyDeclaration<?> member : annotationDeclaration.getMembers()) {
             if (member.isAnnotationMemberDeclaration()) {
                 member.accept(new AnnotationVisitor(typeResolver), annotationTypeDescriptor);
             }
         }
-
-        // TODO annotations, fields, methods, visibility and access modifiers?
 
         super.visit(annotationDeclaration, javaSourceFileDescriptor);
     }
