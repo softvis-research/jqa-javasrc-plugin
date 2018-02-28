@@ -20,7 +20,6 @@ import org.junit.Test;
  * 
  */
 public class EnumerationIT extends AbstractPluginIT {
-    // TODO test constructor
 
     @Test
     public void testEnumerationType() throws NoSuchFieldException {
