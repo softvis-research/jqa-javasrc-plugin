@@ -80,6 +80,8 @@ public class TypeResolver {
             requiredTypes.remove(fqn);
         } else {
             typeDescriptor = scannerContext.getStore().addDescriptorType(resolvedTypeDescriptor, type);
+            typeDescriptor.setFullQualifiedName(fqn);
+            typeDescriptor.setName(fqn.substring(fqn.lastIndexOf(".") + 1));
         }
         containedTypes.put(fqn, typeDescriptor);
         return typeDescriptor;
@@ -120,6 +122,8 @@ public class TypeResolver {
             FileResolver fileResolver = scannerContext.peek(FileResolver.class);
             JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName, JavaSourceFileDescriptor.class, scannerContext);
             TypeDescriptor typeDescriptor = sourceFileDescriptor.resolveType(fqn);
+            typeDescriptor.setFullQualifiedName(fqn);
+            typeDescriptor.setName(fqn.substring(fqn.lastIndexOf(".") + 1));
             requiredTypes.put(fqn, typeDescriptor);
             return typeDescriptor;
         }

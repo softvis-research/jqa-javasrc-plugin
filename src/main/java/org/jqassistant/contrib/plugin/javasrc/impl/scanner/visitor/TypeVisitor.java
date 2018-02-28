@@ -52,8 +52,6 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
             ResolvedInterfaceDeclaration resolvedInterfaceDeclaration = classOrInterfaceDeclaration.resolve().asInterface();
             InterfaceTypeDescriptor interfaceTypeDescriptor = typeResolver.createType(resolvedInterfaceDeclaration.getQualifiedName(), javaSourceFileDescriptor,
                     InterfaceTypeDescriptor.class);
-            interfaceTypeDescriptor.setFullQualifiedName(resolvedInterfaceDeclaration.getQualifiedName());
-            interfaceTypeDescriptor.setName(classOrInterfaceDeclaration.getNameAsString());
 
             // visibility and access modifiers
             interfaceTypeDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(classOrInterfaceDeclaration.getModifiers()).getValue());
@@ -96,8 +94,6 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
             ResolvedClassDeclaration resolvedClassDeclaration = classOrInterfaceDeclaration.resolve().asClass();
             ClassTypeDescriptor classTypeDescriptor = typeResolver.createType(resolvedClassDeclaration.getQualifiedName(), javaSourceFileDescriptor,
                     ClassTypeDescriptor.class);
-            classTypeDescriptor.setFullQualifiedName(resolvedClassDeclaration.getQualifiedName());
-            classTypeDescriptor.setName(classOrInterfaceDeclaration.getNameAsString());
 
             // visibility and access modifiers
             classTypeDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(classOrInterfaceDeclaration.getModifiers()).getValue());
@@ -152,8 +148,6 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         ResolvedEnumDeclaration resolvedEnumDeclaration = enumDeclaration.resolve();
         EnumTypeDescriptor enumTypeDescriptor = typeResolver.createType(resolvedEnumDeclaration.getQualifiedName(), javaSourceFileDescriptor,
                 EnumTypeDescriptor.class);
-        enumTypeDescriptor.setFullQualifiedName(resolvedEnumDeclaration.getQualifiedName());
-        enumTypeDescriptor.setName(resolvedEnumDeclaration.getName().toString());
 
         // visibility and access modifiers (public)
         enumTypeDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(enumDeclaration.getModifiers()).getValue());
@@ -189,8 +183,6 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 
         AnnotationTypeDescriptor annotationTypeDescriptor = typeResolver.createType(resolvedAnnotationDeclaration.getQualifiedName(), javaSourceFileDescriptor,
                 AnnotationTypeDescriptor.class);
-        annotationTypeDescriptor.setFullQualifiedName(resolvedAnnotationDeclaration.getQualifiedName());
-        annotationTypeDescriptor.setName(resolvedAnnotationDeclaration.getName().toString());
 
         // visibility and access modifiers (public, abstract)
         annotationTypeDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(annotationDeclaration.getModifiers()).getValue());
