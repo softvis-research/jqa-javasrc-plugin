@@ -71,7 +71,6 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
         ResolvedEnumConstantDeclaration resolvedEnumConstantDeclaration = enumConstantDeclaration.resolve();
         FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedEnumConstantDeclaration), typeDescriptor);
 
-        // TODO remove?
         // annotations
         for (AnnotationExpr annotation : enumConstantDeclaration.getAnnotations()) {
             annotation.accept(new AnnotationVisitor(typeResolver), fieldDescriptor);
