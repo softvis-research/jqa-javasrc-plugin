@@ -26,7 +26,6 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
  *
  */
 public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
-    // TODO fix field access
     private TypeResolver typeResolver;
 
     public BodyVisitor(TypeResolver typeResolver) {
