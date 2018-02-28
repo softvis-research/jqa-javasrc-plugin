@@ -159,7 +159,6 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         enumTypeDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(enumDeclaration.getModifiers()).getValue());
 
         // fields
-        // TODO remove?
         for (FieldDeclaration field : enumDeclaration.getFields()) {
             field.accept(new FieldVisitor(typeResolver), enumTypeDescriptor);
         }
