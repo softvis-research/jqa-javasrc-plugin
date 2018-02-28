@@ -65,6 +65,10 @@ public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
         // name must be overwritten here as it is not in the signature
         methodDescriptor.setName(annotationMemberDeclaration.getNameAsString());
 
+        // visibility and access modifiers (public, abstract)
+        methodDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(annotationMemberDeclaration.getModifiers()).getValue());
+        methodDescriptor.setAbstract(annotationMemberDeclaration.isAbstract());
+
         // default value
         Optional<Expression> value = annotationMemberDeclaration.getDefaultValue();
         if (value.isPresent()) {
