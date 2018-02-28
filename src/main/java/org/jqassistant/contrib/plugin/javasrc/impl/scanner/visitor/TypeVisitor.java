@@ -14,8 +14,6 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.github.javaparser.resolution.declarations.ResolvedClassDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedInterfaceDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
@@ -54,13 +52,13 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         if (classOrInterfaceDeclaration.isInterface()) {
             // interface
             // fqn, name
-            ResolvedInterfaceDeclaration resolvedInterfaceDeclaration = classOrInterfaceDeclaration.resolve().asInterface();
-            typeDescriptor = typeResolver.createType(resolvedInterfaceDeclaration.getQualifiedName(), javaSourceFileDescriptor, InterfaceTypeDescriptor.class);
+            typeDescriptor = typeResolver.createType(classOrInterfaceDeclaration.resolve().getQualifiedName(), javaSourceFileDescriptor,
+                    InterfaceTypeDescriptor.class);
         } else {
             // class
             // fqn, name
-            ResolvedClassDeclaration resolvedClassDeclaration = classOrInterfaceDeclaration.resolve().asClass();
-            typeDescriptor = typeResolver.createType(resolvedClassDeclaration.getQualifiedName(), javaSourceFileDescriptor, ClassTypeDescriptor.class);
+            typeDescriptor = typeResolver.createType(classOrInterfaceDeclaration.resolve().getQualifiedName(), javaSourceFileDescriptor,
+                    ClassTypeDescriptor.class);
 
             // constructors
             for (ConstructorDeclaration constructors : classOrInterfaceDeclaration.getConstructors()) {
