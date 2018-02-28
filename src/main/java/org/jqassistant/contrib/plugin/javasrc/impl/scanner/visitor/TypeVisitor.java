@@ -119,7 +119,6 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
             }
 
             // inner class
-            // TODO is it a dependency?
             Set<ResolvedReferenceTypeDeclaration> resolvedInnerClasses = resolvedClassDeclaration.internalTypes();
             for (ResolvedReferenceTypeDeclaration resolvedInnerClass : resolvedInnerClasses) {
                 classTypeDescriptor.getDeclaredInnerClasses().add(typeResolver.resolveDependency(resolvedInnerClass.getQualifiedName(), classTypeDescriptor));
