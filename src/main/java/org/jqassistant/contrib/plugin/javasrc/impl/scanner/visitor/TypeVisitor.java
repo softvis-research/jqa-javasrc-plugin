@@ -1,8 +1,8 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
-import java.util.List;
-import java.util.Set;
+import java.util.EnumSet;
 
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.body.AnnotationDeclaration;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -12,17 +12,19 @@ import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.github.javaparser.resolution.declarations.ResolvedAnnotationDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedClassDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedEnumDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedInterfaceDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.utils.Pair;
+import org.jqassistant.contrib.plugin.javasrc.api.model.AbstractDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.AccessModifierDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationTypeDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.ClassFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.EnumTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.InterfaceTypeDescriptor;
@@ -33,13 +35,14 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
 
 /**
  * This visitor handles parsed types, i.e. interfaces, classes, enums, and
- * (annotations), and creates corresponding descriptors.
+ * annotations, and creates corresponding descriptors.
  * 
  * @author Richard Müller
  *
  */
 public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
     private TypeResolver typeResolver;
+    private TypeDescriptor typeDescriptor;
 
     public TypeVisitor(TypeResolver typeResolver) {
         this.typeResolver = typeResolver;
@@ -47,135 +50,84 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 
     @Override
     public void visit(ClassOrInterfaceDeclaration classOrInterfaceDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
-        super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
 
         if (classOrInterfaceDeclaration.isInterface()) {
             // interface
             // fqn, name
             ResolvedInterfaceDeclaration resolvedInterfaceDeclaration = classOrInterfaceDeclaration.resolve().asInterface();
-            InterfaceTypeDescriptor interfaceTypeDescriptor = typeResolver.createType(resolvedInterfaceDeclaration.getQualifiedName(), javaSourceFileDescriptor,
-                    InterfaceTypeDescriptor.class);
-
-            // visibility and access modifiers
-            interfaceTypeDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(classOrInterfaceDeclaration.getModifiers()).getValue());
-            interfaceTypeDescriptor.setAbstract(classOrInterfaceDeclaration.isAbstract());
-            interfaceTypeDescriptor.setFinal(classOrInterfaceDeclaration.isFinal());
-            interfaceTypeDescriptor.setStatic(classOrInterfaceDeclaration.isStatic());
-
-            // extends, implements
-            List<ResolvedReferenceType> resolvedSuperTypes = resolvedInterfaceDeclaration.getAncestors();
-            for (ResolvedReferenceType resolvedSuperType : resolvedSuperTypes) {
-                interfaceTypeDescriptor
-                        .setSuperClass(typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedSuperType), interfaceTypeDescriptor));
-                addTypeParameterDependency(resolvedSuperType, interfaceTypeDescriptor);
-            }
-
-            // inner class
-            Set<ResolvedReferenceTypeDeclaration> resolvedInnerClasses = resolvedInterfaceDeclaration.internalTypes();
-            for (ResolvedReferenceTypeDeclaration resolvedInnerClass : resolvedInnerClasses) {
-                interfaceTypeDescriptor.getDeclaredInnerClasses()
-                        .add(typeResolver.resolveDependency(resolvedInnerClass.getQualifiedName(), interfaceTypeDescriptor));
-            }
-
-            // fields
-            for (FieldDeclaration field : classOrInterfaceDeclaration.getFields()) {
-                field.accept(new FieldVisitor(typeResolver), interfaceTypeDescriptor);
-            }
-
-            // methods
-            for (MethodDeclaration method : classOrInterfaceDeclaration.getMethods()) {
-                method.accept(new MethodVisitor(typeResolver), interfaceTypeDescriptor);
-            }
-
-            // annotations
-            for (AnnotationExpr annotation : classOrInterfaceDeclaration.getAnnotations()) {
-                annotation.accept(new AnnotationVisitor(typeResolver), interfaceTypeDescriptor);
-            }
-
+            typeDescriptor = typeResolver.createType(resolvedInterfaceDeclaration.getQualifiedName(), javaSourceFileDescriptor, InterfaceTypeDescriptor.class);
         } else {
             // class
             // fqn, name
             ResolvedClassDeclaration resolvedClassDeclaration = classOrInterfaceDeclaration.resolve().asClass();
-            ClassTypeDescriptor classTypeDescriptor = typeResolver.createType(resolvedClassDeclaration.getQualifiedName(), javaSourceFileDescriptor,
-                    ClassTypeDescriptor.class);
-
-            // visibility and access modifiers
-            classTypeDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(classOrInterfaceDeclaration.getModifiers()).getValue());
-            classTypeDescriptor.setAbstract(classOrInterfaceDeclaration.isAbstract());
-            classTypeDescriptor.setFinal(classOrInterfaceDeclaration.isFinal());
-            classTypeDescriptor.setStatic(classOrInterfaceDeclaration.isStatic());
-
-            // extends
-            ResolvedReferenceType resolvedSuperType = resolvedClassDeclaration.getSuperClass();
-            TypeDescriptor superClassTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedSuperType),
-                    classTypeDescriptor);
-            classTypeDescriptor.setSuperClass(superClassTypeDescriptor);
-            addTypeParameterDependency(resolvedSuperType, classTypeDescriptor);
-
-            // implements
-            List<ResolvedReferenceType> resolvedInterfaces = resolvedClassDeclaration.getInterfaces();
-            for (ResolvedReferenceType resolvedInterface : resolvedInterfaces) {
-                classTypeDescriptor.getInterfaces()
-                        .add(typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedInterface), classTypeDescriptor));
-                addTypeParameterDependency(resolvedSuperType, classTypeDescriptor);
-            }
-
-            // inner class
-            Set<ResolvedReferenceTypeDeclaration> resolvedInnerClasses = resolvedClassDeclaration.internalTypes();
-            for (ResolvedReferenceTypeDeclaration resolvedInnerClass : resolvedInnerClasses) {
-                classTypeDescriptor.getDeclaredInnerClasses().add(typeResolver.resolveDependency(resolvedInnerClass.getQualifiedName(), classTypeDescriptor));
-            }
-
-            // fields
-            for (FieldDeclaration field : classOrInterfaceDeclaration.getFields()) {
-                field.accept(new FieldVisitor(typeResolver), classTypeDescriptor);
-            }
-
-            // methods
-            for (MethodDeclaration method : classOrInterfaceDeclaration.getMethods()) {
-                method.accept(new MethodVisitor(typeResolver), classTypeDescriptor);
-            }
+            typeDescriptor = typeResolver.createType(resolvedClassDeclaration.getQualifiedName(), javaSourceFileDescriptor, ClassTypeDescriptor.class);
 
             // constructors
-            for (ConstructorDeclaration constructor : classOrInterfaceDeclaration.getConstructors()) {
-                constructor.accept(new MethodVisitor(typeResolver), classTypeDescriptor);
-            }
-
-            // annotations
-            for (AnnotationExpr annotation : classOrInterfaceDeclaration.getAnnotations()) {
-                annotation.accept(new AnnotationVisitor(typeResolver), classTypeDescriptor);
+            for (ConstructorDeclaration constructors : classOrInterfaceDeclaration.getConstructors()) {
+                constructors.accept(new MethodVisitor(typeResolver), typeDescriptor);
             }
         }
+
+        // inner classes
+        if (classOrInterfaceDeclaration.isInnerClass()) {
+            setInnerClasses(classOrInterfaceDeclaration);
+        }
+
+        // visibility and access modifiers
+        setVisibility(classOrInterfaceDeclaration.getModifiers());
+        setAccessModifier(classOrInterfaceDeclaration);
+
+        // extends
+        // TODO an interface might extend from multiple interfaces
+        setSuperType(classOrInterfaceDeclaration);
+
+        // implements
+        setImplementedInterfaces(classOrInterfaceDeclaration);
+
+        // fields
+        for (FieldDeclaration field : classOrInterfaceDeclaration.getFields()) {
+            field.accept(new FieldVisitor(typeResolver), typeDescriptor);
+        }
+
+        // methods
+        for (MethodDeclaration method : classOrInterfaceDeclaration.getMethods()) {
+            method.accept(new MethodVisitor(typeResolver), typeDescriptor);
+        }
+
+        // annotations
+        for (AnnotationExpr annotation : classOrInterfaceDeclaration.getAnnotations()) {
+            annotation.accept(new AnnotationVisitor(typeResolver), (AnnotatedDescriptor) typeDescriptor);
+        }
+
+        super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
     }
 
     @Override
     public void visit(EnumDeclaration enumDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
         // fqn, name
-        ResolvedEnumDeclaration resolvedEnumDeclaration = enumDeclaration.resolve();
-        EnumTypeDescriptor enumTypeDescriptor = typeResolver.createType(resolvedEnumDeclaration.getQualifiedName(), javaSourceFileDescriptor,
-                EnumTypeDescriptor.class);
+        typeDescriptor = typeResolver.createType(enumDeclaration.resolve().getQualifiedName(), javaSourceFileDescriptor, EnumTypeDescriptor.class);
 
         // visibility and access modifiers (public)
-        enumTypeDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(enumDeclaration.getModifiers()).getValue());
+        setVisibility(enumDeclaration.getModifiers());
 
         // fields
         for (FieldDeclaration field : enumDeclaration.getFields()) {
-            field.accept(new FieldVisitor(typeResolver), enumTypeDescriptor);
+            field.accept(new FieldVisitor(typeResolver), typeDescriptor);
         }
 
         // enum constants
         for (EnumConstantDeclaration entry : enumDeclaration.getEntries()) {
-            entry.accept(new FieldVisitor(typeResolver), enumTypeDescriptor);
+            entry.accept(new FieldVisitor(typeResolver), typeDescriptor);
         }
 
         // methods
         for (MethodDeclaration method : enumDeclaration.getMethods()) {
-            method.accept(new MethodVisitor(typeResolver), enumTypeDescriptor);
+            method.accept(new MethodVisitor(typeResolver), typeDescriptor);
         }
 
         // annotations
         for (AnnotationExpr annotation : enumDeclaration.getAnnotations()) {
-            annotation.accept(new AnnotationVisitor(typeResolver), enumTypeDescriptor);
+            annotation.accept(new AnnotationVisitor(typeResolver), (AnnotatedDescriptor) typeDescriptor);
         }
 
         super.visit(enumDeclaration, javaSourceFileDescriptor);
@@ -185,26 +137,57 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
     public void visit(AnnotationDeclaration annotationDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
 
         // fqn, name
-        ResolvedAnnotationDeclaration resolvedAnnotationDeclaration = annotationDeclaration.resolve();
-
-        AnnotationTypeDescriptor annotationTypeDescriptor = typeResolver.createType(resolvedAnnotationDeclaration.getQualifiedName(), javaSourceFileDescriptor,
-                AnnotationTypeDescriptor.class);
+        typeDescriptor = typeResolver.createType(annotationDeclaration.resolve().getQualifiedName(), javaSourceFileDescriptor, AnnotationTypeDescriptor.class);
 
         // visibility and access modifiers (public, abstract)
-        annotationTypeDescriptor.setVisibility(TypeResolverUtils.getAccessSpecifier(annotationDeclaration.getModifiers()).getValue());
-        annotationTypeDescriptor.setAbstract(annotationDeclaration.isAbstract());
+        setVisibility(annotationDeclaration.getModifiers());
+        ((AbstractDescriptor) typeDescriptor).setAbstract(annotationDeclaration.isAbstract());
 
         // annotation members
         for (BodyDeclaration<?> member : annotationDeclaration.getMembers()) {
             if (member.isAnnotationMemberDeclaration()) {
-                member.accept(new AnnotationVisitor(typeResolver), annotationTypeDescriptor);
+                member.accept(new AnnotationVisitor(typeResolver), (AnnotatedDescriptor) typeDescriptor);
             }
         }
 
         super.visit(annotationDeclaration, javaSourceFileDescriptor);
     }
 
-    private void addTypeParameterDependency(ResolvedReferenceType type, TypeDescriptor typeDescriptor) {
+    private void setInnerClasses(ClassOrInterfaceDeclaration classOrInterfaceDeclaration) {
+        classOrInterfaceDeclaration.getParentNode().ifPresent(parentClass -> {
+            TypeDescriptor parentType = typeResolver.resolveDependency(((ClassOrInterfaceDeclaration) parentClass).resolve().getQualifiedName(),
+                    typeDescriptor);
+            parentType.getDeclaredInnerClasses().add(typeDescriptor);
+        });
+    }
+
+    private void setAccessModifier(ClassOrInterfaceDeclaration classOrInterfaceDeclaration) {
+        ((AbstractDescriptor) typeDescriptor).setAbstract(classOrInterfaceDeclaration.isAbstract());
+        ((AccessModifierDescriptor) typeDescriptor).setFinal(classOrInterfaceDeclaration.isFinal());
+        ((AccessModifierDescriptor) typeDescriptor).setStatic(classOrInterfaceDeclaration.isStatic());
+    }
+
+    private void setVisibility(EnumSet<Modifier> modifiers) {
+        ((AccessModifierDescriptor) typeDescriptor).setVisibility(TypeResolverUtils.getAccessSpecifier(modifiers).getValue());
+    }
+
+    private void setSuperType(ClassOrInterfaceDeclaration classOrInterfaceDeclaration) {
+        for (ClassOrInterfaceType superType : classOrInterfaceDeclaration.getExtendedTypes()) {
+            ResolvedReferenceType resolvedSuperType = superType.resolve();
+            ((ClassFileDescriptor) typeDescriptor).setSuperClass(typeResolver.resolveDependency(resolvedSuperType.getQualifiedName(), typeDescriptor));
+            setTypeParameterDependency(resolvedSuperType);
+        }
+    }
+
+    private void setImplementedInterfaces(ClassOrInterfaceDeclaration classOrInterfaceDeclaration) {
+        for (ClassOrInterfaceType superType : classOrInterfaceDeclaration.getImplementedTypes()) {
+            ResolvedReferenceType resolvedSuperType = superType.resolve();
+            ((ClassFileDescriptor) typeDescriptor).getInterfaces().add(typeResolver.resolveDependency(resolvedSuperType.getQualifiedName(), typeDescriptor));
+            setTypeParameterDependency(resolvedSuperType);
+        }
+    }
+
+    private void setTypeParameterDependency(ResolvedReferenceType type) {
         for (Pair<ResolvedTypeParameterDeclaration, ResolvedType> typeParamter : type.getTypeParametersMap()) {
             typeResolver.resolveDependency(typeParamter.b.asReferenceType().getQualifiedName(), typeDescriptor);
         }

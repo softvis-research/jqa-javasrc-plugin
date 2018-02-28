@@ -29,10 +29,10 @@ public class DependencyIT extends AbstractPluginIT {
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
         assertThat(query("MATCH (dependent:Type)-[:DEPENDS_ON]->(dependency:Type) WHERE dependent.name = 'Dependent' RETURN dependency").getColumn("dependency")
-                .size(), equalTo(3));
+                .size(), equalTo(2));
         assertThat(
                 query("MATCH (dependent:Type)-[:DEPENDS_ON]->(dependency:Type) WHERE dependent.name = 'Dependent' RETURN dependency").getColumn("dependency"),
-                hasItems(typeDescriptor(Dependency.class), typeDescriptor(Object.class), typeDescriptor(void.class)));
+                hasItems(typeDescriptor(Dependency.class), typeDescriptor(void.class)));
         TestResult testResult = query("MATCH (dependent:Type)-[:DEPENDS_ON]->(dependency:Type) WHERE dependent.name = 'Dependent' RETURN dependency.fqn");
         ;
         // for (Object object : testResult.getColumn("dependency.fqn")) {
