@@ -2,65 +2,83 @@ package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
 import com.buschmais.jqassistant.plugin.common.api.model.ArrayValueDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
-import com.github.javaparser.ast.expr.AnnotationExpr;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
+import com.github.javaparser.ast.nodeTypes.NodeWithModifiers;
+import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithAbstractModifier;
+import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithFinalModifier;
+import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithStaticModifier;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
+import org.jqassistant.contrib.plugin.javasrc.api.model.AbstractDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.AccessModifierDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.EnumValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolver;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
 
 /**
- * This visitor handles parsed annotations and creates corresponding
- * descriptors.
+ * This visitor handles annotation members and creates a corresponding
+ * descriptor.
  * 
  * @author Richard Müller
  *
  */
-public class AnnotationVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
+public class AnnotationMemberVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
     private TypeResolver typeResolver;
-    private AnnotationValueDescriptor annotationValueDescriptor;
+    private MethodDescriptor methodDescriptor;
 
-    public AnnotationVisitor(TypeResolver typeResolver) {
+    public AnnotationMemberVisitor(TypeResolver typeResolver) {
         this.typeResolver = typeResolver;
     }
 
     @Override
-    public void visit(SingleMemberAnnotationExpr singleMemberAnnotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        setAnnotation(singleMemberAnnotationExpr, annotatedDescriptor);
-        setAnnotationValue(singleMemberAnnotationExpr, annotatedDescriptor);
+    public void visit(AnnotationMemberDeclaration annotationMemberDeclaration, AnnotatedDescriptor annotatedDescriptor) {
+        // annotation member
+        setAnnotationMember(annotationMemberDeclaration, annotatedDescriptor);
+        setVisibility(annotationMemberDeclaration);
+        setAccessModifier(annotationMemberDeclaration);
+        setAnnotationMemberDefaultValue(annotationMemberDeclaration, annotatedDescriptor);
     }
 
-    @Override
-    public void visit(NormalAnnotationExpr normalAnnotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        setAnnotation(normalAnnotationExpr, annotatedDescriptor);
-        setAnnotationValue(normalAnnotationExpr, annotatedDescriptor);
-    }
-
-    private void setAnnotation(AnnotationExpr annotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        annotationValueDescriptor = typeResolver.addAnnotationValueDescriptor(annotationExpr, annotatedDescriptor);
+    private void setAnnotationMemberDefaultValue(AnnotationMemberDeclaration annotationMemberDeclaration, AnnotatedDescriptor annotatedDescriptor) {
+        annotationMemberDeclaration.getDefaultValue().ifPresent(value -> {
+            methodDescriptor.setHasDefault(createValueDescriptor(TypeResolverUtils.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value, annotatedDescriptor));
+        });
 
     }
 
-    private void setAnnotationValue(AnnotationExpr annotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        if (annotationExpr instanceof SingleMemberAnnotationExpr) {
-            annotationValueDescriptor.getValue().add(createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME,
-                    ((SingleMemberAnnotationExpr) annotationExpr).getMemberValue(), annotatedDescriptor));
-        } else if (annotationExpr instanceof NormalAnnotationExpr) {
-            for (MemberValuePair memberValuePair : ((NormalAnnotationExpr) annotationExpr).getPairs()) {
-                annotationValueDescriptor.getValue()
-                        .add(createValueDescriptor(memberValuePair.getNameAsString(), memberValuePair.getValue(), annotatedDescriptor));
-            }
+    private void setAnnotationMember(AnnotationMemberDeclaration annotationMemberDeclaration, AnnotatedDescriptor parent) {
+        methodDescriptor = typeResolver.getMethodDescriptor(TypeResolverUtils.getAnnotationMemberSignature(annotationMemberDeclaration),
+                (TypeDescriptor) parent);
+        // name must be overwritten here as it is not in the signature
+        methodDescriptor.setName(annotationMemberDeclaration.getNameAsString());
+    }
+
+    private void setVisibility(Node nodeWithModifiers) {
+        ((AccessModifierDescriptor) methodDescriptor)
+                .setVisibility(TypeResolverUtils.getAccessSpecifier(((NodeWithModifiers<?>) nodeWithModifiers).getModifiers()).getValue());
+    }
+
+    private void setAccessModifier(Node nodeWithModifiers) {
+        // TODO further modifiers
+        if (nodeWithModifiers instanceof NodeWithAbstractModifier) {
+            ((AbstractDescriptor) methodDescriptor).setAbstract(((NodeWithAbstractModifier<?>) nodeWithModifiers).isAbstract());
+        }
+        if (nodeWithModifiers instanceof NodeWithFinalModifier) {
+            ((AccessModifierDescriptor) methodDescriptor).setFinal(((NodeWithFinalModifier<?>) nodeWithModifiers).isFinal());
+        }
+        if (nodeWithModifiers instanceof NodeWithStaticModifier) {
+            ((AccessModifierDescriptor) methodDescriptor).setStatic(((NodeWithStaticModifier<?>) nodeWithModifiers).isStatic());
         }
     }
 

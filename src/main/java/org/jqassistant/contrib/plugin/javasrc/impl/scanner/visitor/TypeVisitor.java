@@ -187,7 +187,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
     private void setAnnotationMembers(AnnotationDeclaration annotationDeclaration) {
         for (BodyDeclaration<?> member : annotationDeclaration.getMembers()) {
             if (member.isAnnotationMemberDeclaration()) {
-                member.accept(new AnnotationVisitor(typeResolver), (AnnotatedDescriptor) typeDescriptor);
+                member.accept(new AnnotationMemberVisitor(typeResolver), (AnnotatedDescriptor) typeDescriptor);
             }
         }
     }
