@@ -97,7 +97,7 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
 
     private void setVisibility(Node nodeWithModifiers) {
         ((AccessModifierDescriptor) methodDescriptor)
-                .setVisibility(TypeResolverUtils.getAccessSpecifier(((NodeWithModifiers) nodeWithModifiers).getModifiers()).getValue());
+                .setVisibility(TypeResolverUtils.getAccessSpecifier(((NodeWithModifiers<?>) nodeWithModifiers).getModifiers()).getValue());
     }
 
     private void setAccessModifier(Node nodeWithModifiers) {

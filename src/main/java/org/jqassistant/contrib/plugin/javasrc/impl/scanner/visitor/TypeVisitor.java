@@ -117,7 +117,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
 
     private void setVisibility(Node nodeWithModifiers) {
         ((AccessModifierDescriptor) typeDescriptor)
-                .setVisibility(TypeResolverUtils.getAccessSpecifier(((NodeWithModifiers) nodeWithModifiers).getModifiers()).getValue());
+                .setVisibility(TypeResolverUtils.getAccessSpecifier(((NodeWithModifiers<?>) nodeWithModifiers).getModifiers()).getValue());
     }
 
     private void setAccessModifier(Node nodeWithModifiers) {
@@ -167,19 +167,19 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
     }
 
     private void setFields(Node nodeWithFields) {
-        for (FieldDeclaration field : ((NodeWithMembers<FieldDeclaration>) nodeWithFields).getFields()) {
+        for (FieldDeclaration field : ((NodeWithMembers<?>) nodeWithFields).getFields()) {
             field.accept(new FieldVisitor(typeResolver), typeDescriptor);
         }
     }
 
-    private void setConstructors(Node classOrInterfaceDeclaration) {
-        for (ConstructorDeclaration constructors : ((NodeWithConstructors<ConstructorDeclaration>) classOrInterfaceDeclaration).getConstructors()) {
+    private void setConstructors(Node node) {
+        for (ConstructorDeclaration constructors : ((NodeWithConstructors<?>) node).getConstructors()) {
             constructors.accept(new MethodVisitor(typeResolver), typeDescriptor);
         }
     }
 
     private void setMethds(Node nodeWithMembers) {
-        for (MethodDeclaration method : ((NodeWithMembers<MethodDeclaration>) nodeWithMembers).getMethods()) {
+        for (MethodDeclaration method : ((NodeWithMembers<?>) nodeWithMembers).getMethods()) {
             method.accept(new MethodVisitor(typeResolver), typeDescriptor);
         }
     }
@@ -199,7 +199,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
     }
 
     private void setAnnotations(Node nodeWithAnnotations) {
-        for (AnnotationExpr annotation : ((NodeWithAnnotations<AnnotationExpr>) nodeWithAnnotations).getAnnotations()) {
+        for (AnnotationExpr annotation : ((NodeWithAnnotations<?>) nodeWithAnnotations).getAnnotations()) {
             annotation.accept(new AnnotationVisitor(typeResolver), (AnnotatedDescriptor) typeDescriptor);
         }
     }
