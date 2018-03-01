@@ -43,7 +43,6 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
  *
  */
 public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
-
     private TypeResolver typeResolver;
     private MethodDescriptor methodDescriptor;
 
