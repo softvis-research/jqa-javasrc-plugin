@@ -9,7 +9,6 @@ import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
@@ -62,7 +61,8 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
         ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = methodCallExpr.resolveInvokedMethod();
-        TypeDescriptor invokedMethodParent = typeResolver.resolveType(resolvedInvokedMethodDeclaration.declaringType().getQualifiedName());
+        TypeDescriptor invokedMethodParent = typeResolver.resolveDependency(resolvedInvokedMethodDeclaration.declaringType().getQualifiedName(),
+                methodDescriptor.getDeclaringType());
         MethodDescriptor invokedMethodDescriptor = typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature(resolvedInvokedMethodDeclaration),
                 invokedMethodParent);
         methodCallExpr.getBegin().ifPresent((position) -> typeResolver.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor));
@@ -72,9 +72,7 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
         Expression target = assignExpr.getTarget();
         if (target.isFieldAccessExpr()) {
             // this.FIELD = VALUE;
-            ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solve(target.asFieldAccessExpr()).getCorrespondingDeclaration();
-            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration),
-                    methodDescriptor.getDeclaringType());
+            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(target.asFieldAccessExpr(), methodDescriptor.getDeclaringType());
             assignExpr.getBegin().ifPresent((position) -> typeResolver.addWrites(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
         } else if (target.isNameExpr()) {
             ResolvedValueDeclaration resolvedValueDeclaration = target.asNameExpr().resolve();
@@ -90,9 +88,7 @@ public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
     private void setReads(Expression expression, MethodDescriptor methodDescriptor) {
         if (expression instanceof FieldAccessExpr) {
             // this.FIELD
-            ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solve((FieldAccessExpr) expression).getCorrespondingDeclaration();
-            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration),
-                    methodDescriptor.getDeclaringType());
+            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor((FieldAccessExpr) expression, methodDescriptor.getDeclaringType());
             expression.getBegin().ifPresent((position) -> typeResolver.addReads(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
         } else if (expression instanceof NameExpr) {
             ResolvedValueDeclaration resolvedValueDeclaration = ((NameExpr) expression).resolve();

@@ -35,7 +35,7 @@ public class AnnotationVisitor extends AbstractJavaSourceVisitor<AnnotatedDescri
     }
 
     private AnnotationValueDescriptor createAnnotation(AnnotationExpr annotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        return typeResolver.addAnnotationValueDescriptor(annotationExpr, annotatedDescriptor);
+        return typeResolver.getAnnotationValueDescriptor(annotationExpr, annotatedDescriptor);
 
     }
 

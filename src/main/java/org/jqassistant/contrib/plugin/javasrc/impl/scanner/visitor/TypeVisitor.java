@@ -45,6 +45,9 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
 
     @Override
     public void visit(ClassOrInterfaceDeclaration classOrInterfaceDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
+        // TODO call super first because of inner classes?
+        super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
+
         // class or interface
         TypeDescriptor typeDescriptor = createType(classOrInterfaceDeclaration, javaSourceFileDescriptor);
         setConstructors(classOrInterfaceDeclaration, typeDescriptor);
@@ -56,8 +59,6 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
         setFields(classOrInterfaceDeclaration, typeDescriptor);
         setMethods(classOrInterfaceDeclaration, typeDescriptor);
         setAnnotations(classOrInterfaceDeclaration, (AnnotatedDescriptor) typeDescriptor);
-
-        super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
     }
 
     @Override
@@ -119,8 +120,7 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
     private void setInnerClassesForParent(ClassOrInterfaceDeclaration classOrInterfaceDeclaration, TypeDescriptor typeDescriptor) {
         if (classOrInterfaceDeclaration.isInnerClass()) {
             classOrInterfaceDeclaration.getParentNode().ifPresent(parentClass -> {
-                TypeDescriptor parentType = typeResolver.resolveDependency(((ClassOrInterfaceDeclaration) parentClass).resolve().getQualifiedName(),
-                        typeDescriptor);
+                TypeDescriptor parentType = typeResolver.resolveDependency(((ClassOrInterfaceDeclaration) parentClass).resolve().getQualifiedName(), null);
                 parentType.getDeclaredInnerClasses().add(typeDescriptor);
             });
         }

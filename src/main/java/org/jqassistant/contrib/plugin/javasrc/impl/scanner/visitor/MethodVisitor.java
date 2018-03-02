@@ -109,7 +109,7 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
             ResolvedParameterDeclaration resolvedParameterDeclaration = parameters.get(i).resolve();
             TypeDescriptor parameterTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()),
                     methodDescriptor.getDeclaringType());
-            ParameterDescriptor parameterDescriptor = typeResolver.addParameterDescriptor(methodDescriptor, i);
+            ParameterDescriptor parameterDescriptor = typeResolver.getParameterDescriptor(methodDescriptor, i);
             parameterDescriptor.setType(parameterTypeDescriptor);
 
             setAnnotations(parameters.get(i), parameterDescriptor);

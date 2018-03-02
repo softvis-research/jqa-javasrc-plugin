@@ -1,37 +1,25 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParserConfiguration;
-import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
-import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
-import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.core.resolution.Context;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFactory;
-import com.github.javaparser.symbolsolver.javaparsermodel.contexts.FieldAccessContext;
-import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
-import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionClassDeclaration;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
@@ -89,44 +77,27 @@ public class TypeResolver {
 
     public TypeDescriptor resolveDependency(String dependencyFQN, TypeDescriptor dependent) {
         TypeDescriptor dependency = resolveType(dependencyFQN);
-        if (dependencies.containsKey(dependent)) {
-            // dependent type exists
-            Map<TypeDescriptor, Integer> tmpDependencies = dependencies.get(dependent);
-            // dependency exists
-            if (tmpDependencies.containsKey(dependency)) {
-                Integer weight = tmpDependencies.get(dependency);
-                weight++;
-                tmpDependencies.put(dependency, weight);
+        if (dependent != null) {
+            if (dependencies.containsKey(dependent)) {
+                // dependent type exists
+                Map<TypeDescriptor, Integer> tmpDependencies = dependencies.get(dependent);
+                // dependency exists
+                if (tmpDependencies.containsKey(dependency)) {
+                    Integer weight = tmpDependencies.get(dependency);
+                    weight++;
+                    tmpDependencies.put(dependency, weight);
+                } else {
+                    // dependency does not exist
+                    tmpDependencies.put(dependency, 1);
+                }
             } else {
-                // dependency does not exist
+                // dependent type does not exist
+                Map<TypeDescriptor, Integer> tmpDependencies = new HashMap<>();
                 tmpDependencies.put(dependency, 1);
+                dependencies.put(dependent, tmpDependencies);
             }
-        } else {
-            // dependent type does not exist
-            Map<TypeDescriptor, Integer> tmpDependencies = new HashMap<>();
-            tmpDependencies.put(dependency, 1);
-            dependencies.put(dependent, tmpDependencies);
-
         }
         return dependency;
-    }
-
-    public TypeDescriptor resolveType(String fqn) {
-        if (containedTypes.containsKey(fqn)) {
-            return containedTypes.get(fqn);
-        } else if (requiredTypes.containsKey(fqn)) {
-            return requiredTypes.get(fqn);
-        } else {
-            // TODO handle inner classes
-            String fileName = "/" + fqn.replace('.', '/') + ".java";
-            FileResolver fileResolver = scannerContext.peek(FileResolver.class);
-            JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName, JavaSourceFileDescriptor.class, scannerContext);
-            TypeDescriptor typeDescriptor = sourceFileDescriptor.resolveType(fqn);
-            typeDescriptor.setFullQualifiedName(fqn);
-            typeDescriptor.setName(fqn.substring(fqn.lastIndexOf(".") + 1));
-            requiredTypes.put(fqn, typeDescriptor);
-            return typeDescriptor;
-        }
     }
 
     public MethodDescriptor getMethodDescriptor(String signature, TypeDescriptor parent) {
@@ -155,6 +126,22 @@ public class TypeResolver {
         return methodDescriptor;
     }
 
+    // TODO remove this method in next version of java symbol solver
+    public FieldDescriptor getFieldDescriptor(FieldAccessExpr fieldAccessExpr, TypeDescriptor parent) {
+
+        if (parent == null) {
+            ResolvedFieldDeclaration resolvedFieldDeclaration = Issue300.solve(fieldAccessExpr, JavaParserFacade.get(javaTypeSolver))
+                    .getCorrespondingDeclaration();
+            TypeDescriptor fieldType = resolveType(resolvedFieldDeclaration.getType().asReferenceType().getQualifiedName());
+            return getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration), fieldType);
+        } else {
+
+            return getFieldDescriptor(
+                    TypeResolverUtils.getFieldSignature(Issue300.solve(fieldAccessExpr, JavaParserFacade.get(javaTypeSolver)).getCorrespondingDeclaration()),
+                    parent);
+        }
+    }
+
     public FieldDescriptor getFieldDescriptor(String signature, TypeDescriptor parent) {
         FieldDescriptor fieldDescriptor = null;
         for (Iterator iterator = parent.getDeclaredFields().iterator(); iterator.hasNext();) {
@@ -176,7 +163,7 @@ public class TypeResolver {
         return fieldDescriptor;
     }
 
-    public ParameterDescriptor addParameterDescriptor(MethodDescriptor methodDescriptor, int index) {
+    public ParameterDescriptor getParameterDescriptor(MethodDescriptor methodDescriptor, int index) {
         ParameterDescriptor parameterDescriptor = scannerContext.getStore().create(ParameterDescriptor.class);
         parameterDescriptor.setIndex(index);
         methodDescriptor.getParameters().add(parameterDescriptor);
@@ -187,7 +174,7 @@ public class TypeResolver {
         return scannerContext.getStore().create(valueDescriptorType);
     }
 
-    public AnnotationValueDescriptor addAnnotationValueDescriptor(AnnotationExpr annotation, AnnotatedDescriptor annotatedDescriptor) {
+    public AnnotationValueDescriptor getAnnotationValueDescriptor(AnnotationExpr annotation, AnnotatedDescriptor annotatedDescriptor) {
         if (annotatedDescriptor != null) {
             AnnotationValueDescriptor annotationValueDescriptor = scannerContext.getStore().create(AnnotationValueDescriptor.class);
             annotationValueDescriptor.setType(resolveType(resolveAnnotation(annotation).getQualifiedName()));
@@ -219,7 +206,11 @@ public class TypeResolver {
 
     void storeDependencies() {
         for (Entry<TypeDescriptor, Map<TypeDescriptor, Integer>> dependentEntry : dependencies.entrySet()) {
+            // System.out.println("GET Dependent: " +
+            // dependentEntry.getKey().getFullQualifiedName());
             for (Map.Entry<TypeDescriptor, Integer> dependencyEntry : dependentEntry.getValue().entrySet()) {
+                // System.out.println("GET Dependency: " +
+                // dependencyEntry.getKey().getFullQualifiedName());
                 TypeDescriptor dependency = dependencyEntry.getKey();
                 final Integer weight = dependencyEntry.getValue();
                 TypeDescriptor dependent = dependentEntry.getKey();
@@ -227,64 +218,29 @@ public class TypeResolver {
                 dependsOnDescriptor.setWeight(weight);
             }
         }
-
         dependencies.clear();
+    }
 
+    private TypeDescriptor resolveType(String fqn) {
+        if (containedTypes.containsKey(fqn)) {
+            return containedTypes.get(fqn);
+        } else if (requiredTypes.containsKey(fqn)) {
+            return requiredTypes.get(fqn);
+        } else {
+            // TODO handle inner classes
+            String fileName = "/" + fqn.replace('.', '/') + ".java";
+            FileResolver fileResolver = scannerContext.peek(FileResolver.class);
+            JavaSourceFileDescriptor sourceFileDescriptor = fileResolver.require(fileName, JavaSourceFileDescriptor.class, scannerContext);
+            TypeDescriptor typeDescriptor = sourceFileDescriptor.resolveType(fqn);
+            typeDescriptor.setFullQualifiedName(fqn);
+            typeDescriptor.setName(fqn.substring(fqn.lastIndexOf(".") + 1));
+            requiredTypes.put(fqn, typeDescriptor);
+            return typeDescriptor;
+        }
     }
 
     private ResolvedTypeDeclaration resolveAnnotation(AnnotationExpr annotationExpr) {
         Context context = JavaParserFactory.getContext(annotationExpr, javaTypeSolver);
         return context.solveType(annotationExpr.getNameAsString(), javaTypeSolver).getCorrespondingDeclaration();
     }
-
-    public SymbolReference<ResolvedFieldDeclaration> solve(FieldAccessExpr fa) {
-        FieldAccessContext ctx = ((FieldAccessContext) JavaParserFactory.getContext(fa, javaTypeSolver));
-        Optional<Expression> scope = Optional.of(fa.getScope());
-        Collection<ResolvedReferenceTypeDeclaration> rt = findTypeDeclarations(fa, scope, ctx);
-        for (ResolvedReferenceTypeDeclaration r : rt) {
-            try {
-                return SymbolReference.solved(r.getField(fa.getName().getId()));
-            } catch (Throwable t) {
-            }
-        }
-        return SymbolReference.unsolved(ResolvedFieldDeclaration.class);
-    }
-
-    private Collection<ResolvedReferenceTypeDeclaration> findTypeDeclarations(Node node, Optional<Expression> scope, Context ctx) {
-        JavaParserFacade javaParserFacade = JavaParserFacade.get(javaTypeSolver);
-        Collection<ResolvedReferenceTypeDeclaration> rt = new ArrayList<>();
-        SymbolReference<ResolvedTypeDeclaration> ref = null;
-        if (scope.isPresent()) {
-            if (scope.get() instanceof NameExpr) {
-                NameExpr scopeAsName = (NameExpr) scope.get();
-                ref = ctx.solveType(scopeAsName.getName().getId(), javaTypeSolver);
-            }
-            if (ref == null || !ref.isSolved()) {
-                ResolvedType typeOfScope = javaParserFacade.getType(scope.get());
-                if (typeOfScope.isWildcard()) {
-                    if (typeOfScope.asWildcard().isExtends() || typeOfScope.asWildcard().isSuper()) {
-                        rt.add(typeOfScope.asWildcard().getBoundedType().asReferenceType().getTypeDeclaration());
-                    } else {
-                        rt.add(new ReflectionClassDeclaration(Object.class, javaTypeSolver).asReferenceType());
-                    }
-                } else if (typeOfScope.isArray()) {
-                    rt.add(new ReflectionClassDeclaration(Object.class, javaTypeSolver).asReferenceType());
-                } else if (typeOfScope.isTypeVariable()) {
-                    for (ResolvedTypeParameterDeclaration.Bound bound : typeOfScope.asTypeParameter().getBounds()) {
-                        rt.add(bound.getType().asReferenceType().getTypeDeclaration());
-                    }
-                } else if (typeOfScope.isConstraint()) {
-                    rt.add(typeOfScope.asConstraintType().getBound().asReferenceType().getTypeDeclaration());
-                } else {
-                    rt.add(typeOfScope.asReferenceType().getTypeDeclaration());
-                }
-            } else {
-                rt.add(ref.getCorrespondingDeclaration().asReferenceType());
-            }
-        } else {
-            rt.add(javaParserFacade.getTypeOfThisIn(node).asReferenceType().getTypeDeclaration());
-        }
-        return rt;
-    }
-
 }

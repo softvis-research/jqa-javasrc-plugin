@@ -14,7 +14,6 @@ import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithAbstractModifier;
 import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithFinalModifier;
 import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithStaticModifier;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AbstractDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AccessModifierDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
@@ -83,14 +82,12 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         } else if (value.isFieldAccessExpr()) {
             EnumValueDescriptor enumValueDescriptor = typeResolver.getValueDescriptor(EnumValueDescriptor.class);
             enumValueDescriptor.setName(name);
-            ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solve(value.asFieldAccessExpr()).getCorrespondingDeclaration();
-            TypeDescriptor enumType = typeResolver.resolveDependency(resolvedFieldDeclaration.getType().asReferenceType().getQualifiedName(), typeDescriptor);
-            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration), enumType);
+            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(value.asFieldAccessExpr(), null);
             enumValueDescriptor.setValue(fieldDescriptor);
             return enumValueDescriptor;
         } else if (value.isSingleMemberAnnotationExpr()) {
             SingleMemberAnnotationExpr singleMemberAnnotationExpr = value.asSingleMemberAnnotationExpr();
-            AnnotationValueDescriptor annotationValueDescriptor = typeResolver.addAnnotationValueDescriptor(singleMemberAnnotationExpr, null);
+            AnnotationValueDescriptor annotationValueDescriptor = typeResolver.getAnnotationValueDescriptor(singleMemberAnnotationExpr, null);
             annotationValueDescriptor.setName(name);
             annotationValueDescriptor.getValue()
                     .add(createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME, singleMemberAnnotationExpr.getMemberValue(), typeDescriptor));
