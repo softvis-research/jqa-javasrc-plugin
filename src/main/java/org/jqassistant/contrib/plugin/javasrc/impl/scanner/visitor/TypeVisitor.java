@@ -62,7 +62,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         setImplementedInterfaces(classOrInterfaceDeclaration);
         setInnerClassesForParent(classOrInterfaceDeclaration);
         setFields(classOrInterfaceDeclaration);
-        setMethds(classOrInterfaceDeclaration);
+        setMethods(classOrInterfaceDeclaration);
         setAnnotations(classOrInterfaceDeclaration);
 
         super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
@@ -75,7 +75,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         setVisibility(enumDeclaration);
         setEnumConstants(enumDeclaration);
         setFields(enumDeclaration);
-        setMethds(enumDeclaration);
+        setMethods(enumDeclaration);
         setAnnotations(enumDeclaration);
 
         super.visit(enumDeclaration, javaSourceFileDescriptor);
@@ -178,7 +178,7 @@ public class TypeVisitor extends VoidVisitorAdapter<JavaSourceFileDescriptor> {
         }
     }
 
-    private void setMethds(Node nodeWithMembers) {
+    private void setMethods(Node nodeWithMembers) {
         for (MethodDeclaration method : ((NodeWithMembers<?>) nodeWithMembers).getMethods()) {
             method.accept(new MethodVisitor(typeResolver), typeDescriptor);
         }
