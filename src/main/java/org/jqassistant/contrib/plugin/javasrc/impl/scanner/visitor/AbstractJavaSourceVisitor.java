@@ -68,7 +68,8 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         } else if (value.isClassExpr()) {
             ClassValueDescriptor classValueDescriptor = typeResolver.getValueDescriptor(ClassValueDescriptor.class);
             classValueDescriptor.setName(name);
-            classValueDescriptor.setValue(typeResolver.resolveType(value.asClassExpr().getType().resolve().asReferenceType().getQualifiedName()));
+            classValueDescriptor
+                    .setValue(typeResolver.resolveDependency(value.asClassExpr().getType().resolve().asReferenceType().getQualifiedName(), typeDescriptor));
             return classValueDescriptor;
         } else if (value.isArrayInitializerExpr()) {
             ArrayValueDescriptor arrayValueDescriptor = typeResolver.getValueDescriptor(ArrayValueDescriptor.class);
