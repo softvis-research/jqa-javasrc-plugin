@@ -1,5 +1,6 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
+import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.ArrayValueDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.github.javaparser.ast.Node;
@@ -35,7 +36,6 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
  */
 public class AnnotationMemberVisitor extends VoidVisitorAdapter<AnnotatedDescriptor> {
     private TypeResolver typeResolver;
-    private MethodDescriptor methodDescriptor;
 
     public AnnotationMemberVisitor(TypeResolver typeResolver) {
         this.typeResolver = typeResolver;
@@ -44,45 +44,47 @@ public class AnnotationMemberVisitor extends VoidVisitorAdapter<AnnotatedDescrip
     @Override
     public void visit(AnnotationMemberDeclaration annotationMemberDeclaration, AnnotatedDescriptor annotatedDescriptor) {
         // annotation member
-        setAnnotationMember(annotationMemberDeclaration, annotatedDescriptor);
-        setVisibility(annotationMemberDeclaration);
-        setAccessModifier(annotationMemberDeclaration);
-        setAnnotationMemberDefaultValue(annotationMemberDeclaration, annotatedDescriptor);
+        MethodDescriptor methodDescriptor = createAnnotationMember(annotationMemberDeclaration, annotatedDescriptor);
+        setVisibility(annotationMemberDeclaration, methodDescriptor);
+        setAccessModifier(annotationMemberDeclaration, methodDescriptor);
+        setAnnotationMemberDefaultValue(annotationMemberDeclaration, methodDescriptor);
     }
 
-    private void setAnnotationMemberDefaultValue(AnnotationMemberDeclaration annotationMemberDeclaration, AnnotatedDescriptor annotatedDescriptor) {
+    private void setAnnotationMemberDefaultValue(AnnotationMemberDeclaration annotationMemberDeclaration, MethodDescriptor methodDescriptor) {
         annotationMemberDeclaration.getDefaultValue().ifPresent(value -> {
-            methodDescriptor.setHasDefault(createValueDescriptor(TypeResolverUtils.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value, annotatedDescriptor));
+            methodDescriptor
+                    .setHasDefault(createValueDescriptor(TypeResolverUtils.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value, methodDescriptor.getDeclaringType()));
         });
 
     }
 
-    private void setAnnotationMember(AnnotationMemberDeclaration annotationMemberDeclaration, AnnotatedDescriptor parent) {
-        methodDescriptor = typeResolver.getMethodDescriptor(TypeResolverUtils.getAnnotationMemberSignature(annotationMemberDeclaration),
+    private MethodDescriptor createAnnotationMember(AnnotationMemberDeclaration annotationMemberDeclaration, AnnotatedDescriptor parent) {
+        MethodDescriptor methodDescriptor = typeResolver.getMethodDescriptor(TypeResolverUtils.getAnnotationMemberSignature(annotationMemberDeclaration),
                 (TypeDescriptor) parent);
         // name must be overwritten here as it is not in the signature
         methodDescriptor.setName(annotationMemberDeclaration.getNameAsString());
+        return methodDescriptor;
     }
 
-    private void setVisibility(Node nodeWithModifiers) {
-        ((AccessModifierDescriptor) methodDescriptor)
+    private void setVisibility(Node nodeWithModifiers, Descriptor descriptor) {
+        ((AccessModifierDescriptor) descriptor)
                 .setVisibility(TypeResolverUtils.getAccessSpecifier(((NodeWithModifiers<?>) nodeWithModifiers).getModifiers()).getValue());
     }
 
-    private void setAccessModifier(Node nodeWithModifiers) {
+    private void setAccessModifier(Node nodeWithModifiers, Descriptor descriptor) {
         // TODO further modifiers
         if (nodeWithModifiers instanceof NodeWithAbstractModifier) {
-            ((AbstractDescriptor) methodDescriptor).setAbstract(((NodeWithAbstractModifier<?>) nodeWithModifiers).isAbstract());
+            ((AbstractDescriptor) descriptor).setAbstract(((NodeWithAbstractModifier<?>) nodeWithModifiers).isAbstract());
         }
         if (nodeWithModifiers instanceof NodeWithFinalModifier) {
-            ((AccessModifierDescriptor) methodDescriptor).setFinal(((NodeWithFinalModifier<?>) nodeWithModifiers).isFinal());
+            ((AccessModifierDescriptor) descriptor).setFinal(((NodeWithFinalModifier<?>) nodeWithModifiers).isFinal());
         }
         if (nodeWithModifiers instanceof NodeWithStaticModifier) {
-            ((AccessModifierDescriptor) methodDescriptor).setStatic(((NodeWithStaticModifier<?>) nodeWithModifiers).isStatic());
+            ((AccessModifierDescriptor) descriptor).setStatic(((NodeWithStaticModifier<?>) nodeWithModifiers).isStatic());
         }
     }
 
-    private ValueDescriptor<?> createValueDescriptor(String name, Expression value, AnnotatedDescriptor annotatedDescriptor) {
+    private ValueDescriptor<?> createValueDescriptor(String name, Expression value, TypeDescriptor typeDescriptor) {
         if (value.isLiteralExpr()) {
             PrimitiveValueDescriptor primitiveValueDescriptor = typeResolver.getValueDescriptor(PrimitiveValueDescriptor.class);
             primitiveValueDescriptor.setName(name);
@@ -98,7 +100,7 @@ public class AnnotationMemberVisitor extends VoidVisitorAdapter<AnnotatedDescrip
             arrayValueDescriptor.setName(name);
             int i = 0;
             for (Expression arrayValue : value.asArrayInitializerExpr().getValues()) {
-                arrayValueDescriptor.getValue().add(createValueDescriptor(("[" + i + "]"), arrayValue, annotatedDescriptor));
+                arrayValueDescriptor.getValue().add(createValueDescriptor(("[" + i + "]"), arrayValue, typeDescriptor));
                 i++;
             }
             return arrayValueDescriptor;
@@ -107,7 +109,7 @@ public class AnnotationMemberVisitor extends VoidVisitorAdapter<AnnotatedDescrip
             enumValueDescriptor.setName(name);
             ResolvedFieldDeclaration resolvedFieldDeclaration = typeResolver.solve(value.asFieldAccessExpr()).getCorrespondingDeclaration();
             TypeDescriptor enumType = typeResolver.resolveDependency(resolvedFieldDeclaration.getType().asReferenceType().getQualifiedName(),
-                    ((TypeDescriptor) annotatedDescriptor));
+                    ((TypeDescriptor) typeDescriptor));
             FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration), enumType);
             enumValueDescriptor.setValue(fieldDescriptor);
             return enumValueDescriptor;
@@ -115,8 +117,8 @@ public class AnnotationMemberVisitor extends VoidVisitorAdapter<AnnotatedDescrip
             SingleMemberAnnotationExpr singleMemberAnnotationExpr = value.asSingleMemberAnnotationExpr();
             AnnotationValueDescriptor annotationValueDescriptor = typeResolver.addAnnotationValueDescriptor(singleMemberAnnotationExpr, null);
             annotationValueDescriptor.setName(name);
-            annotationValueDescriptor.getValue().add(
-                    createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME, singleMemberAnnotationExpr.getMemberValue(), annotatedDescriptor));
+            annotationValueDescriptor.getValue()
+                    .add(createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME, singleMemberAnnotationExpr.getMemberValue(), typeDescriptor));
             return annotationValueDescriptor;
         } else if (value.isNameExpr()) {
             NameExpr nameExpr = value.asNameExpr();

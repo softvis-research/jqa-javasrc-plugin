@@ -2,6 +2,7 @@ package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
 import java.util.List;
 
+import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
@@ -21,6 +22,7 @@ import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.SwitchEntryStmt;
 import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodLikeDeclaration;
@@ -44,7 +46,6 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
  */
 public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
     private TypeResolver typeResolver;
-    private MethodDescriptor methodDescriptor;
 
     public MethodVisitor(TypeResolver typeResolver) {
         this.typeResolver = typeResolver;
@@ -53,17 +54,16 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
     @Override
     public void visit(MethodDeclaration methodDeclaration, TypeDescriptor typeDescriptor) {
         // method
-        ResolvedMethodDeclaration resolvedMethodDeclaration = methodDeclaration.resolve();
-        setMethod(resolvedMethodDeclaration, typeDescriptor);
-        setVisibility(methodDeclaration);
-        setAccessModifier(methodDeclaration);
-        setParamters(methodDeclaration, typeDescriptor);
-        setReturnType(methodDeclaration, typeDescriptor);
+        MethodDescriptor methodDescriptor = createMethod(methodDeclaration, typeDescriptor);
+        setVisibility(methodDeclaration, methodDescriptor);
+        setAccessModifier(methodDeclaration, methodDescriptor);
+        setParamters(methodDeclaration, methodDescriptor);
+        setReturnType(methodDeclaration, methodDescriptor);
         setAnnotations(methodDeclaration, methodDescriptor);
-        setExceptions(resolvedMethodDeclaration, typeDescriptor);
-        setLineCount(methodDeclaration);
-        setCyclomaticComplexity(methodDeclaration);
-        setInvokes(methodDeclaration);
+        setExceptions(methodDeclaration, methodDescriptor);
+        setLineCount(methodDeclaration, methodDescriptor);
+        setCyclomaticComplexity(methodDeclaration, methodDescriptor);
+        setInvokes(methodDeclaration, methodDescriptor);
 
         super.visit(methodDeclaration, typeDescriptor);
     }
@@ -71,54 +71,55 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
     @Override
     public void visit(ConstructorDeclaration constructorDeclaration, TypeDescriptor typeDescriptor) {
         // constructor
-        ResolvedConstructorDeclaration resolvedConstructorDeclaration = constructorDeclaration.resolve();
-        setMethod(resolvedConstructorDeclaration, typeDescriptor);
-        setVisibility(constructorDeclaration);
-        setParamters(constructorDeclaration, typeDescriptor);
+        MethodDescriptor methodDescriptor = createMethod(constructorDeclaration, typeDescriptor);
+        setVisibility(constructorDeclaration, methodDescriptor);
+        setParamters(constructorDeclaration, methodDescriptor);
         setAnnotations(constructorDeclaration, methodDescriptor);
-        setExceptions(resolvedConstructorDeclaration, typeDescriptor);
-        setLineCount(constructorDeclaration);
-        setCyclomaticComplexity(constructorDeclaration);
-        setInvokes(constructorDeclaration);
+        setExceptions(constructorDeclaration, methodDescriptor);
+        setLineCount(constructorDeclaration, methodDescriptor);
+        setCyclomaticComplexity(constructorDeclaration, methodDescriptor);
+        setInvokes(constructorDeclaration, methodDescriptor);
 
         super.visit(constructorDeclaration, typeDescriptor);
     }
 
-    private void setMethod(ResolvedMethodLikeDeclaration resolvedMethodLikeDeclaration, TypeDescriptor parent) {
+    private MethodDescriptor createMethod(Resolvable<?> resolvable, TypeDescriptor parent) {
+        Object resolvedMethodLikeDeclaration = resolvable.resolve();
         if (resolvedMethodLikeDeclaration instanceof ResolvedMethodDeclaration) {
-            methodDescriptor = typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedMethodDeclaration) resolvedMethodLikeDeclaration),
-                    parent);
+            return typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedMethodDeclaration) resolvedMethodLikeDeclaration), parent);
         } else if (resolvedMethodLikeDeclaration instanceof ResolvedConstructorDeclaration) {
-            methodDescriptor = typeResolver
-                    .getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedConstructorDeclaration) resolvedMethodLikeDeclaration), parent);
+            return typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedConstructorDeclaration) resolvedMethodLikeDeclaration),
+                    parent);
+        } else {
+            throw new RuntimeException("MethodDescriptor could not be created: " + resolvable + " " + resolvable.getClass());
         }
 
     }
 
-    private void setVisibility(Node nodeWithModifiers) {
-        ((AccessModifierDescriptor) methodDescriptor)
+    private void setVisibility(Node nodeWithModifiers, Descriptor descriptor) {
+        ((AccessModifierDescriptor) descriptor)
                 .setVisibility(TypeResolverUtils.getAccessSpecifier(((NodeWithModifiers<?>) nodeWithModifiers).getModifiers()).getValue());
     }
 
-    private void setAccessModifier(Node nodeWithModifiers) {
+    private void setAccessModifier(Node nodeWithModifiers, Descriptor descriptor) {
         // TODO further modifiers
         if (nodeWithModifiers instanceof NodeWithAbstractModifier) {
-            ((AbstractDescriptor) methodDescriptor).setAbstract(((NodeWithAbstractModifier<?>) nodeWithModifiers).isAbstract());
+            ((AbstractDescriptor) descriptor).setAbstract(((NodeWithAbstractModifier<?>) nodeWithModifiers).isAbstract());
         }
         if (nodeWithModifiers instanceof NodeWithFinalModifier) {
-            ((AccessModifierDescriptor) methodDescriptor).setFinal(((NodeWithFinalModifier<?>) nodeWithModifiers).isFinal());
+            ((AccessModifierDescriptor) descriptor).setFinal(((NodeWithFinalModifier<?>) nodeWithModifiers).isFinal());
         }
         if (nodeWithModifiers instanceof NodeWithStaticModifier) {
-            ((AccessModifierDescriptor) methodDescriptor).setStatic(((NodeWithStaticModifier<?>) nodeWithModifiers).isStatic());
+            ((AccessModifierDescriptor) descriptor).setStatic(((NodeWithStaticModifier<?>) nodeWithModifiers).isStatic());
         }
     }
 
-    private void setParamters(CallableDeclaration<?> callableDeclaration, TypeDescriptor typeDescriptor) {
+    private void setParamters(CallableDeclaration<?> callableDeclaration, MethodDescriptor methodDescriptor) {
         List<Parameter> parameters = ((CallableDeclaration<?>) callableDeclaration).getParameters();
         for (int i = 0; i < parameters.size(); i++) {
             ResolvedParameterDeclaration resolvedParameterDeclaration = parameters.get(i).resolve();
             TypeDescriptor parameterTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()),
-                    typeDescriptor);
+                    methodDescriptor.getDeclaringType());
             ParameterDescriptor parameterDescriptor = typeResolver.addParameterDescriptor(methodDescriptor, i);
             parameterDescriptor.setType(parameterTypeDescriptor);
 
@@ -126,17 +127,20 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
         }
     }
 
-    private void setReturnType(MethodDeclaration methodDeclaration, TypeDescriptor parent) {
-        methodDescriptor.setReturns(typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(methodDeclaration.resolve().getReturnType()), parent));
+    private void setReturnType(MethodDeclaration methodDeclaration, MethodDescriptor methodDescriptor) {
+        methodDescriptor.setReturns(typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(methodDeclaration.resolve().getReturnType()),
+                methodDescriptor.getDeclaringType()));
     }
 
-    private void setExceptions(ResolvedMethodLikeDeclaration resolvedMethodLikeDeclaration, TypeDescriptor parent) {
+    private void setExceptions(Resolvable<?> resolvable, MethodDescriptor methodDescriptor) {
+        ResolvedMethodLikeDeclaration resolvedMethodLikeDeclaration = (ResolvedMethodLikeDeclaration) resolvable.resolve();
         for (ResolvedType exception : resolvedMethodLikeDeclaration.getSpecifiedExceptions()) {
-            methodDescriptor.getDeclaredThrowables().add(typeResolver.resolveDependency(exception.asReferenceType().getQualifiedName(), parent));
+            methodDescriptor.getDeclaredThrowables()
+                    .add(typeResolver.resolveDependency(exception.asReferenceType().getQualifiedName(), methodDescriptor.getDeclaringType()));
         }
     }
 
-    private void setLineCount(Node node) {
+    private void setLineCount(Node node, MethodDescriptor methodDescriptor) {
         node.getBegin().ifPresent(position -> {
             methodDescriptor.setFirstLineNumber(position.line);
         });
@@ -147,18 +151,18 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
         methodDescriptor.setEffectiveLineCount(methodDescriptor.getLastLineNumber() - methodDescriptor.getFirstLineNumber() + 1);
     }
 
-    private void setCyclomaticComplexity(Node node) {
+    private void setCyclomaticComplexity(Node node, MethodDescriptor methodDescriptor) {
         methodDescriptor.setCyclomaticComplexity(calculateCyclomaticComplexity(node));
     }
 
-    private void setInvokes(NodeWithBlockStmt<?> nodeWithOptionalBlockStmt) {
+    private void setInvokes(NodeWithBlockStmt<?> nodeWithOptionalBlockStmt, MethodDescriptor methodDescriptor) {
         BlockStmt body = nodeWithOptionalBlockStmt.getBody();
         if (body != null) {
             body.accept(new BodyVisitor(typeResolver), methodDescriptor);
         }
     }
 
-    private void setInvokes(NodeWithOptionalBlockStmt<?> nodeWithOptionalBlockStmt) {
+    private void setInvokes(NodeWithOptionalBlockStmt<?> nodeWithOptionalBlockStmt, MethodDescriptor methodDescriptor) {
         nodeWithOptionalBlockStmt.getBody().ifPresent(body -> body.accept(new BodyVisitor(typeResolver), methodDescriptor));
     }
 
