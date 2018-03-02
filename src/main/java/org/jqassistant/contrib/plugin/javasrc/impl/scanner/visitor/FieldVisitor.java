@@ -1,23 +1,11 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
-import com.buschmais.jqassistant.core.store.api.model.Descriptor;
-import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
-import com.github.javaparser.ast.nodeTypes.NodeWithModifiers;
-import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithAbstractModifier;
-import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithFinalModifier;
-import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithStaticModifier;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AbstractDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AccessModifierDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
@@ -31,11 +19,10 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
  * @author Richard Müller
  *
  */
-public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
-    private TypeResolver typeResolver;
+public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
 
     public FieldVisitor(TypeResolver typeResolver) {
-        this.typeResolver = typeResolver;
+        super(typeResolver);
     }
 
     @Override
@@ -71,24 +58,6 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
         }
     }
 
-    private void setVisibility(Node nodeWithModifiers, Descriptor descriptor) {
-        ((AccessModifierDescriptor) descriptor)
-                .setVisibility(TypeResolverUtils.getAccessSpecifier(((NodeWithModifiers<?>) nodeWithModifiers).getModifiers()).getValue());
-    }
-
-    private void setAccessModifier(Node nodeWithModifiers, Descriptor descriptor) {
-        // TODO further modifiers
-        if (nodeWithModifiers instanceof NodeWithAbstractModifier) {
-            ((AbstractDescriptor) descriptor).setAbstract(((NodeWithAbstractModifier<?>) nodeWithModifiers).isAbstract());
-        }
-        if (nodeWithModifiers instanceof NodeWithFinalModifier) {
-            ((AccessModifierDescriptor) descriptor).setFinal(((NodeWithFinalModifier<?>) nodeWithModifiers).isFinal());
-        }
-        if (nodeWithModifiers instanceof NodeWithStaticModifier) {
-            ((AccessModifierDescriptor) descriptor).setStatic(((NodeWithStaticModifier<?>) nodeWithModifiers).isStatic());
-        }
-    }
-
     private void setFieldType(FieldDeclaration fieldDeclaration, FieldDescriptor fieldDescriptor) {
         ResolvedFieldDeclaration resolvedFieldDeclaration = fieldDeclaration.resolve();
         TypeDescriptor fieldTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedFieldDeclaration.getType()),
@@ -105,11 +74,5 @@ public class FieldVisitor extends VoidVisitorAdapter<TypeDescriptor> {
             valueDescriptor.setValue(TypeResolverUtils.getLiteralExpressionValue(value));
             fieldDescriptor.setValue(valueDescriptor);
         });
-    }
-
-    private void setAnnotations(NodeWithAnnotations<?> nodeWithAnnotations, AnnotatedDescriptor annotatedDescriptor) {
-        for (AnnotationExpr annotation : nodeWithAnnotations.getAnnotations()) {
-            annotation.accept(new AnnotationVisitor(typeResolver), annotatedDescriptor);
-        }
     }
 }

@@ -2,35 +2,25 @@ package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
 import java.util.List;
 
-import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
 import com.github.javaparser.ast.nodeTypes.NodeWithBlockStmt;
-import com.github.javaparser.ast.nodeTypes.NodeWithModifiers;
 import com.github.javaparser.ast.nodeTypes.NodeWithOptionalBlockStmt;
-import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithAbstractModifier;
-import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithFinalModifier;
-import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithStaticModifier;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.SwitchEntryStmt;
 import com.github.javaparser.ast.stmt.SwitchStmt;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodLikeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AbstractDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AccessModifierDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
@@ -38,17 +28,16 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolver;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
 
 /**
- * This visitor handles parsed methods, i.e. methods and constructors, and
- * creates corresponding descriptors.
+ * This visitor handles parsed methods, i.e. methods, constructors, and
+ * annotation members and creates corresponding descriptors.
  * 
  * @author Richard Müller
  *
  */
-public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
-    private TypeResolver typeResolver;
+public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
 
     public MethodVisitor(TypeResolver typeResolver) {
-        this.typeResolver = typeResolver;
+        super(typeResolver);
     }
 
     @Override
@@ -83,6 +72,15 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
         super.visit(constructorDeclaration, typeDescriptor);
     }
 
+    @Override
+    public void visit(AnnotationMemberDeclaration annotationMemberDeclaration, TypeDescriptor typeDescriptor) {
+        // annotation member
+        MethodDescriptor methodDescriptor = createAnnotationMember(annotationMemberDeclaration, typeDescriptor);
+        setVisibility(annotationMemberDeclaration, methodDescriptor);
+        setAccessModifier(annotationMemberDeclaration, methodDescriptor);
+        setAnnotationMemberDefaultValue(annotationMemberDeclaration, methodDescriptor);
+    }
+
     private MethodDescriptor createMethod(Resolvable<?> resolvable, TypeDescriptor parent) {
         Object resolvedMethodLikeDeclaration = resolvable.resolve();
         if (resolvedMethodLikeDeclaration instanceof ResolvedMethodDeclaration) {
@@ -91,27 +89,18 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
             return typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedConstructorDeclaration) resolvedMethodLikeDeclaration),
                     parent);
         } else {
+
             throw new RuntimeException("MethodDescriptor could not be created: " + resolvable + " " + resolvable.getClass());
         }
 
     }
 
-    private void setVisibility(Node nodeWithModifiers, Descriptor descriptor) {
-        ((AccessModifierDescriptor) descriptor)
-                .setVisibility(TypeResolverUtils.getAccessSpecifier(((NodeWithModifiers<?>) nodeWithModifiers).getModifiers()).getValue());
-    }
-
-    private void setAccessModifier(Node nodeWithModifiers, Descriptor descriptor) {
-        // TODO further modifiers
-        if (nodeWithModifiers instanceof NodeWithAbstractModifier) {
-            ((AbstractDescriptor) descriptor).setAbstract(((NodeWithAbstractModifier<?>) nodeWithModifiers).isAbstract());
-        }
-        if (nodeWithModifiers instanceof NodeWithFinalModifier) {
-            ((AccessModifierDescriptor) descriptor).setFinal(((NodeWithFinalModifier<?>) nodeWithModifiers).isFinal());
-        }
-        if (nodeWithModifiers instanceof NodeWithStaticModifier) {
-            ((AccessModifierDescriptor) descriptor).setStatic(((NodeWithStaticModifier<?>) nodeWithModifiers).isStatic());
-        }
+    private MethodDescriptor createAnnotationMember(AnnotationMemberDeclaration annotationMemberDeclaration, TypeDescriptor parent) {
+        MethodDescriptor methodDescriptor = typeResolver.getMethodDescriptor(TypeResolverUtils.getAnnotationMemberSignature(annotationMemberDeclaration),
+                parent);
+        // name must be overwritten here as it is not in the signature
+        methodDescriptor.setName(annotationMemberDeclaration.getNameAsString());
+        return methodDescriptor;
     }
 
     private void setParamters(CallableDeclaration<?> callableDeclaration, MethodDescriptor methodDescriptor) {
@@ -166,12 +155,6 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
         nodeWithOptionalBlockStmt.getBody().ifPresent(body -> body.accept(new BodyVisitor(typeResolver), methodDescriptor));
     }
 
-    private void setAnnotations(NodeWithAnnotations<?> nodeWithAnnotations, AnnotatedDescriptor annotatedDescriptor) {
-        for (AnnotationExpr annotation : nodeWithAnnotations.getAnnotations()) {
-            annotation.accept(new AnnotationVisitor(typeResolver), annotatedDescriptor);
-        }
-    }
-
     private int calculateCyclomaticComplexity(Node node) {
         int complexity = 0;
         for (IfStmt ifStmt : node.findAll(IfStmt.class)) {
@@ -195,5 +178,13 @@ public class MethodVisitor extends VoidVisitorAdapter<TypeDescriptor> {
             }
         }
         return (complexity == 0) ? 1 : complexity;
+    }
+
+    private void setAnnotationMemberDefaultValue(AnnotationMemberDeclaration annotationMemberDeclaration, MethodDescriptor methodDescriptor) {
+        annotationMemberDeclaration.getDefaultValue().ifPresent(value -> {
+            methodDescriptor
+                    .setHasDefault(createValueDescriptor(TypeResolverUtils.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value, methodDescriptor.getDeclaringType()));
+        });
+
     }
 }
