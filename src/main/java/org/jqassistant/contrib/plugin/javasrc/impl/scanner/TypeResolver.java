@@ -206,11 +206,7 @@ public class TypeResolver {
 
     void storeDependencies() {
         for (Entry<TypeDescriptor, Map<TypeDescriptor, Integer>> dependentEntry : dependencies.entrySet()) {
-            // System.out.println("GET Dependent: " +
-            // dependentEntry.getKey().getFullQualifiedName());
             for (Map.Entry<TypeDescriptor, Integer> dependencyEntry : dependentEntry.getValue().entrySet()) {
-                // System.out.println("GET Dependency: " +
-                // dependencyEntry.getKey().getFullQualifiedName());
                 TypeDescriptor dependency = dependencyEntry.getKey();
                 final Integer weight = dependencyEntry.getValue();
                 TypeDescriptor dependent = dependentEntry.getKey();
