@@ -99,7 +99,6 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         } else {
             throw new RuntimeException("MethodDescriptor could not be created: " + resolvable + " " + resolvable.getClass());
         }
-
     }
 
     private void setParamters(CallableDeclaration<?> callableDeclaration, MethodDescriptor methodDescriptor) {
