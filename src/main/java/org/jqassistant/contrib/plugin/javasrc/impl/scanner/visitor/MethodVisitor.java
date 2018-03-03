@@ -147,12 +147,12 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void setInvokes(NodeWithBlockStmt<?> nodeWithOptionalBlockStmt, MethodDescriptor methodDescriptor) {
         BlockStmt body = nodeWithOptionalBlockStmt.getBody();
         if (body != null) {
-            body.accept(new BodyVisitor(typeResolver), methodDescriptor);
+            body.accept(new MethodBodyVisitor(typeResolver), methodDescriptor);
         }
     }
 
     private void setInvokes(NodeWithOptionalBlockStmt<?> nodeWithOptionalBlockStmt, MethodDescriptor methodDescriptor) {
-        nodeWithOptionalBlockStmt.getBody().ifPresent(body -> body.accept(new BodyVisitor(typeResolver), methodDescriptor));
+        nodeWithOptionalBlockStmt.getBody().ifPresent(body -> body.accept(new MethodBodyVisitor(typeResolver), methodDescriptor));
     }
 
     private int calculateCyclomaticComplexity(Node node) {

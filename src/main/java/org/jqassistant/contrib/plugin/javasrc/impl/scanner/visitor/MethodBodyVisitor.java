@@ -24,10 +24,10 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
  * @author Richard Müller
  *
  */
-public class BodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
+public class MethodBodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
     private TypeResolver typeResolver;
 
-    public BodyVisitor(TypeResolver typeResolver) {
+    public MethodBodyVisitor(TypeResolver typeResolver) {
         this.typeResolver = typeResolver;
     }
 
