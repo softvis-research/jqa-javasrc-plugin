@@ -16,6 +16,7 @@ import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.SwitchEntryStmt;
 import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.resolution.Resolvable;
+import com.github.javaparser.resolution.declarations.ResolvedAnnotationMemberDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodLikeDeclaration;
@@ -75,32 +76,30 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     @Override
     public void visit(AnnotationMemberDeclaration annotationMemberDeclaration, TypeDescriptor typeDescriptor) {
         // annotation member
-        MethodDescriptor methodDescriptor = createAnnotationMember(annotationMemberDeclaration, typeDescriptor);
+        MethodDescriptor methodDescriptor = createMethod(annotationMemberDeclaration, typeDescriptor);
         setVisibility(annotationMemberDeclaration, methodDescriptor);
         setAccessModifier(annotationMemberDeclaration, methodDescriptor);
         setAnnotationMemberDefaultValue(annotationMemberDeclaration, methodDescriptor);
     }
 
     private MethodDescriptor createMethod(Resolvable<?> resolvable, TypeDescriptor parent) {
-        Object resolvedMethodLikeDeclaration = resolvable.resolve();
-        if (resolvedMethodLikeDeclaration instanceof ResolvedMethodDeclaration) {
-            return typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedMethodDeclaration) resolvedMethodLikeDeclaration), parent);
-        } else if (resolvedMethodLikeDeclaration instanceof ResolvedConstructorDeclaration) {
-            return typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedConstructorDeclaration) resolvedMethodLikeDeclaration),
-                    parent);
+        Object method = resolvable.resolve();
+        if (method instanceof ResolvedMethodDeclaration) {
+            return typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedMethodDeclaration) method), parent);
+        } else if (method instanceof ResolvedConstructorDeclaration) {
+            return typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedConstructorDeclaration) method), parent);
+        } else if (method instanceof ResolvedAnnotationMemberDeclaration) {
+            // TODO ResolvedAnnotationMemberDeclaration.getType throws
+            // java.lang.UnsupportedOperationException
+            MethodDescriptor methodDescriptor = typeResolver.getMethodDescriptor(
+                    TypeResolverUtils.getAnnotationMemberSignature(((AnnotationMemberDeclaration) resolvable).getType().resolve()), parent);
+            // name must be overwritten here as it is not in the signature
+            methodDescriptor.setName(((AnnotationMemberDeclaration) resolvable).getNameAsString());
+            return methodDescriptor;
         } else {
-
             throw new RuntimeException("MethodDescriptor could not be created: " + resolvable + " " + resolvable.getClass());
         }
 
-    }
-
-    private MethodDescriptor createAnnotationMember(AnnotationMemberDeclaration annotationMemberDeclaration, TypeDescriptor parent) {
-        MethodDescriptor methodDescriptor = typeResolver.getMethodDescriptor(TypeResolverUtils.getAnnotationMemberSignature(annotationMemberDeclaration),
-                parent);
-        // name must be overwritten here as it is not in the signature
-        methodDescriptor.setName(annotationMemberDeclaration.getNameAsString());
-        return methodDescriptor;
     }
 
     private void setParamters(CallableDeclaration<?> callableDeclaration, MethodDescriptor methodDescriptor) {
