@@ -68,13 +68,13 @@ field
 - check complexity calculation
 - check effective line count (comments, empty methods)
 - add method variables
-- implicit default constructor
-- enum constructor
-- anonymous classes
-- generics
-- inner classes' fqn are with . instead of $
-- scanFile and scanDirectory for tests
-- comments
+- add implicit default constructor?
+- add enum constructor (in v0.6.3 not supported)
+- handle inner classes (inner classes' fqn are with . instead of $)
+- handle anonymous classes
+- handle generics on method and field level
+- extract reusable scan method for tests
+- add comments
 - Inheritance: Object is not set as super class
 - TypeDescriptor: Why does typeDescriptor.getDeclaredFields() return fields, methods, or classes (same for getDeclaredMethods)?
 - InterfaceTypeDescriptor: An interface might extend from multiple interfaces, currently there is only one super class possible.
