@@ -14,6 +14,10 @@ import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithAbstractModifier;
 import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithFinalModifier;
 import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithStaticModifier;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
+import com.github.javaparser.resolution.types.ResolvedReferenceType;
+import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.utils.Pair;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AbstractDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AccessModifierDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
@@ -55,6 +59,12 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
     protected void setAnnotations(Node nodeWithAnnotations, AnnotatedDescriptor annotatedDescriptor) {
         for (AnnotationExpr annotation : ((NodeWithAnnotations<?>) nodeWithAnnotations).getAnnotations()) {
             annotation.accept(new AnnotationVisitor(typeResolver), annotatedDescriptor);
+        }
+    }
+
+    protected void setTypeParameterDependency(ResolvedReferenceType type, TypeDescriptor typeDescriptor) {
+        for (Pair<ResolvedTypeParameterDeclaration, ResolvedType> typeParamter : type.getTypeParametersMap()) {
+            typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(typeParamter.b), typeDescriptor);
         }
     }
 

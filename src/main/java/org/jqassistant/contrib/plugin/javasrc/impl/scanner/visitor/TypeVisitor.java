@@ -17,10 +17,7 @@ import com.github.javaparser.resolution.declarations.ResolvedAnnotationDeclarati
 import com.github.javaparser.resolution.declarations.ResolvedClassDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedEnumDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedInterfaceDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedTypeParameterDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
-import com.github.javaparser.resolution.types.ResolvedType;
-import com.github.javaparser.utils.Pair;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassFileDescriptor;
@@ -123,12 +120,6 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
                 TypeDescriptor parentType = typeResolver.resolveDependency(((ClassOrInterfaceDeclaration) parentClass).resolve().getQualifiedName(), null);
                 parentType.getDeclaredInnerClasses().add(typeDescriptor);
             });
-        }
-    }
-
-    private void setTypeParameterDependency(ResolvedReferenceType type, TypeDescriptor typeDescriptor) {
-        for (Pair<ResolvedTypeParameterDeclaration, ResolvedType> typeParamter : type.getTypeParametersMap()) {
-            typeResolver.resolveDependency(typeParamter.b.asReferenceType().getQualifiedName(), typeDescriptor);
         }
     }
 

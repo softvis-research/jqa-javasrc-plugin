@@ -116,7 +116,6 @@ public class GenericsIT extends AbstractPluginIT {
     }
 
     @Test
-    @Ignore
     public void testGenericMembers() throws IOException, NoSuchMethodException, NoSuchFieldException {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/generics/";

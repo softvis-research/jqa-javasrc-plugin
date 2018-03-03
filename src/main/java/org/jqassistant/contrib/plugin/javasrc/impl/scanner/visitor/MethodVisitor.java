@@ -109,14 +109,22 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
                     methodDescriptor.getDeclaringType());
             ParameterDescriptor parameterDescriptor = typeResolver.getParameterDescriptor(methodDescriptor, i);
             parameterDescriptor.setType(parameterTypeDescriptor);
-
+            if (resolvedParameterDeclaration.getType().isReferenceType()) {
+                // TODO are there other types?
+                setTypeParameterDependency(resolvedParameterDeclaration.getType().asReferenceType(), methodDescriptor.getDeclaringType());
+            }
             setAnnotations(parameters.get(i), parameterDescriptor);
         }
     }
 
     private void setReturnType(MethodDeclaration methodDeclaration, MethodDescriptor methodDescriptor) {
-        methodDescriptor.setReturns(typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(methodDeclaration.resolve().getReturnType()),
-                methodDescriptor.getDeclaringType()));
+        ResolvedType resolvedReturnType = methodDeclaration.resolve().getReturnType();
+        methodDescriptor
+                .setReturns(typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedReturnType), methodDescriptor.getDeclaringType()));
+        if (resolvedReturnType.isReferenceType()) {
+            // TODO are there other types?
+            setTypeParameterDependency(resolvedReturnType.asReferenceType(), methodDescriptor.getDeclaringType());
+        }
     }
 
     private void setExceptions(Resolvable<?> resolvable, MethodDescriptor methodDescriptor) {

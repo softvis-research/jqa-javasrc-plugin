@@ -15,6 +15,7 @@ type (+ class, + interface, + inner class)
 + implements
 + annotation
 + depends
++ generics (extends, implements)
 
 type (enum)
 + name
@@ -36,7 +37,7 @@ constructor (+ overloaded constructor)
 + signature
 + name
 + visibility (public, protected, private, default)
-+ parameters (primitive type, reference type, array type, annotation)
++ parameters (primitive type, reference type, array type, annotation, generics)
 + annotation
 + exceptions
 + loc (firstLineNumber, lastLineNumber, effectiveLineCount)
@@ -46,8 +47,8 @@ method
 + signature
 + name
 + visibility and access modifiers (public, protected, private, default, abstract, final, static)
-+ parameters (primitive type, reference type, annotation)
-+ return type (void, primitive type, reference type, array type)
++ parameters (primitive type, reference type, annotation, generics)
++ return type (void, primitive type, reference type, array type, generics)
 + annotation
 + calls
 + writes
@@ -60,7 +61,7 @@ field
 + signature
 + name
 + visibility and access modifiers (public, protected, private, default, final, static)
-+ type (primitive type, reference type, array type)
++ type (primitive type, reference type, array type, generics)
 + value (of first variable)
 + annotation
 
@@ -72,7 +73,6 @@ field
 - add enum constructor (in v0.6.3 not supported)
 - handle inner classes (inner classes' fqn are with . instead of $)
 - handle anonymous classes
-- handle generics on method and field level
 - extract reusable scan method for tests
 - add comments
 - Inheritance: Object is not set as super class
