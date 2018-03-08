@@ -204,7 +204,7 @@ public class TypeResolver {
         writesDescriptor.setLineNumber(lineNumber);
     }
 
-    void storeDependencies() {
+    void addDependencies() {
         for (Entry<TypeDescriptor, Map<TypeDescriptor, Integer>> dependentEntry : dependencies.entrySet()) {
             for (Map.Entry<TypeDescriptor, Integer> dependencyEntry : dependentEntry.getValue().entrySet()) {
                 TypeDescriptor dependency = dependencyEntry.getKey();
