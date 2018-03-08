@@ -41,7 +41,7 @@ constructor (+ overloaded constructor)
 + annotation
 + exceptions
 + loc (firstLineNumber, lastLineNumber, effectiveLineCount)
-+ complexity (if, else if, else, case, default)
++ complexity
 
 method
 + signature
@@ -55,7 +55,7 @@ method
 + reads
 + exceptions
 + loc (firstLineNumber, lastLineNumber, effectiveLineCount)
-+ complexity (if, else if, else, case, default)
++ complexity
 
 field
 + signature
@@ -66,7 +66,6 @@ field
 + annotation
 
 == TODO
-- check complexity calculation
 - check effective line count (comments, empty methods)
 - add method variables
 - add implicit default constructor?

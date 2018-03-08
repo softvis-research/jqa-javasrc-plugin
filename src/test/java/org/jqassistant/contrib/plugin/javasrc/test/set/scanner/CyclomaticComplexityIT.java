@@ -30,15 +30,17 @@ public class CyclomaticComplexityIT extends AbstractPluginIT {
         Map<String, Integer> expectedComplexities = new HashMap<>();
         expectedComplexities.put("<init>", valueOf(1));
         expectedComplexities.put("ifStatement", valueOf(2));
-        expectedComplexities.put("nestedIfStatement", valueOf(5));
-        expectedComplexities.put("caseStatement", valueOf(3));
+        expectedComplexities.put("nestedIfStatement", valueOf(4));
+        expectedComplexities.put("caseStatement", valueOf(5));
+        expectedComplexities.put("baseComplexity", valueOf(1));
+        expectedComplexities.put("highComplexity", valueOf(11));
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/metric/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
         List<MethodDescriptor> methods = query("Match (:Class)-[:DECLARES]->(m:Method) return m").getColumn("m");
-        assertThat(methods.size(), equalTo(4));
+        assertThat(methods.size(), equalTo(6));
         for (MethodDescriptor methodDescriptor : methods) {
             String name = methodDescriptor.getName();
             int cyclomaticComplexity = methodDescriptor.getCyclomaticComplexity();

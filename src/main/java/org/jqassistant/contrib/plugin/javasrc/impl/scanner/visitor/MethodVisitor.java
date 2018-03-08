@@ -8,13 +8,22 @@ import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.ast.expr.BinaryExpr.Operator;
+import com.github.javaparser.ast.expr.ConditionalExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithBlockStmt;
 import com.github.javaparser.ast.nodeTypes.NodeWithOptionalBlockStmt;
 import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.stmt.BreakStmt;
+import com.github.javaparser.ast.stmt.CatchClause;
+import com.github.javaparser.ast.stmt.ContinueStmt;
+import com.github.javaparser.ast.stmt.DoStmt;
+import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
-import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.ast.stmt.SwitchEntryStmt;
 import com.github.javaparser.ast.stmt.SwitchStmt;
+import com.github.javaparser.ast.stmt.ThrowStmt;
+import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.declarations.ResolvedAnnotationMemberDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
@@ -161,36 +170,84 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         nodeWithOptionalBlockStmt.getBody().ifPresent(body -> body.accept(new MethodBodyVisitor(typeResolver), methodDescriptor));
     }
 
-    private int calculateCyclomaticComplexity(Node node) {
-        int complexity = 0;
-        for (IfStmt ifStmt : node.findAll(IfStmt.class)) {
-            // increase complexity for "if"
-            complexity++;
-            if (ifStmt.getElseStmt().isPresent()) {
-                // this "if" has an "else"
-                Statement elseStmt = ifStmt.getElseStmt().get();
-                if (elseStmt instanceof IfStmt) {
-                    // it's an "else-if" that is already counted above
-                } else {
-                    // it's an "else-something"
-                    complexity++;
-                }
-            }
-        }
-        for (SwitchStmt switchStmt : node.findAll(SwitchStmt.class)) {
-            for (SwitchEntryStmt switchEntryStmt : switchStmt.getEntries()) {
-                // increase complexity for each "case" and "default"
-                complexity++;
-            }
-        }
-        return (complexity == 0) ? 1 : complexity;
-    }
-
     private void setAnnotationMemberDefaultValue(AnnotationMemberDeclaration annotationMemberDeclaration, MethodDescriptor methodDescriptor) {
         annotationMemberDeclaration.getDefaultValue().ifPresent(value -> {
             methodDescriptor
                     .setHasDefault(createValueDescriptor(TypeResolverUtils.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value, methodDescriptor.getDeclaringType()));
         });
 
+    }
+
+    /**
+     * Calculates the Cyclomatic Complexity of a method body (node) according to
+     * these rules: methods have a base complexity of 1, +1 for every control
+     * flow statement (if, case, catch, throw, do, while, for, break, continue)
+     * and conditional expression (?:), +1 for every boolean operator (&&, ||),
+     * else, finally and default don’t count. (Source:
+     * http://pmd.sourceforge.net/snapshot/pmd_java_metrics_index.html#cyclomatic-complexity-cyclo)
+     * 
+     * @param node
+     * @return cyclomatic complexity
+     */
+    private int calculateCyclomaticComplexity(Node node) {
+        // TODO ForEachStmt?
+        int complexity = 1;
+        // if
+        for (IfStmt ifStmt : node.findAll(IfStmt.class)) {
+            complexity++;
+        }
+        // case
+        for (SwitchStmt switchStmt : node.findAll(SwitchStmt.class)) {
+            for (SwitchEntryStmt switchEntryStmt : switchStmt.getEntries()) {
+                // filter case as default has no label
+                if (switchEntryStmt.getLabel().isPresent()) {
+                    complexity++;
+                }
+            }
+        }
+        // catch
+        for (CatchClause catchClause : node.findAll(CatchClause.class)) {
+            complexity++;
+        }
+        // throw
+        for (ThrowStmt throwStmt : node.findAll(ThrowStmt.class)) {
+            complexity++;
+        }
+        // do
+        for (DoStmt doStmt : node.findAll(DoStmt.class)) {
+            complexity++;
+        }
+        // while
+        for (WhileStmt whileStmt : node.findAll(WhileStmt.class)) {
+            complexity++;
+        }
+        // for
+        for (ForStmt forStmt : node.findAll(ForStmt.class)) {
+            complexity++;
+        }
+        // break
+        for (BreakStmt breakStmt : node.findAll(BreakStmt.class)) {
+            complexity++;
+        }
+        // continue
+        for (ContinueStmt continueStmt : node.findAll(ContinueStmt.class)) {
+            complexity++;
+        }
+        // ?:
+        for (ConditionalExpr conditionalExpr : node.findAll(ConditionalExpr.class)) {
+            complexity++;
+        }
+
+        // &&, ||
+        for (BinaryExpr binaryExpr : node.findAll(BinaryExpr.class)) {
+            Operator operator = binaryExpr.getOperator();
+            if (operator.equals(Operator.AND)) {
+                complexity++;
+            } else if (operator.equals(Operator.OR)) {
+                complexity++;
+            }
+        }
+
+        return complexity;
     }
 }
