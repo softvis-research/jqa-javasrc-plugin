@@ -1,20 +1,79 @@
-= jQAssistant Parser Plugin
+= jQAssistant Java Source Parser Plugin
 
-This is a Parser Plugin of https://www.jqassistant.org[jQAssistant^].
+This is a java source parser of https://www.jqassistant.org[jQAssistant^].
 
 (Work in Progress)
 
-== Notes on Custom Parsers
+== Implemented (+), not implemented (-)
+type (+ class, + interface, + inner class)
++ name
++ fqn
++ visibility and access modifiers (public, protected, private, default, abstract, final, static)
++ getDeclaredMethods(), getDeclaredMembers()
++ getDeclaredFields(), getDeclaredMembers()
++ extends
++ implements
++ annotation
++ depends
++ generics (extends, implements)
 
-- on Functions/Lambdas as Parameters
-    - https://dzone.com/articles/why-theres-interface
-    - chose Supplier instead of Callable, since it is more similar to Function (especially: doesn't throw Exception)
-- on Matcher::group(): seams so that int as parameter doesn't work the same as named parameter (String)
-    - maybe will need String-Identifier for every Symbol
-    - TODO: try more variants to see if that's avoidable
+type (enum)
++ name
++ fqn
++ visibility and access modifiers (public, protected, private, default, static)
++ getDeclaredFields(), getDeclaredMembers()
++ enum constants (primitive type, reference type)
++ annotation
++ depends
 
-== Notes on ANTLR4
+type (annotation)
++ name
++ fqn
++ nested annotation
++ annotation member with default values
++ depends
 
-- ANTLR Setup / Maven
-    - https://codevomit.wordpress.com/2015/03/15/antlr4-project-with-maven-tutorial-episode-1/
-    - potentially more Grammars: https://github.com/antlr/grammars-v4
+constructor (+ overloaded constructor)
++ signature
++ name
++ visibility (public, protected, private, default)
++ parameters (primitive type, reference type, array type, annotation, generics)
++ annotation
++ exceptions
++ loc (firstLineNumber, lastLineNumber, effectiveLineCount)
++ complexity
+
+method
++ signature
++ name
++ visibility and access modifiers (public, protected, private, default, abstract, final, static)
++ parameters (primitive type, reference type, annotation, generics)
++ return type (void, primitive type, reference type, array type, generics)
++ annotation
++ calls
++ writes
++ reads
++ exceptions
++ loc (firstLineNumber, lastLineNumber, effectiveLineCount)
++ complexity
+
+field
++ signature
++ name
++ visibility and access modifiers (public, protected, private, default, final, static)
++ type (primitive type, reference type, array type, generics)
++ value (of first variable)
++ annotation
+
+== TODO
+- check effective line count (comments, empty methods)
+- add method variables
+- add implicit default constructor?
+- add enum constructor (in v0.6.3 not supported)
+- handle inner classes (inner classes' fqn are with . instead of $)
+- handle anonymous classes
+- extract reusable scan method for tests
+- add comments
+- Inheritance: Object is not set as super class
+- TypeDescriptor: Why does typeDescriptor.getDeclaredFields() return fields, methods, or classes (same for getDeclaredMethods)?
+- InterfaceTypeDescriptor: An interface might extend from multiple interfaces, currently there is only one super class possible.
