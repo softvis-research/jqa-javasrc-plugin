@@ -238,7 +238,6 @@ public class TypeResolver {
 
     // TODO remove this method in next version of java symbol solver
     private ResolvedFieldDeclaration solveFieldAccess(FieldAccessExpr fieldAccessExpr) {
-
         return Issue300.solve(fieldAccessExpr, JavaParserFacade.get(javaTypeSolver)).getCorrespondingDeclaration();
     }
 }
