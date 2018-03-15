@@ -128,17 +128,13 @@ public class TypeResolver {
 
     // TODO remove this method in next version of java symbol solver
     public FieldDescriptor getFieldDescriptor(FieldAccessExpr fieldAccessExpr, TypeDescriptor parent) {
-
         if (parent == null) {
-            ResolvedFieldDeclaration resolvedFieldDeclaration = Issue300.solve(fieldAccessExpr, JavaParserFacade.get(javaTypeSolver))
-                    .getCorrespondingDeclaration();
+            ResolvedFieldDeclaration resolvedFieldDeclaration = solveFieldAccess(fieldAccessExpr);
             TypeDescriptor fieldType = resolveType(resolvedFieldDeclaration.getType().asReferenceType().getQualifiedName());
             return getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration), fieldType);
         } else {
 
-            return getFieldDescriptor(
-                    TypeResolverUtils.getFieldSignature(Issue300.solve(fieldAccessExpr, JavaParserFacade.get(javaTypeSolver)).getCorrespondingDeclaration()),
-                    parent);
+            return getFieldDescriptor(TypeResolverUtils.getFieldSignature(solveFieldAccess(fieldAccessExpr)), parent);
         }
     }
 
@@ -177,13 +173,13 @@ public class TypeResolver {
     public AnnotationValueDescriptor getAnnotationValueDescriptor(AnnotationExpr annotation, AnnotatedDescriptor annotatedDescriptor) {
         if (annotatedDescriptor != null) {
             AnnotationValueDescriptor annotationValueDescriptor = scannerContext.getStore().create(AnnotationValueDescriptor.class);
-            annotationValueDescriptor.setType(resolveType(resolveAnnotation(annotation).getQualifiedName()));
+            annotationValueDescriptor.setType(resolveType(solveAnnotation(annotation).getQualifiedName()));
             annotationValueDescriptor.setName(annotation.getNameAsString());
             annotatedDescriptor.getAnnotatedBy().add(annotationValueDescriptor);
             return annotationValueDescriptor;
         } else {
             AnnotationValueDescriptor annotationValueDescriptor = scannerContext.getStore().create(AnnotationValueDescriptor.class);
-            annotationValueDescriptor.setType(resolveType(resolveAnnotation(annotation).getQualifiedName()));
+            annotationValueDescriptor.setType(resolveType(solveAnnotation(annotation).getQualifiedName()));
             annotationValueDescriptor.setName(annotation.getNameAsString());
             return annotationValueDescriptor;
         }
@@ -235,8 +231,14 @@ public class TypeResolver {
         }
     }
 
-    private ResolvedTypeDeclaration resolveAnnotation(AnnotationExpr annotationExpr) {
+    private ResolvedTypeDeclaration solveAnnotation(AnnotationExpr annotationExpr) {
         Context context = JavaParserFactory.getContext(annotationExpr, javaTypeSolver);
         return context.solveType(annotationExpr.getNameAsString(), javaTypeSolver).getCorrespondingDeclaration();
+    }
+
+    // TODO remove this method in next version of java symbol solver
+    private ResolvedFieldDeclaration solveFieldAccess(FieldAccessExpr fieldAccessExpr) {
+
+        return Issue300.solve(fieldAccessExpr, JavaParserFacade.get(javaTypeSolver)).getCorrespondingDeclaration();
     }
 }
