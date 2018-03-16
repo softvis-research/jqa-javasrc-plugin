@@ -77,7 +77,10 @@ public class TypeResolver {
 
     public TypeDescriptor resolveDependency(String dependencyFQN, TypeDescriptor dependent) {
         TypeDescriptor dependency = resolveType(dependencyFQN);
-        if (dependent != null) {
+        if (dependent != null && dependency.getFullQualifiedName().equals(dependent.getFullQualifiedName())) {
+            // avoid self dependency
+            return dependency;
+        } else if (dependent != null) {
             if (dependencies.containsKey(dependent)) {
                 // dependent type exists
                 Map<TypeDescriptor, Integer> tmpDependencies = dependencies.get(dependent);
