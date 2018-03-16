@@ -20,17 +20,10 @@
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.EnumValueDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.PropertyFileDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.ManifestFileDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.ManifestSectionDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.ManifestEntryDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.ServiceLoaderDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.JarArchiveDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaClassesDirectoryDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.VariableDescriptor</class>
         <!-- added by DM -->
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.SourceDescriptor</class>
+        <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor</class>
     </model>

@@ -8,7 +8,7 @@ import com.buschmais.xo.api.annotation.ResultOf.Parameter;
 import com.buschmais.xo.neo4j.api.annotation.Cypher;
 import com.buschmais.xo.neo4j.api.annotation.Relation;
 
-public interface JavaSourceFileDescriptor extends JavaDescriptor, SourceDescriptor, FileDescriptor {
+public interface JavaSourceFileDescriptor extends JavaDescriptor, FileDescriptor {
 
     @Relation("CONTAINS")
     List<TypeDescriptor> getTypes();

@@ -8,7 +8,7 @@ import com.buschmais.xo.neo4j.api.annotation.Property;
  * Represents a primitive value.
  */
 @Label("Primitive")
-public interface PrimitiveValueDescriptor extends TypedDescriptor, ValueDescriptor<Object> {
+public interface PrimitiveValueDescriptor extends JavaDescriptor, TypedDescriptor, ValueDescriptor<Object> {
 
     @Property("value")
     @Override
