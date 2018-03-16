@@ -25,10 +25,7 @@ public class JavaSourceDirectoryScannerPlugin extends AbstractDirectoryScannerPl
     @Override
     protected void enterContainer(File container, JavaSourceDirectoryDescriptor containerDescriptor, ScannerContext scannerContext) throws IOException {
         if (scannerContext.peekOrDefault(TypeResolver.class, null) == null) {
-            // TODO find a solution for javasymbolsolver issue:
-            // https://github.com/javaparser/javasymbolsolver/issues/353
-            final String path = "src/test/java";
-            scannerContext.push(TypeResolver.class, new TypeResolver(path, scannerContext));
+            scannerContext.push(TypeResolver.class, new TypeResolver(containerDescriptor.getFileName(), scannerContext));
         }
     }
 
