@@ -160,8 +160,8 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.javaparser</groupId>
-			<artifactId>java-symbol-solver-core</artifactId>
-			<version>0.6.3</version>
+			<artifactId>javaparser-symbol-solver-core</artifactId>
+			<version>3.5.17</version>
 		</dependency>
 	</dependencies>
 </project>
