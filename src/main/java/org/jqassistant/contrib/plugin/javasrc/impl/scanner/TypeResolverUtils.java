@@ -117,6 +117,11 @@ public class TypeResolverUtils {
         return signature;
     }
 
+    public static String getFieldSignature(ResolvedType resolvedType, String fieldName) {
+        final String signature = TypeResolverUtils.getQualifiedName(resolvedType) + " " + fieldName;
+        return signature;
+    }
+
     public static String getFieldSignature(ResolvedEnumConstantDeclaration resolvedEnumConstantDeclaration) {
         final String signature = TypeResolverUtils.getQualifiedName(resolvedEnumConstantDeclaration.getType()) + " "
                 + resolvedEnumConstantDeclaration.getName();

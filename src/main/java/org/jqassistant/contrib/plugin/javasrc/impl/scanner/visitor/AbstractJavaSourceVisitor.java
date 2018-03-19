@@ -6,6 +6,7 @@ import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
@@ -90,9 +91,12 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             }
             return arrayValueDescriptor;
         } else if (value.isFieldAccessExpr()) {
+            FieldAccessExpr fieldAccessExpr = value.asFieldAccessExpr();
             EnumValueDescriptor enumValueDescriptor = typeResolver.getValueDescriptor(EnumValueDescriptor.class);
             enumValueDescriptor.setName(name);
-            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(value.asFieldAccessExpr(), null);
+            TypeDescriptor parent = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(fieldAccessExpr.calculateResolvedType()), typeDescriptor);
+            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(
+                    TypeResolverUtils.getFieldSignature(fieldAccessExpr.calculateResolvedType(), fieldAccessExpr.getNameAsString()), parent);
             enumValueDescriptor.setValue(fieldDescriptor);
             return enumValueDescriptor;
         } else if (value.isSingleMemberAnnotationExpr()) {

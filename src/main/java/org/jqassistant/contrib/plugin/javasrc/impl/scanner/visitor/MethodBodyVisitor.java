@@ -72,7 +72,12 @@ public class MethodBodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
         Expression target = assignExpr.getTarget();
         if (target.isFieldAccessExpr()) {
             // this.FIELD = VALUE;
-            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(target.asFieldAccessExpr(), methodDescriptor.getDeclaringType());
+            FieldAccessExpr fieldAccessExpr = target.asFieldAccessExpr();
+            // TODO methodDescriptor.getDeclaringType()? might be better to get
+            // the parent of fieldAccessExpr?
+            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(
+                    TypeResolverUtils.getFieldSignature(fieldAccessExpr.calculateResolvedType(), fieldAccessExpr.getNameAsString()),
+                    methodDescriptor.getDeclaringType());
             assignExpr.getBegin().ifPresent((position) -> typeResolver.addWrites(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
         } else if (target.isNameExpr()) {
             ResolvedValueDeclaration resolvedValueDeclaration = target.asNameExpr().resolve();
@@ -88,7 +93,12 @@ public class MethodBodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
     private void setReads(Expression expression, MethodDescriptor methodDescriptor) {
         if (expression instanceof FieldAccessExpr) {
             // this.FIELD
-            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor((FieldAccessExpr) expression, methodDescriptor.getDeclaringType());
+            FieldAccessExpr fieldAccessExpr = expression.asFieldAccessExpr();
+            // TODO methodDescriptor.getDeclaringType()? might be better to get
+            // the parent of fieldAccessExpr?
+            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(
+                    TypeResolverUtils.getFieldSignature(fieldAccessExpr.calculateResolvedType(), fieldAccessExpr.getNameAsString()),
+                    methodDescriptor.getDeclaringType());
             expression.getBegin().ifPresent((position) -> typeResolver.addReads(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
         } else if (expression instanceof NameExpr) {
             ResolvedValueDeclaration resolvedValueDeclaration = ((NameExpr) expression).resolve();

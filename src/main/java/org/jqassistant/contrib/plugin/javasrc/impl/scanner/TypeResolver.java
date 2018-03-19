@@ -12,12 +12,9 @@ import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.FieldAccessExpr;
-import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.core.resolution.Context;
-import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFactory;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
@@ -129,18 +126,6 @@ public class TypeResolver {
         return methodDescriptor;
     }
 
-    // TODO remove this method in next version of java symbol solver
-    public FieldDescriptor getFieldDescriptor(FieldAccessExpr fieldAccessExpr, TypeDescriptor parent) {
-        if (parent == null) {
-            ResolvedFieldDeclaration resolvedFieldDeclaration = solveFieldAccess(fieldAccessExpr);
-            TypeDescriptor fieldType = resolveType(resolvedFieldDeclaration.getType().asReferenceType().getQualifiedName());
-            return getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedFieldDeclaration), fieldType);
-        } else {
-
-            return getFieldDescriptor(TypeResolverUtils.getFieldSignature(solveFieldAccess(fieldAccessExpr)), parent);
-        }
-    }
-
     public FieldDescriptor getFieldDescriptor(String signature, TypeDescriptor parent) {
         FieldDescriptor fieldDescriptor = null;
         for (Iterator iterator = parent.getDeclaredFields().iterator(); iterator.hasNext();) {
@@ -237,10 +222,5 @@ public class TypeResolver {
     private ResolvedTypeDeclaration solveAnnotation(AnnotationExpr annotationExpr) {
         Context context = JavaParserFactory.getContext(annotationExpr, javaTypeSolver);
         return context.solveType(annotationExpr.getNameAsString(), javaTypeSolver).getCorrespondingDeclaration();
-    }
-
-    // TODO remove this method in next version of java symbol solver
-    private ResolvedFieldDeclaration solveFieldAccess(FieldAccessExpr fieldAccessExpr) {
-        return Issue300.solve(fieldAccessExpr, JavaParserFacade.get(javaTypeSolver)).getCorrespondingDeclaration();
     }
 }
