@@ -27,6 +27,9 @@
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor</class>
     </model>
+    <scope>
+        <class>org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope</class>
+    </scope>
     <scanner>
         <!-- added by DM -->
         <class>org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaSourceDirectoryScannerPlugin</class>
