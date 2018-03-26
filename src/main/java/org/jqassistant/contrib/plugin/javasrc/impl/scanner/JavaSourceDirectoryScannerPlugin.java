@@ -14,7 +14,7 @@ public class JavaSourceDirectoryScannerPlugin extends AbstractDirectoryScannerPl
 
     @Override
     protected Scope getRequiredScope() {
-        return JavaScope.CLASSPATH;
+        return JavaScope.SRC;
     }
 
     @Override

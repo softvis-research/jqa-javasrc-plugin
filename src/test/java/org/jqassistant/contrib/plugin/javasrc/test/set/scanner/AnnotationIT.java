@@ -54,7 +54,7 @@ public class AnnotationIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/annotation/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query("MATCH (t:Type:Class)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:OF_TYPE]->(at:Type:Annotation) RETURN t, a, at");
         assertThat(testResult.getRows().size(), equalTo(1));
         Map<String, Object> row = testResult.getRows().get(0);
@@ -91,7 +91,7 @@ public class AnnotationIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/annotation/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query("MATCH (m:Method)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:OF_TYPE]->(at:Type:Annotation) RETURN m, a, at");
         assertThat(testResult.getRows().size(), equalTo(1));
         Map<String, Object> row = testResult.getRows().get(0);
@@ -119,7 +119,7 @@ public class AnnotationIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/annotation/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query(
                 "MATCH (m:Method)-[:HAS]->(p:Parameter)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:OF_TYPE]->(at:Type:Annotation) WHERE m.name = 'annotatedMethod' RETURN m, a, at");
         assertThat(testResult.getRows().size(), equalTo(1));
@@ -149,7 +149,7 @@ public class AnnotationIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/annotation/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query(
                 "MATCH (c:Method:Constructor)-[:HAS]->(p:Parameter)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:OF_TYPE]->(at:Type:Annotation) RETURN c, a, at");
         assertThat(testResult.getRows().size(), equalTo(1));
@@ -177,7 +177,7 @@ public class AnnotationIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/annotation/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query("MATCH (f:Field)-[:ANNOTATED_BY]->(a:Java:Value:Annotation)-[:OF_TYPE]->(at:Type:Annotation) RETURN f, a, at");
         assertThat(testResult.getRows().size(), equalTo(1));
         Map<String, Object> row = testResult.getRows().get(0);
@@ -204,7 +204,7 @@ public class AnnotationIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/annotation/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         assertThat(query("MATCH (t:Type:Annotation) RETURN t").getColumn("t"), hasItem(typeDescriptor(AnnotationWithDefaultValue.class)));
         assertThat(query("MATCH (t:Type:Annotation)-[:DECLARES]->(m:Method)-[:HAS_DEFAULT]->(v:Value) WHERE m.name='classValue' RETURN v").getColumn("v"),
                 hasItem(valueDescriptor(null, typeDescriptor(Number.class))));
@@ -233,7 +233,7 @@ public class AnnotationIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/annotation/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query("MATCH (c:Constructor)-[:HAS]->(:Parameter)-[:ANNOTATED_BY]->()-[:OF_TYPE]->(Type:Annotation) RETURN c");
         assertThat(testResult.getRows().size(), equalTo(1));
         assertThat(testResult.getColumn("c"), hasItem(constructorDescriptor(AnnotatedType.GenericInnerAnnotatedType.class, AnnotatedType.class, Object.class)));

@@ -34,7 +34,7 @@ public class VisibilityIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/visibility/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         assertThat(query("MATCH (t:Type) WHERE t.visibility='public' RETURN t").getColumn("t"), hasItem(typeDescriptor(Visibility.class)));
         assertThat(query("MATCH (f:Field) WHERE f.visibility='public' RETURN f").getColumn("f"), hasItem(fieldDescriptor(Visibility.class, "publicField")));
         assertThat(query("MATCH (m:Method) WHERE m.visibility='public' RETURN m").getColumn("m"), hasItem(methodDescriptor(Visibility.class, "publicMethod")));
@@ -47,7 +47,7 @@ public class VisibilityIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/visibility/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         assertThat(query("MATCH (f:Field) WHERE f.visibility='private' RETURN f").getColumn("f"), hasItem(fieldDescriptor(Visibility.class, "privateField")));
         assertThat(query("MATCH (m:Method) WHERE m.visibility='private' RETURN m").getColumn("m"),
                 hasItem(methodDescriptor(Visibility.class, "privateMethod")));
@@ -60,7 +60,7 @@ public class VisibilityIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/visibility/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         assertThat(query("MATCH (f:Field) WHERE f.visibility='protected' RETURN f").getColumn("f"),
                 hasItem(fieldDescriptor(Visibility.class, "protectedField")));
         assertThat(query("MATCH (m:Method) WHERE m.visibility='protected' RETURN m").getColumn("m"),
@@ -74,7 +74,7 @@ public class VisibilityIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/visibility/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         assertThat(query("MATCH (f:Field) WHERE f.visibility='default' RETURN f").getColumn("f"), hasItem(fieldDescriptor(Visibility.class, "defaultField")));
         assertThat(query("MATCH (m:Method) WHERE m.visibility='default' RETURN m").getColumn("m"),
                 hasItem(methodDescriptor(Visibility.class, "defaultMethod")));
@@ -87,7 +87,7 @@ public class VisibilityIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/visibility/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         for (FileDescriptor fileDescriptor : javaSourceDirectoryDescriptor.getContains()) {
             for (TypeDescriptor typeDescriptor : ((JavaSourceFileDescriptor) fileDescriptor).getTypes()) {
                 assertTrue(((ClassTypeDescriptor) typeDescriptor).isFinal());

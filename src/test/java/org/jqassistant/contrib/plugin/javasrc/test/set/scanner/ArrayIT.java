@@ -31,7 +31,7 @@ public class ArrayIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/array/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("className", Array.class.getName());
         TestResult testResult = query("MATCH (t:Type)-[:DECLARES]->(f:Field) WHERE t.fqn={className} RETURN f", parameters);
@@ -45,7 +45,7 @@ public class ArrayIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/array/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("className", Array.class.getName());
         TestResult testResult = query("MATCH (t:Type)-[:DECLARES]->(m:Method) WHERE t.fqn={className} AND m.name='setStringArray' RETURN m", parameters);
@@ -59,7 +59,7 @@ public class ArrayIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/array/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("className", Array.class.getName());
         TestResult testResult = query("MATCH (t:Type)-[:DECLARES]->(m:Method) WHERE t.fqn={className} AND m.name='getStringArray' RETURN m", parameters);

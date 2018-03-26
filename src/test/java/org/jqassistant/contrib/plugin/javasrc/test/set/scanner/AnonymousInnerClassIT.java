@@ -9,8 +9,10 @@ import java.io.File;
 import java.util.Map;
 
 import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
+import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.innerclass.AnonymousInnerClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -36,6 +38,8 @@ public class AnonymousInnerClassIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/innerclass/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, FILE_DIRECTORY_PATH, JavaScope.SRC);
+
         TestResult testResult = query(
                 "MATCH (outerClass:Type)-[:DECLARES]->(innerClass:Type)<-[:DECLARES]-(method:Method)<-[:DECLARES]-(outerClass) RETURN outerClass, innerClass, method");
         assertThat(testResult.getRows().size(), equalTo(1));

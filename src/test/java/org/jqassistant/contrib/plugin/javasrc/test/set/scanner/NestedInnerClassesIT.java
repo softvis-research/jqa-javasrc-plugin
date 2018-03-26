@@ -32,7 +32,7 @@ public class NestedInnerClassesIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/innerclass/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         List<Map<String, Object>> rows = query("MATCH (t1:Type)-[:DECLARES]->(t2:Type)-[:DECLARES]->(t3:Type) RETURN t1, t2.name, t3.name").getRows();
         assertThat(rows.size(), equalTo(1));
         Map<String, Object> row = rows.get(0);
