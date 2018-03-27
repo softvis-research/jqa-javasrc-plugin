@@ -6,7 +6,6 @@ import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolver;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
 
 /**
@@ -18,8 +17,8 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
  */
 public class AnnotationVisitor extends AbstractJavaSourceVisitor<AnnotatedDescriptor> {
 
-    public AnnotationVisitor(TypeResolver typeResolver) {
-        super(typeResolver);
+    public AnnotationVisitor(VisitorHelper visitorHelper) {
+        super(visitorHelper);
     }
 
     @Override
@@ -35,7 +34,7 @@ public class AnnotationVisitor extends AbstractJavaSourceVisitor<AnnotatedDescri
     }
 
     private AnnotationValueDescriptor createAnnotation(AnnotationExpr annotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        return typeResolver.getAnnotationValueDescriptor(annotationExpr, annotatedDescriptor);
+        return visitorHelper.getAnnotationValueDescriptor(annotationExpr, annotatedDescriptor);
 
     }
 

@@ -34,7 +34,6 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolver;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
 
 /**
@@ -46,8 +45,8 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
  */
 public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
 
-    public MethodVisitor(TypeResolver typeResolver) {
-        super(typeResolver);
+    public MethodVisitor(VisitorHelper visitorHelper) {
+        super(visitorHelper);
     }
 
     @Override
@@ -94,13 +93,13 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private MethodDescriptor createMethod(Resolvable<?> resolvable, TypeDescriptor parent) {
         Object method = resolvable.resolve();
         if (method instanceof ResolvedMethodDeclaration) {
-            return typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedMethodDeclaration) method), parent);
+            return visitorHelper.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedMethodDeclaration) method), parent);
         } else if (method instanceof ResolvedConstructorDeclaration) {
-            return typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedConstructorDeclaration) method), parent);
+            return visitorHelper.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedConstructorDeclaration) method), parent);
         } else if (method instanceof ResolvedAnnotationMemberDeclaration) {
             // TODO ResolvedAnnotationMemberDeclaration.getType throws
             // java.lang.UnsupportedOperationException
-            MethodDescriptor methodDescriptor = typeResolver.getMethodDescriptor(
+            MethodDescriptor methodDescriptor = visitorHelper.getMethodDescriptor(
                     TypeResolverUtils.getAnnotationMemberSignature(((AnnotationMemberDeclaration) resolvable).getType().resolve()), parent);
             // name must be overwritten here as it is not in the signature
             methodDescriptor.setName(((AnnotationMemberDeclaration) resolvable).getNameAsString());
@@ -114,9 +113,9 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         List<Parameter> parameters = ((CallableDeclaration<?>) callableDeclaration).getParameters();
         for (int i = 0; i < parameters.size(); i++) {
             ResolvedParameterDeclaration resolvedParameterDeclaration = parameters.get(i).resolve();
-            TypeDescriptor parameterTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()),
+            TypeDescriptor parameterTypeDescriptor = visitorHelper.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()),
                     methodDescriptor.getDeclaringType());
-            ParameterDescriptor parameterDescriptor = typeResolver.getParameterDescriptor(methodDescriptor, i);
+            ParameterDescriptor parameterDescriptor = visitorHelper.getParameterDescriptor(methodDescriptor, i);
             parameterDescriptor.setType(parameterTypeDescriptor);
             if (resolvedParameterDeclaration.getType().isReferenceType()) {
                 // TODO are there other types?
@@ -129,7 +128,7 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void setReturnType(MethodDeclaration methodDeclaration, MethodDescriptor methodDescriptor) {
         ResolvedType resolvedReturnType = methodDeclaration.resolve().getReturnType();
         methodDescriptor
-                .setReturns(typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedReturnType), methodDescriptor.getDeclaringType()));
+                .setReturns(visitorHelper.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedReturnType), methodDescriptor.getDeclaringType()));
         if (resolvedReturnType.isReferenceType()) {
             // TODO are there other types?
             setTypeParameterDependency(resolvedReturnType.asReferenceType(), methodDescriptor.getDeclaringType());
@@ -140,7 +139,7 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         ResolvedMethodLikeDeclaration resolvedMethodLikeDeclaration = (ResolvedMethodLikeDeclaration) resolvable.resolve();
         for (ResolvedType exception : resolvedMethodLikeDeclaration.getSpecifiedExceptions()) {
             methodDescriptor.getDeclaredThrowables()
-                    .add(typeResolver.resolveDependency(exception.asReferenceType().getQualifiedName(), methodDescriptor.getDeclaringType()));
+                    .add(visitorHelper.resolveDependency(exception.asReferenceType().getQualifiedName(), methodDescriptor.getDeclaringType()));
         }
     }
 
@@ -162,12 +161,12 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void setInvokes(NodeWithBlockStmt<?> nodeWithOptionalBlockStmt, MethodDescriptor methodDescriptor) {
         BlockStmt body = nodeWithOptionalBlockStmt.getBody();
         if (body != null) {
-            body.accept(new MethodBodyVisitor(typeResolver), methodDescriptor);
+            body.accept(new MethodBodyVisitor(visitorHelper), methodDescriptor);
         }
     }
 
     private void setInvokes(NodeWithOptionalBlockStmt<?> nodeWithOptionalBlockStmt, MethodDescriptor methodDescriptor) {
-        nodeWithOptionalBlockStmt.getBody().ifPresent(body -> body.accept(new MethodBodyVisitor(typeResolver), methodDescriptor));
+        nodeWithOptionalBlockStmt.getBody().ifPresent(body -> body.accept(new MethodBodyVisitor(visitorHelper), methodDescriptor));
     }
 
     private void setAnnotationMemberDefaultValue(AnnotationMemberDeclaration annotationMemberDeclaration, MethodDescriptor methodDescriptor) {

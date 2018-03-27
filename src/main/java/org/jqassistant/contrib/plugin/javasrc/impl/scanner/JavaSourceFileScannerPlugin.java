@@ -15,10 +15,10 @@ import com.github.javaparser.ast.CompilationUnit;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.TypeVisitor;
+import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.VisitorHelper;
 
 @Requires(FileDescriptor.class)
 public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResource, JavaSourceFileDescriptor> {
-    private TypeResolver typeResolver;
 
     @Override
     public boolean accepts(FileResource item, String path, Scope scope) throws IOException {
@@ -27,15 +27,15 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
 
     @Override
     public JavaSourceFileDescriptor scan(FileResource item, String path, Scope scope, Scanner scanner) throws IOException {
-        ScannerContext context = scanner.getContext();
-        typeResolver = context.peek(TypeResolver.class);
-        FileDescriptor fileDescriptor = context.getCurrentDescriptor();
-        JavaSourceFileDescriptor javaSourceFileDescriptor = context.getStore().addDescriptorType(fileDescriptor, JavaSourceFileDescriptor.class);
+        ScannerContext scannerContext = scanner.getContext();
+        VisitorHelper visitorHelper = new VisitorHelper(scannerContext);
+        FileDescriptor fileDescriptor = scannerContext.getCurrentDescriptor();
+        JavaSourceFileDescriptor javaSourceFileDescriptor = scannerContext.getStore().addDescriptorType(fileDescriptor, JavaSourceFileDescriptor.class);
         try (InputStream in = item.createStream()) {
             CompilationUnit cu = JavaParser.parse(in);
-            cu.accept(new TypeVisitor(typeResolver), javaSourceFileDescriptor);
+            cu.accept(new TypeVisitor(visitorHelper), javaSourceFileDescriptor);
         }
-        typeResolver.addDependencies();
+        visitorHelper.addDependencies();
         return javaSourceFileDescriptor;
     }
 }

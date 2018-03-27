@@ -28,15 +28,14 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.EnumValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolver;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
 
 public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends VoidVisitorAdapter<D> {
 
-    protected TypeResolver typeResolver;
+    protected VisitorHelper visitorHelper;
 
-    public AbstractJavaSourceVisitor(TypeResolver typeResolver) {
-        this.typeResolver = typeResolver;
+    public AbstractJavaSourceVisitor(VisitorHelper visitorHelper) {
+        this.visitorHelper = visitorHelper;
     }
 
     protected void setVisibility(Node nodeWithModifiers, Descriptor descriptor) {
@@ -59,30 +58,30 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
 
     protected void setAnnotations(Node nodeWithAnnotations, AnnotatedDescriptor annotatedDescriptor) {
         for (AnnotationExpr annotation : ((NodeWithAnnotations<?>) nodeWithAnnotations).getAnnotations()) {
-            annotation.accept(new AnnotationVisitor(typeResolver), annotatedDescriptor);
+            annotation.accept(new AnnotationVisitor(visitorHelper), annotatedDescriptor);
         }
     }
 
     protected void setTypeParameterDependency(ResolvedReferenceType type, TypeDescriptor typeDescriptor) {
         for (Pair<ResolvedTypeParameterDeclaration, ResolvedType> typeParamter : type.getTypeParametersMap()) {
-            typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(typeParamter.b), typeDescriptor);
+            visitorHelper.resolveDependency(TypeResolverUtils.getQualifiedName(typeParamter.b), typeDescriptor);
         }
     }
 
     protected ValueDescriptor<?> createValueDescriptor(String name, Expression value, TypeDescriptor typeDescriptor) {
         if (value.isLiteralExpr()) {
-            PrimitiveValueDescriptor primitiveValueDescriptor = typeResolver.getValueDescriptor(PrimitiveValueDescriptor.class);
+            PrimitiveValueDescriptor primitiveValueDescriptor = visitorHelper.getValueDescriptor(PrimitiveValueDescriptor.class);
             primitiveValueDescriptor.setName(name);
             primitiveValueDescriptor.setValue(TypeResolverUtils.getLiteralExpressionValue(value));
             return primitiveValueDescriptor;
         } else if (value.isClassExpr()) {
-            ClassValueDescriptor classValueDescriptor = typeResolver.getValueDescriptor(ClassValueDescriptor.class);
+            ClassValueDescriptor classValueDescriptor = visitorHelper.getValueDescriptor(ClassValueDescriptor.class);
             classValueDescriptor.setName(name);
             classValueDescriptor
-                    .setValue(typeResolver.resolveDependency(value.asClassExpr().getType().resolve().asReferenceType().getQualifiedName(), typeDescriptor));
+                    .setValue(visitorHelper.resolveDependency(value.asClassExpr().getType().resolve().asReferenceType().getQualifiedName(), typeDescriptor));
             return classValueDescriptor;
         } else if (value.isArrayInitializerExpr()) {
-            ArrayValueDescriptor arrayValueDescriptor = typeResolver.getValueDescriptor(ArrayValueDescriptor.class);
+            ArrayValueDescriptor arrayValueDescriptor = visitorHelper.getValueDescriptor(ArrayValueDescriptor.class);
             arrayValueDescriptor.setName(name);
             int i = 0;
             for (Expression arrayValue : value.asArrayInitializerExpr().getValues()) {
@@ -92,23 +91,24 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             return arrayValueDescriptor;
         } else if (value.isFieldAccessExpr()) {
             FieldAccessExpr fieldAccessExpr = value.asFieldAccessExpr();
-            EnumValueDescriptor enumValueDescriptor = typeResolver.getValueDescriptor(EnumValueDescriptor.class);
+            EnumValueDescriptor enumValueDescriptor = visitorHelper.getValueDescriptor(EnumValueDescriptor.class);
             enumValueDescriptor.setName(name);
-            TypeDescriptor parent = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(fieldAccessExpr.calculateResolvedType()), typeDescriptor);
-            FieldDescriptor fieldDescriptor = typeResolver.getFieldDescriptor(
+            TypeDescriptor parent = visitorHelper.resolveDependency(TypeResolverUtils.getQualifiedName(fieldAccessExpr.calculateResolvedType()),
+                    typeDescriptor);
+            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(
                     TypeResolverUtils.getFieldSignature(fieldAccessExpr.calculateResolvedType(), fieldAccessExpr.getNameAsString()), parent);
             enumValueDescriptor.setValue(fieldDescriptor);
             return enumValueDescriptor;
         } else if (value.isSingleMemberAnnotationExpr()) {
             SingleMemberAnnotationExpr singleMemberAnnotationExpr = value.asSingleMemberAnnotationExpr();
-            AnnotationValueDescriptor annotationValueDescriptor = typeResolver.getAnnotationValueDescriptor(singleMemberAnnotationExpr, null);
+            AnnotationValueDescriptor annotationValueDescriptor = visitorHelper.getAnnotationValueDescriptor(singleMemberAnnotationExpr, null);
             annotationValueDescriptor.setName(name);
             annotationValueDescriptor.getValue()
                     .add(createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME, singleMemberAnnotationExpr.getMemberValue(), typeDescriptor));
             return annotationValueDescriptor;
         } else if (value.isNameExpr()) {
             NameExpr nameExpr = value.asNameExpr();
-            PrimitiveValueDescriptor primitiveValueDescriptor = typeResolver.getValueDescriptor(PrimitiveValueDescriptor.class);
+            PrimitiveValueDescriptor primitiveValueDescriptor = visitorHelper.getValueDescriptor(PrimitiveValueDescriptor.class);
             primitiveValueDescriptor.setName(name);
             primitiveValueDescriptor.setValue(value.toString());
             return primitiveValueDescriptor;

@@ -2,12 +2,10 @@ package org.jqassistant.contrib.plugin.javasrc.impl.scanner;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
-import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.expr.AnnotationExpr;
@@ -19,19 +17,9 @@ import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
-import org.apache.commons.lang.StringUtils;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.ConstructorDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.InvokesDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.ReadsDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDependsOnDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.WritesDescriptor;
 
 /**
  * The type resolver has two main tasks. First, it holds an instance of the java
@@ -100,95 +88,7 @@ public class TypeResolver {
         return dependency;
     }
 
-    public MethodDescriptor getMethodDescriptor(String signature, TypeDescriptor parent) {
-        MethodDescriptor methodDescriptor = null;
-        for (Iterator iterator = parent.getDeclaredFields().iterator(); iterator.hasNext();) {
-            Object member = iterator.next();
-            if (member instanceof MethodDescriptor) {
-                MethodDescriptor existingMethodDescriptor = (MethodDescriptor) member;
-                if (existingMethodDescriptor.getSignature().equals(signature)) {
-                    methodDescriptor = existingMethodDescriptor;
-                }
-            }
-        }
-        if (methodDescriptor != null) {
-            return methodDescriptor;
-        }
-        if (signature.startsWith(TypeResolverUtils.CONSTRUCTOR_SIGNATURE)) {
-            methodDescriptor = scannerContext.getStore().create(ConstructorDescriptor.class);
-            methodDescriptor.setName(TypeResolverUtils.CONSTRUCTOR_NAME);
-        } else {
-            methodDescriptor = scannerContext.getStore().create(MethodDescriptor.class);
-            methodDescriptor.setName(StringUtils.substringBetween(signature, " ", "("));
-        }
-        methodDescriptor.setSignature(signature);
-        parent.getDeclaredMethods().add(methodDescriptor);
-        return methodDescriptor;
-    }
-
-    public FieldDescriptor getFieldDescriptor(String signature, TypeDescriptor parent) {
-        FieldDescriptor fieldDescriptor = null;
-        for (Iterator iterator = parent.getDeclaredFields().iterator(); iterator.hasNext();) {
-            Object member = iterator.next();
-            if (member instanceof FieldDescriptor) {
-                FieldDescriptor existingFieldDescriptor = (FieldDescriptor) member;
-                if (existingFieldDescriptor.getSignature().equals(signature)) {
-                    fieldDescriptor = existingFieldDescriptor;
-                }
-            }
-        }
-        if (fieldDescriptor != null) {
-            return fieldDescriptor;
-        }
-        fieldDescriptor = scannerContext.getStore().create(FieldDescriptor.class);
-        fieldDescriptor.setName(signature.substring(signature.indexOf(" ") + 1));
-        fieldDescriptor.setSignature(signature);
-        parent.getDeclaredFields().add(fieldDescriptor);
-        return fieldDescriptor;
-    }
-
-    public ParameterDescriptor getParameterDescriptor(MethodDescriptor methodDescriptor, int index) {
-        ParameterDescriptor parameterDescriptor = scannerContext.getStore().create(ParameterDescriptor.class);
-        parameterDescriptor.setIndex(index);
-        methodDescriptor.getParameters().add(parameterDescriptor);
-        return parameterDescriptor;
-    }
-
-    public <T extends ValueDescriptor<?>> T getValueDescriptor(Class<T> valueDescriptorType) {
-        return scannerContext.getStore().create(valueDescriptorType);
-    }
-
-    public AnnotationValueDescriptor getAnnotationValueDescriptor(AnnotationExpr annotation, AnnotatedDescriptor annotatedDescriptor) {
-        if (annotatedDescriptor != null) {
-            AnnotationValueDescriptor annotationValueDescriptor = scannerContext.getStore().create(AnnotationValueDescriptor.class);
-            annotationValueDescriptor.setType(resolveType(solveAnnotation(annotation).getQualifiedName()));
-            annotationValueDescriptor.setName(annotation.getNameAsString());
-            annotatedDescriptor.getAnnotatedBy().add(annotationValueDescriptor);
-            return annotationValueDescriptor;
-        } else {
-            AnnotationValueDescriptor annotationValueDescriptor = scannerContext.getStore().create(AnnotationValueDescriptor.class);
-            annotationValueDescriptor.setType(resolveType(solveAnnotation(annotation).getQualifiedName()));
-            annotationValueDescriptor.setName(annotation.getNameAsString());
-            return annotationValueDescriptor;
-        }
-    }
-
-    public void addInvokes(MethodDescriptor methodDescriptor, final Integer lineNumber, MethodDescriptor invokedMethodDescriptor) {
-        InvokesDescriptor invokesDescriptor = scannerContext.getStore().create(methodDescriptor, InvokesDescriptor.class, invokedMethodDescriptor);
-        invokesDescriptor.setLineNumber(lineNumber);
-    }
-
-    public void addReads(MethodDescriptor methodDescriptor, final Integer lineNumber, FieldDescriptor fieldDescriptor) {
-        ReadsDescriptor readsDescriptor = scannerContext.getStore().create(methodDescriptor, ReadsDescriptor.class, fieldDescriptor);
-        readsDescriptor.setLineNumber(lineNumber);
-    }
-
-    public void addWrites(MethodDescriptor methodDescriptor, final Integer lineNumber, FieldDescriptor fieldDescriptor) {
-        WritesDescriptor writesDescriptor = scannerContext.getStore().create(methodDescriptor, WritesDescriptor.class, fieldDescriptor);
-        writesDescriptor.setLineNumber(lineNumber);
-    }
-
-    void addDependencies() {
+    public void addDependencies() {
         for (Entry<TypeDescriptor, Map<TypeDescriptor, Integer>> dependentEntry : dependencies.entrySet()) {
             for (Map.Entry<TypeDescriptor, Integer> dependencyEntry : dependentEntry.getValue().entrySet()) {
                 TypeDescriptor dependency = dependencyEntry.getKey();
@@ -219,7 +119,7 @@ public class TypeResolver {
         }
     }
 
-    private ResolvedTypeDeclaration solveAnnotation(AnnotationExpr annotationExpr) {
+    public ResolvedTypeDeclaration solveAnnotation(AnnotationExpr annotationExpr) {
         Context context = JavaParserFactory.getContext(annotationExpr, javaTypeSolver);
         return context.solveType(annotationExpr.getNameAsString(), javaTypeSolver).getCorrespondingDeclaration();
     }

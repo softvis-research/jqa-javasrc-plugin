@@ -10,7 +10,6 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescr
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 
 public class JavaSourceDirectoryScannerPlugin extends AbstractDirectoryScannerPlugin<JavaSourceDirectoryDescriptor> {
-    // private static Resolver resolver = null;
 
     @Override
     protected Scope getRequiredScope() {
