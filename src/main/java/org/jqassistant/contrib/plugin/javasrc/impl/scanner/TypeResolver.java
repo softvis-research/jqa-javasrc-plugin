@@ -10,7 +10,6 @@ import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
@@ -43,7 +42,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.WritesDescriptor;
  *
  */
 public class TypeResolver {
-    private TypeSolver javaTypeSolver;
+    public TypeSolver javaTypeSolver;
     private ScannerContext scannerContext;
     private Map<String, TypeDescriptor> containedTypes = new HashMap<>();
     private Map<String, TypeDescriptor> requiredTypes = new HashMap<>();
@@ -51,7 +50,8 @@ public class TypeResolver {
 
     public TypeResolver(String srcDir, ScannerContext scannerContext) {
         this.javaTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(), new JavaParserTypeSolver(new File(srcDir)));
-        JavaParser.setStaticConfiguration(new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver(javaTypeSolver)));
+        JavaParser.getStaticConfiguration().setSymbolResolver(new JavaSymbolSolver(javaTypeSolver));
+
         this.containedTypes = new HashMap<>();
         this.requiredTypes = new HashMap<>();
         this.scannerContext = scannerContext;
