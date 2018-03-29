@@ -8,13 +8,12 @@ import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
 
 /**
  * This visitor handles parsed method invocations, field reads, and field writes
@@ -23,11 +22,10 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
  * @author Richard Müller
  *
  */
-public class MethodBodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
-    private VisitorHelper visitorHelper;
+public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescriptor> {
 
     public MethodBodyVisitor(VisitorHelper visitorHelper) {
-        this.visitorHelper = visitorHelper;
+        super(visitorHelper);
     }
 
     @Override
@@ -59,12 +57,14 @@ public class MethodBodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
     }
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = methodCallExpr.resolveInvokedMethod();
+        ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = (ResolvedMethodDeclaration) visitorHelper.solve(methodCallExpr);
         TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(resolvedInvokedMethodDeclaration.declaringType().getQualifiedName(),
                 methodDescriptor.getDeclaringType());
-        MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(TypeResolverUtils.getMethodSignature(resolvedInvokedMethodDeclaration),
-                invokedMethodParent);
-        methodCallExpr.getBegin().ifPresent((position) -> visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor));
+        MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(getMethodSignature(resolvedInvokedMethodDeclaration), invokedMethodParent);
+        methodCallExpr.getBegin().ifPresent((position) -> {
+            visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
+        });
+
     }
 
     private void setWrites(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
@@ -74,17 +74,19 @@ public class MethodBodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
             FieldAccessExpr fieldAccessExpr = target.asFieldAccessExpr();
             // TODO methodDescriptor.getDeclaringType()? might be better to get
             // the parent of fieldAccessExpr?
-            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(
-                    TypeResolverUtils.getFieldSignature(fieldAccessExpr.calculateResolvedType(), fieldAccessExpr.getNameAsString()),
-                    methodDescriptor.getDeclaringType());
-            assignExpr.getBegin().ifPresent((position) -> visitorHelper.addWrites(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
+            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getFieldSignature(fieldAccessExpr), methodDescriptor.getDeclaringType());
+            assignExpr.getBegin().ifPresent((position) -> {
+                visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
+            });
         } else if (target.isNameExpr()) {
-            ResolvedValueDeclaration resolvedValueDeclaration = target.asNameExpr().resolve();
+            ResolvedValueDeclaration resolvedValueDeclaration = (ResolvedValueDeclaration) visitorHelper.solve(target.asNameExpr());
             if (resolvedValueDeclaration.isField()) {
                 // FIELD = VALUE;
-                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedValueDeclaration.asField()),
+                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getFieldSignature(resolvedValueDeclaration.asField()),
                         methodDescriptor.getDeclaringType());
-                assignExpr.getBegin().ifPresent((position) -> visitorHelper.addWrites(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
+                assignExpr.getBegin().ifPresent((position) -> {
+                    visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
+                });
             }
         }
     }
@@ -95,19 +97,29 @@ public class MethodBodyVisitor extends VoidVisitorAdapter<MethodDescriptor> {
             FieldAccessExpr fieldAccessExpr = expression.asFieldAccessExpr();
             // TODO methodDescriptor.getDeclaringType()? might be better to get
             // the parent of fieldAccessExpr?
-            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(
-                    TypeResolverUtils.getFieldSignature(fieldAccessExpr.calculateResolvedType(), fieldAccessExpr.getNameAsString()),
-                    methodDescriptor.getDeclaringType());
-            expression.getBegin().ifPresent((position) -> visitorHelper.addReads(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
+            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getFieldSignature(fieldAccessExpr), methodDescriptor.getDeclaringType());
+            expression.getBegin().ifPresent((position) -> {
+                visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
+            });
         } else if (expression instanceof NameExpr) {
-            ResolvedValueDeclaration resolvedValueDeclaration = ((NameExpr) expression).resolve();
+            ResolvedValueDeclaration resolvedValueDeclaration = (ResolvedValueDeclaration) visitorHelper.solve((NameExpr) expression);
             if (resolvedValueDeclaration.isField()) {
                 // FIELD
-                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(TypeResolverUtils.getFieldSignature(resolvedValueDeclaration.asField()),
+                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getFieldSignature(resolvedValueDeclaration.asField()),
                         methodDescriptor.getDeclaringType());
-                expression.getBegin().ifPresent((position) -> visitorHelper.addReads(methodDescriptor, position.line, (FieldDescriptor) fieldDescriptor));
+                expression.getBegin().ifPresent((position) -> {
+                    visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
+                });
             }
         }
 
+    }
+
+    private String getMethodSignature(ResolvedMethodDeclaration resolvedMethodDeclaration) {
+        return visitorHelper.getQualifiedName(resolvedMethodDeclaration.getReturnType()) + " " + resolvedMethodDeclaration.getSignature();
+    }
+
+    private String getFieldSignature(ResolvedFieldDeclaration resolvedFieldDeclaration) {
+        return visitorHelper.getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName();
     }
 }

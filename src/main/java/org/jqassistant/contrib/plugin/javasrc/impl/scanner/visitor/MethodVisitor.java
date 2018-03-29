@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
+import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -24,17 +25,12 @@ import com.github.javaparser.ast.stmt.SwitchEntryStmt;
 import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
-import com.github.javaparser.resolution.Resolvable;
-import com.github.javaparser.resolution.declarations.ResolvedAnnotationMemberDeclaration;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedMethodLikeDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaration;
-import com.github.javaparser.resolution.types.ResolvedType;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
 
 /**
  * This visitor handles parsed methods, i.e. methods, constructors, and
@@ -85,62 +81,46 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     public void visit(AnnotationMemberDeclaration annotationMemberDeclaration, TypeDescriptor typeDescriptor) {
         // annotation member
         MethodDescriptor methodDescriptor = createMethod(annotationMemberDeclaration, typeDescriptor);
+        // name must be overwritten here as it is not in the signature
+        methodDescriptor.setName(annotationMemberDeclaration.getNameAsString());
         setVisibility(annotationMemberDeclaration, methodDescriptor);
         setAccessModifier(annotationMemberDeclaration, methodDescriptor);
         setAnnotationMemberDefaultValue(annotationMemberDeclaration, methodDescriptor);
     }
 
-    private MethodDescriptor createMethod(Resolvable<?> resolvable, TypeDescriptor parent) {
-        Object method = resolvable.resolve();
-        if (method instanceof ResolvedMethodDeclaration) {
-            return visitorHelper.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedMethodDeclaration) method), parent);
-        } else if (method instanceof ResolvedConstructorDeclaration) {
-            return visitorHelper.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedConstructorDeclaration) method), parent);
-        } else if (method instanceof ResolvedAnnotationMemberDeclaration) {
-            // TODO ResolvedAnnotationMemberDeclaration.getType throws
-            // java.lang.UnsupportedOperationException
-            MethodDescriptor methodDescriptor = visitorHelper.getMethodDescriptor(
-                    TypeResolverUtils.getAnnotationMemberSignature(((AnnotationMemberDeclaration) resolvable).getType().resolve()), parent);
-            // name must be overwritten here as it is not in the signature
-            methodDescriptor.setName(((AnnotationMemberDeclaration) resolvable).getNameAsString());
-            return methodDescriptor;
-        } else {
-            throw new RuntimeException("MethodDescriptor could not be created: " + resolvable + " " + resolvable.getClass());
-        }
+    private MethodDescriptor createMethod(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
+        return visitorHelper.getMethodDescriptor(getMethodSignature(bodyDeclaration), parent);
     }
 
     private void setParamters(CallableDeclaration<?> callableDeclaration, MethodDescriptor methodDescriptor) {
         List<Parameter> parameters = ((CallableDeclaration<?>) callableDeclaration).getParameters();
         for (int i = 0; i < parameters.size(); i++) {
-            ResolvedParameterDeclaration resolvedParameterDeclaration = parameters.get(i).resolve();
-            TypeDescriptor parameterTypeDescriptor = visitorHelper.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()),
+            TypeDescriptor parameterTypeDescriptor = visitorHelper.resolveDependency(visitorHelper.getQualifiedName(parameters.get(i).getType()),
                     methodDescriptor.getDeclaringType());
             ParameterDescriptor parameterDescriptor = visitorHelper.getParameterDescriptor(methodDescriptor, i);
             parameterDescriptor.setType(parameterTypeDescriptor);
-            if (resolvedParameterDeclaration.getType().isReferenceType()) {
+            if (parameters.get(i).getType().isClassOrInterfaceType()) {
                 // TODO are there other types?
-                setTypeParameterDependency(resolvedParameterDeclaration.getType().asReferenceType(), methodDescriptor.getDeclaringType());
+                setTypeParameterDependency(parameters.get(i).getType().asClassOrInterfaceType(), methodDescriptor.getDeclaringType());
             }
             setAnnotations(parameters.get(i), parameterDescriptor);
         }
     }
 
     private void setReturnType(MethodDeclaration methodDeclaration, MethodDescriptor methodDescriptor) {
-        ResolvedType resolvedReturnType = methodDeclaration.resolve().getReturnType();
-        methodDescriptor
-                .setReturns(visitorHelper.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedReturnType), methodDescriptor.getDeclaringType()));
-        if (resolvedReturnType.isReferenceType()) {
+        Type returnType = methodDeclaration.getType();
+        methodDescriptor.setReturns(visitorHelper.resolveDependency(visitorHelper.getQualifiedName(returnType), methodDescriptor.getDeclaringType()));
+        if (returnType.isClassOrInterfaceType()) {
             // TODO are there other types?
-            setTypeParameterDependency(resolvedReturnType.asReferenceType(), methodDescriptor.getDeclaringType());
+            setTypeParameterDependency(returnType.asClassOrInterfaceType(), methodDescriptor.getDeclaringType());
         }
     }
 
-    private void setExceptions(Resolvable<?> resolvable, MethodDescriptor methodDescriptor) {
-        ResolvedMethodLikeDeclaration resolvedMethodLikeDeclaration = (ResolvedMethodLikeDeclaration) resolvable.resolve();
-        for (ResolvedType exception : resolvedMethodLikeDeclaration.getSpecifiedExceptions()) {
+    private void setExceptions(CallableDeclaration<?> callableDeclaration, MethodDescriptor methodDescriptor) {
+        callableDeclaration.getThrownExceptions().forEach(exception -> {
             methodDescriptor.getDeclaredThrowables()
-                    .add(visitorHelper.resolveDependency(exception.asReferenceType().getQualifiedName(), methodDescriptor.getDeclaringType()));
-        }
+                    .add(visitorHelper.resolveDependency(visitorHelper.getQualifiedName(exception), methodDescriptor.getDeclaringType()));
+        });
     }
 
     private void setLineCount(Node node, MethodDescriptor methodDescriptor) {
@@ -172,7 +152,7 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void setAnnotationMemberDefaultValue(AnnotationMemberDeclaration annotationMemberDeclaration, MethodDescriptor methodDescriptor) {
         annotationMemberDeclaration.getDefaultValue().ifPresent(value -> {
             methodDescriptor
-                    .setHasDefault(createValueDescriptor(TypeResolverUtils.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value, methodDescriptor.getDeclaringType()));
+                    .setHasDefault(createValueDescriptor(visitorHelper.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value, methodDescriptor.getDeclaringType()));
         });
 
     }
@@ -248,5 +228,21 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         }
 
         return complexity;
+    }
+
+    private String getMethodSignature(BodyDeclaration<?> bodyDeclaration) throws IllegalArgumentException {
+        if (bodyDeclaration.isMethodDeclaration()) {
+            ResolvedMethodDeclaration resolvedMethodDeclaration = (ResolvedMethodDeclaration) visitorHelper.solve(bodyDeclaration.asMethodDeclaration());
+            return visitorHelper.getQualifiedName(resolvedMethodDeclaration.getReturnType()) + " " + resolvedMethodDeclaration.getSignature();
+        } else if (bodyDeclaration.isConstructorDeclaration()) {
+            ResolvedConstructorDeclaration resolvedConstructorDeclaration = (ResolvedConstructorDeclaration) visitorHelper
+                    .solve(bodyDeclaration.asConstructorDeclaration());
+            final String constructorParameter = resolvedConstructorDeclaration.getSignature().replaceAll(resolvedConstructorDeclaration.getName(), "");
+            return visitorHelper.CONSTRUCTOR_SIGNATURE + constructorParameter;
+        } else if (bodyDeclaration.isAnnotationMemberDeclaration()) {
+            return visitorHelper.getQualifiedName(bodyDeclaration.asAnnotationMemberDeclaration().getType()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE;
+        } else {
+            throw new IllegalArgumentException("Method signature could not be create for: " + bodyDeclaration.toString());
+        }
     }
 }

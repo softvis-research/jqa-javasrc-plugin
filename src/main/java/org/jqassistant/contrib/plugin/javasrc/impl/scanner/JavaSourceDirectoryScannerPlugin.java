@@ -23,13 +23,17 @@ public class JavaSourceDirectoryScannerPlugin extends AbstractDirectoryScannerPl
 
     @Override
     protected void enterContainer(File container, JavaSourceDirectoryDescriptor containerDescriptor, ScannerContext scannerContext) throws IOException {
-        if (scannerContext.peekOrDefault(TypeResolver.class, null) == null) {
-            scannerContext.push(TypeResolver.class, new TypeResolver(containerDescriptor.getFileName(), scannerContext));
+        if (scannerContext.peekOrDefault(JavaTypeResolver.class, null) == null) {
+            scannerContext.push(JavaTypeResolver.class, new JavaTypeResolver(scannerContext));
+        }
+        if (scannerContext.peekOrDefault(JavaTypeSolver.class, null) == null) {
+            scannerContext.push(JavaTypeSolver.class, new JavaTypeSolver(containerDescriptor.getFileName()));
         }
     }
 
     @Override
     protected void leaveContainer(File container, JavaSourceDirectoryDescriptor containerDescriptor, ScannerContext scannerContext) throws IOException {
-        scannerContext.pop(TypeResolver.class);
+        scannerContext.pop(JavaTypeResolver.class);
+        scannerContext.pop(JavaTypeSolver.class);
     }
 }

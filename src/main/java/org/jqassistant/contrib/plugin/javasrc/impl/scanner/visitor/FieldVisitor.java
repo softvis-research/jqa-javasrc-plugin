@@ -1,15 +1,16 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
 
 /**
  * This visitor handles parsed fields and enum values and creates corresponding
@@ -47,25 +48,16 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     }
 
     private FieldDescriptor createField(Resolvable<?> resolvable, TypeDescriptor parent) {
-        Object resolvedDeclaration = resolvable.resolve();
-        if (resolvedDeclaration instanceof ResolvedFieldDeclaration) {
-            return visitorHelper.getFieldDescriptor(TypeResolverUtils.getFieldSignature((ResolvedFieldDeclaration) resolvedDeclaration), parent);
-        } else if (resolvedDeclaration instanceof ResolvedEnumConstantDeclaration) {
-            return visitorHelper.getFieldDescriptor(TypeResolverUtils.getFieldSignature((ResolvedEnumConstantDeclaration) resolvedDeclaration), parent);
-        } else {
-            throw new RuntimeException("FieldDescriptor could not be created: " + resolvable + " " + resolvable.getClass());
-        }
+        return visitorHelper.getFieldDescriptor(getFieldSignature(resolvable), parent);
     }
 
     private void setFieldType(FieldDeclaration fieldDeclaration, FieldDescriptor fieldDescriptor) {
-        ResolvedFieldDeclaration resolvedFieldDeclaration = fieldDeclaration.resolve();
-        TypeDescriptor fieldTypeDescriptor = visitorHelper.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedFieldDeclaration.getType()),
-                fieldDescriptor.getDeclaringType());
+        Type fieldType = fieldDeclaration.getElementType();
+        TypeDescriptor fieldTypeDescriptor = visitorHelper.resolveDependency(visitorHelper.getQualifiedName(fieldType), fieldDescriptor.getDeclaringType());
         fieldDescriptor.setType(fieldTypeDescriptor);
-
-        if (resolvedFieldDeclaration.getType().isReferenceType()) {
+        if (fieldType.isClassOrInterfaceType()) {
             // TODO are there other types?
-            setTypeParameterDependency(resolvedFieldDeclaration.getType().asReferenceType(), fieldDescriptor.getDeclaringType());
+            setTypeParameterDependency(fieldType.asClassOrInterfaceType(), fieldDescriptor.getDeclaringType());
         }
     }
 
@@ -75,8 +67,21 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         VariableDeclarator firstVariable = fieldDeclaration.getVariables().get(0);
         firstVariable.getInitializer().ifPresent(value -> {
             PrimitiveValueDescriptor valueDescriptor = visitorHelper.getValueDescriptor(PrimitiveValueDescriptor.class);
-            valueDescriptor.setValue(TypeResolverUtils.getLiteralExpressionValue(value));
+            valueDescriptor.setValue(getLiteralExpressionValue(value));
             fieldDescriptor.setValue(valueDescriptor);
         });
+    }
+
+    private String getFieldSignature(Resolvable<?> resolvable) {
+        Object resolvedDeclaration = visitorHelper.solve((Node) resolvable);
+        if (resolvedDeclaration instanceof ResolvedFieldDeclaration) {
+            ResolvedFieldDeclaration resolvedFieldDeclaration = ((ResolvedFieldDeclaration) resolvedDeclaration).asField();
+            return visitorHelper.getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName();
+        } else if (resolvedDeclaration instanceof ResolvedEnumConstantDeclaration) {
+            ResolvedEnumConstantDeclaration resolvedEnumConstantDeclaration = ((ResolvedEnumConstantDeclaration) resolvedDeclaration);
+            return visitorHelper.getQualifiedName(resolvedEnumConstantDeclaration.getType()) + " " + resolvedEnumConstantDeclaration.getName();
+        } else {
+            throw new IllegalArgumentException("Field signature could not be create for: " + resolvable.toString());
+        }
     }
 }

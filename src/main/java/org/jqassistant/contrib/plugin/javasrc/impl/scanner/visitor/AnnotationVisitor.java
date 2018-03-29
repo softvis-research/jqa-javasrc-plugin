@@ -6,7 +6,6 @@ import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
 
 /**
  * This visitor handles parsed annotations and creates corresponding
@@ -34,13 +33,14 @@ public class AnnotationVisitor extends AbstractJavaSourceVisitor<AnnotatedDescri
     }
 
     private AnnotationValueDescriptor createAnnotation(AnnotationExpr annotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        return visitorHelper.getAnnotationValueDescriptor(annotationExpr, annotatedDescriptor);
+        return visitorHelper.getAnnotationValueDescriptor(visitorHelper.getQualifiedName(annotationExpr), annotationExpr.getNameAsString(),
+                annotatedDescriptor);
 
     }
 
     private void setAnnotationValue(AnnotationExpr annotationExpr, AnnotationValueDescriptor annotationValueDescriptor) {
         if (annotationExpr instanceof SingleMemberAnnotationExpr) {
-            annotationValueDescriptor.getValue().add(createValueDescriptor(TypeResolverUtils.SINGLE_MEMBER_ANNOTATION_NAME,
+            annotationValueDescriptor.getValue().add(createValueDescriptor(visitorHelper.SINGLE_MEMBER_ANNOTATION_NAME,
                     ((SingleMemberAnnotationExpr) annotationExpr).getMemberValue(), annotationValueDescriptor.getType()));
         } else if (annotationExpr instanceof NormalAnnotationExpr) {
             for (MemberValuePair memberValuePair : ((NormalAnnotationExpr) annotationExpr).getPairs()) {

@@ -1,45 +1,30 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
-import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-import com.github.javaparser.symbolsolver.core.resolution.Context;
-import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFactory;
-import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDependsOnDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 
 /**
- * The type resolver has two main tasks. First, it holds an instance of the java
- * symbol solver to solve parsed java types. Second, it caches the parsed types
- * and provides concrete descriptors.
+ * The extended objects type resolver caches the parsed types and provides their
+ * descriptors.
  * 
  * @author Richard Müller
  *
  */
-public class TypeResolver {
-    public TypeSolver javaTypeSolver;
+public class JavaTypeResolver {
+
     private ScannerContext scannerContext;
     private Map<String, TypeDescriptor> containedTypes = new HashMap<>();
     private Map<String, TypeDescriptor> requiredTypes = new HashMap<>();
     private Map<TypeDescriptor, Map<TypeDescriptor, Integer>> dependencies = new HashMap<>();
 
-    public TypeResolver(String srcDir, ScannerContext scannerContext) {
-        this.javaTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(), new JavaParserTypeSolver(new File(srcDir)));
-        JavaParser.getStaticConfiguration().setSymbolResolver(new JavaSymbolSolver(javaTypeSolver));
-
+    public JavaTypeResolver(ScannerContext scannerContext) {
         this.containedTypes = new HashMap<>();
         this.requiredTypes = new HashMap<>();
         this.scannerContext = scannerContext;
@@ -117,10 +102,5 @@ public class TypeResolver {
             requiredTypes.put(fqn, typeDescriptor);
             return typeDescriptor;
         }
-    }
-
-    public ResolvedTypeDeclaration solveAnnotation(AnnotationExpr annotationExpr) {
-        Context context = JavaParserFactory.getContext(annotationExpr, javaTypeSolver);
-        return context.solveType(annotationExpr.getNameAsString(), javaTypeSolver).getCorrespondingDeclaration();
     }
 }
