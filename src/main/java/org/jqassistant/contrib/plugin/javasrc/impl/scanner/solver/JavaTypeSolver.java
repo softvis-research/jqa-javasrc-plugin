@@ -71,9 +71,6 @@ public class JavaTypeSolver {
                 resolved = facade.convertToUsage(((Type) node));
             } else if (node instanceof Resolvable) {
                 resolved = ((Resolvable<?>) node).resolve();
-                // } else if (node instanceof FieldAccessExpr) {
-                // resolved = facade.solve(((FieldAccessExpr)
-                // node).asFieldAccessExpr()).getCorrespondingDeclaration().getType();
             } else {
                 throw new IllegalArgumentException("Unexpected type of parsed node: " + node + " " + node.getClass());
             }
@@ -87,72 +84,47 @@ public class JavaTypeSolver {
     }
 
     public String getQualifiedName(Node node) {
-        Object resolved = null;
-        try {
-            resolved = solve(node);
-
-            if (resolved instanceof ResolvedTypeDeclaration) {
-                return ((ResolvedTypeDeclaration) resolved).asType().getQualifiedName();
-            } else if (resolved instanceof ResolvedType) {
-                return getQualifiedName((ResolvedType) resolved);
-            } else if (resolved instanceof ResolvedEnumConstantDeclaration) {
-                return getQualifiedName(((ResolvedEnumConstantDeclaration) resolved).getType());
-            } else if (resolved instanceof ResolvedFieldDeclaration) {
-                return getQualifiedName(((ResolvedFieldDeclaration) resolved).getType());
-            } else {
-                throw new IllegalArgumentException("Unexpected type of resolved node: " + resolved + " " + resolved.getClass());
-            }
-
-        } catch (
-
-        UnsolvedSymbolException use) {
-            System.out.println("SOMETHING UNSOLVED in getQualifiedName" + use.getMessage());
+        Object resolved = solve(node);
+        if (resolved instanceof ResolvedTypeDeclaration) {
+            return ((ResolvedTypeDeclaration) resolved).asType().getQualifiedName();
+        } else if (resolved instanceof ResolvedType) {
+            return getQualifiedName((ResolvedType) resolved);
+        } else if (resolved instanceof ResolvedEnumConstantDeclaration) {
+            return getQualifiedName(((ResolvedEnumConstantDeclaration) resolved).getType());
+        } else if (resolved instanceof ResolvedFieldDeclaration) {
+            return getQualifiedName(((ResolvedFieldDeclaration) resolved).getType());
+        } else {
+            throw new IllegalArgumentException("Unexpected type of resolved node: " + resolved + " " + resolved.getClass());
         }
-        return "";
     }
 
     public String getQualifiedName(ResolvedType resolvedType) {
-        try {
-
-            if (resolvedType.isReferenceType()) {
-                return resolvedType.asReferenceType().getQualifiedName();
-            } else if (resolvedType.isPrimitive()) {
-                return resolvedType.asPrimitive().describe();
-            } else if (resolvedType.isVoid()) {
-                return resolvedType.describe();
-            } else if (resolvedType.isArray()) {
-                return resolvedType.asArrayType().describe();
-            } else if (resolvedType.isTypeVariable()) {
-                return resolvedType.asTypeVariable().qualifiedName();
-            } else {
-                throw new IllegalArgumentException("Unexpected type of resolved type: " + resolvedType + " " + resolvedType.getClass());
-            }
-        } catch (UnsolvedSymbolException e) {
-            System.out.println("CAUGHT " + e.getMessage());
+        if (resolvedType.isReferenceType()) {
+            return resolvedType.asReferenceType().getQualifiedName();
+        } else if (resolvedType.isPrimitive()) {
+            return resolvedType.asPrimitive().describe();
+        } else if (resolvedType.isVoid()) {
+            return resolvedType.describe();
+        } else if (resolvedType.isArray()) {
+            return resolvedType.asArrayType().describe();
+        } else if (resolvedType.isTypeVariable()) {
+            return resolvedType.asTypeVariable().qualifiedName();
+        } else {
+            throw new IllegalArgumentException("Unexpected type of resolved type: " + resolvedType + " " + resolvedType.getClass());
         }
-        return "";
     }
 
     public String getQualifiedSignature(BodyDeclaration<?> bodyDeclaration) {
-        Object resolved = null;
-        try {
-            resolved = solve(bodyDeclaration);
+        Object resolved = solve(bodyDeclaration);
 
-            if (resolved instanceof ResolvedMethodDeclaration) {
-                return ((ResolvedMethodDeclaration) resolved).getSignature();
-            } else if (resolved instanceof ResolvedConstructorDeclaration) {
-                ResolvedConstructorDeclaration resolvedConstructorDeclaration = ((ResolvedConstructorDeclaration) resolved);
-                return resolvedConstructorDeclaration.getSignature().replaceAll(resolvedConstructorDeclaration.getName(), "");
-            } else {
-                throw new IllegalArgumentException("Unexpected type of resolved body declaration: " + resolved + " " + resolved.getClass());
-            }
-
-        } catch (
-
-        UnsolvedSymbolException use) {
-            System.out.println("SOMETHING UNSOLVED in getQualifiedSignature" + use.getMessage());
+        if (resolved instanceof ResolvedMethodDeclaration) {
+            return ((ResolvedMethodDeclaration) resolved).getSignature();
+        } else if (resolved instanceof ResolvedConstructorDeclaration) {
+            ResolvedConstructorDeclaration resolvedConstructorDeclaration = ((ResolvedConstructorDeclaration) resolved);
+            return resolvedConstructorDeclaration.getSignature().replaceAll(resolvedConstructorDeclaration.getName(), "");
+        } else {
+            throw new IllegalArgumentException("Unexpected type of resolved body declaration: " + resolved + " " + resolved.getClass());
         }
-        return "";
     }
 
     private ResolvedValueDeclaration solveValueDeclaration(NameExpr nameExpr) {
