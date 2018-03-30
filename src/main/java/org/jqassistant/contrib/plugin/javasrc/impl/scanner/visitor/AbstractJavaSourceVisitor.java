@@ -124,7 +124,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
      * @param modifiers
      * @return VisibilityModifier
      */
-    private VisibilityModifier getAccessSpecifier(EnumSet<Modifier> modifiers) {
+    protected VisibilityModifier getAccessSpecifier(EnumSet<Modifier> modifiers) {
         if (modifiers.contains(Modifier.PUBLIC)) {
             return VisibilityModifier.PUBLIC;
         } else if (modifiers.contains(Modifier.PROTECTED)) {
