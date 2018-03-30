@@ -31,28 +31,24 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     @Override
     public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
         setInvokes(methodCallExpr, methodDescriptor);
-
         super.visit(methodCallExpr, methodDescriptor);
     }
 
     @Override
     public void visit(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
         setWrites(assignExpr, methodDescriptor);
-
         super.visit(assignExpr, methodDescriptor);
     }
 
     @Override
     public void visit(FieldAccessExpr fieldAccessExpr, MethodDescriptor methodDescriptor) {
         setReads(fieldAccessExpr, methodDescriptor);
-
         super.visit(fieldAccessExpr, methodDescriptor);
     }
 
     @Override
     public void visit(NameExpr nameExpr, MethodDescriptor methodDescriptor) {
         setReads(nameExpr, methodDescriptor);
-
         super.visit(nameExpr, methodDescriptor);
     }
 

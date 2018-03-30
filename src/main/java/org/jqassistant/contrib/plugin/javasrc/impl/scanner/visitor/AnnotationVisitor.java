@@ -22,30 +22,30 @@ public class AnnotationVisitor extends AbstractJavaSourceVisitor<AnnotatedDescri
 
     @Override
     public void visit(SingleMemberAnnotationExpr singleMemberAnnotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        AnnotationValueDescriptor annotationValueDescriptor = createAnnotation(singleMemberAnnotationExpr, annotatedDescriptor);
-        setAnnotationValue(singleMemberAnnotationExpr, annotationValueDescriptor);
+        createAnnotation(singleMemberAnnotationExpr, annotatedDescriptor);
+        setAnnotationValue(singleMemberAnnotationExpr);
     }
 
     @Override
     public void visit(NormalAnnotationExpr normalAnnotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        AnnotationValueDescriptor annotationValueDescriptor = createAnnotation(normalAnnotationExpr, annotatedDescriptor);
-        setAnnotationValue(normalAnnotationExpr, annotationValueDescriptor);
+        createAnnotation(normalAnnotationExpr, annotatedDescriptor);
+        setAnnotationValue(normalAnnotationExpr);
     }
 
-    private AnnotationValueDescriptor createAnnotation(AnnotationExpr annotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        return visitorHelper.getAnnotationValueDescriptor(visitorHelper.getQualifiedName(annotationExpr), annotationExpr.getNameAsString(),
+    private void createAnnotation(AnnotationExpr annotationExpr, AnnotatedDescriptor annotatedDescriptor) {
+        descriptor = visitorHelper.getAnnotationValueDescriptor(visitorHelper.getQualifiedName(annotationExpr), annotationExpr.getNameAsString(),
                 annotatedDescriptor);
 
     }
 
-    private void setAnnotationValue(AnnotationExpr annotationExpr, AnnotationValueDescriptor annotationValueDescriptor) {
+    private void setAnnotationValue(AnnotationExpr annotationExpr) {
         if (annotationExpr instanceof SingleMemberAnnotationExpr) {
-            annotationValueDescriptor.getValue().add(createValueDescriptor(visitorHelper.SINGLE_MEMBER_ANNOTATION_NAME,
-                    ((SingleMemberAnnotationExpr) annotationExpr).getMemberValue(), annotationValueDescriptor.getType()));
+            ((AnnotationValueDescriptor) descriptor).getValue().add(createValueDescriptor(visitorHelper.SINGLE_MEMBER_ANNOTATION_NAME,
+                    ((SingleMemberAnnotationExpr) annotationExpr).getMemberValue(), ((AnnotationValueDescriptor) descriptor).getType()));
         } else if (annotationExpr instanceof NormalAnnotationExpr) {
             for (MemberValuePair memberValuePair : ((NormalAnnotationExpr) annotationExpr).getPairs()) {
-                annotationValueDescriptor.getValue()
-                        .add(createValueDescriptor(memberValuePair.getNameAsString(), memberValuePair.getValue(), annotationValueDescriptor.getType()));
+                ((AnnotationValueDescriptor) descriptor).getValue().add(createValueDescriptor(memberValuePair.getNameAsString(), memberValuePair.getValue(),
+                        ((AnnotationValueDescriptor) descriptor).getType()));
             }
         }
     }

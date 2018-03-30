@@ -34,16 +34,17 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.VisibilityModifier;
 public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends VoidVisitorAdapter<D> {
 
     protected VisitorHelper visitorHelper;
+    protected Descriptor descriptor;
 
     public AbstractJavaSourceVisitor(VisitorHelper visitorHelper) {
         this.visitorHelper = visitorHelper;
     }
 
-    protected void setVisibility(Node nodeWithModifiers, Descriptor descriptor) {
+    protected void setVisibility(Node nodeWithModifiers) {
         ((AccessModifierDescriptor) descriptor).setVisibility(getAccessSpecifier(((NodeWithModifiers<?>) nodeWithModifiers).getModifiers()).getValue());
     }
 
-    protected void setAccessModifier(Node nodeWithModifiers, Descriptor descriptor) {
+    protected void setAccessModifier(Node nodeWithModifiers) {
         // TODO further modifiers
         if (nodeWithModifiers instanceof NodeWithAbstractModifier) {
             ((AbstractDescriptor) descriptor).setAbstract(((NodeWithAbstractModifier<?>) nodeWithModifiers).isAbstract());

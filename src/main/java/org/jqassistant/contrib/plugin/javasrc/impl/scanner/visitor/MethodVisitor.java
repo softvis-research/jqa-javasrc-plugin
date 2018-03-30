@@ -26,6 +26,7 @@ import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.type.Type;
+import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
@@ -46,16 +47,16 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     @Override
     public void visit(MethodDeclaration methodDeclaration, TypeDescriptor typeDescriptor) {
         // method
-        MethodDescriptor methodDescriptor = createMethod(methodDeclaration, typeDescriptor);
-        setVisibility(methodDeclaration, methodDescriptor);
-        setAccessModifier(methodDeclaration, methodDescriptor);
-        setParamters(methodDeclaration, methodDescriptor);
-        setReturnType(methodDeclaration, methodDescriptor);
-        setAnnotations(methodDeclaration, methodDescriptor);
-        setExceptions(methodDeclaration, methodDescriptor);
-        setLineCount(methodDeclaration, methodDescriptor);
-        setCyclomaticComplexity(methodDeclaration, methodDescriptor);
-        setInvokes(methodDeclaration, methodDescriptor);
+        createMethod(methodDeclaration, typeDescriptor);
+        setVisibility(methodDeclaration);
+        setAccessModifier(methodDeclaration);
+        setParamters(methodDeclaration);
+        setReturnType(methodDeclaration);
+        setAnnotations(methodDeclaration, (AnnotatedDescriptor) descriptor);
+        setExceptions(methodDeclaration);
+        setLineCount(methodDeclaration);
+        setCyclomaticComplexity(methodDeclaration);
+        setInvokes(methodDeclaration);
 
         super.visit(methodDeclaration, typeDescriptor);
     }
@@ -63,14 +64,14 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     @Override
     public void visit(ConstructorDeclaration constructorDeclaration, TypeDescriptor typeDescriptor) {
         // constructor
-        MethodDescriptor methodDescriptor = createMethod(constructorDeclaration, typeDescriptor);
-        setVisibility(constructorDeclaration, methodDescriptor);
-        setParamters(constructorDeclaration, methodDescriptor);
-        setAnnotations(constructorDeclaration, methodDescriptor);
-        setExceptions(constructorDeclaration, methodDescriptor);
-        setLineCount(constructorDeclaration, methodDescriptor);
-        setCyclomaticComplexity(constructorDeclaration, methodDescriptor);
-        setInvokes(constructorDeclaration, methodDescriptor);
+        createMethod(constructorDeclaration, typeDescriptor);
+        setVisibility(constructorDeclaration);
+        setParamters(constructorDeclaration);
+        setAnnotations(constructorDeclaration, (AnnotatedDescriptor) descriptor);
+        setExceptions(constructorDeclaration);
+        setLineCount(constructorDeclaration);
+        setCyclomaticComplexity(constructorDeclaration);
+        setInvokes(constructorDeclaration);
 
         super.visit(constructorDeclaration, typeDescriptor);
     }
@@ -78,79 +79,81 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     @Override
     public void visit(AnnotationMemberDeclaration annotationMemberDeclaration, TypeDescriptor typeDescriptor) {
         // annotation member
-        MethodDescriptor methodDescriptor = createMethod(annotationMemberDeclaration, typeDescriptor);
+        createMethod(annotationMemberDeclaration, typeDescriptor);
         // name must be overwritten here as it is not in the signature
-        methodDescriptor.setName(annotationMemberDeclaration.getNameAsString());
-        setVisibility(annotationMemberDeclaration, methodDescriptor);
-        setAccessModifier(annotationMemberDeclaration, methodDescriptor);
-        setAnnotationMemberDefaultValue(annotationMemberDeclaration, methodDescriptor);
+        ((MethodDescriptor) descriptor).setName(annotationMemberDeclaration.getNameAsString());
+        setVisibility(annotationMemberDeclaration);
+        setAccessModifier(annotationMemberDeclaration);
+        setAnnotationMemberDefaultValue(annotationMemberDeclaration);
     }
 
-    private MethodDescriptor createMethod(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
-        return visitorHelper.getMethodDescriptor(getMethodSignature(bodyDeclaration), parent);
+    private void createMethod(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
+        descriptor = visitorHelper.getMethodDescriptor(getMethodSignature(bodyDeclaration), parent);
     }
 
-    private void setParamters(CallableDeclaration<?> callableDeclaration, MethodDescriptor methodDescriptor) {
+    private void setParamters(CallableDeclaration<?> callableDeclaration) {
         List<Parameter> parameters = ((CallableDeclaration<?>) callableDeclaration).getParameters();
         for (int i = 0; i < parameters.size(); i++) {
             TypeDescriptor parameterTypeDescriptor = visitorHelper.resolveDependency(visitorHelper.getQualifiedName(parameters.get(i).getType()),
-                    methodDescriptor.getDeclaringType());
-            ParameterDescriptor parameterDescriptor = visitorHelper.getParameterDescriptor(methodDescriptor, i);
+                    ((MethodDescriptor) descriptor).getDeclaringType());
+            ParameterDescriptor parameterDescriptor = visitorHelper.getParameterDescriptor(((MethodDescriptor) descriptor), i);
             parameterDescriptor.setType(parameterTypeDescriptor);
             if (parameters.get(i).getType().isClassOrInterfaceType()) {
                 // TODO are there other types?
-                setTypeParameterDependency(parameters.get(i).getType().asClassOrInterfaceType(), methodDescriptor.getDeclaringType());
+                setTypeParameterDependency(parameters.get(i).getType().asClassOrInterfaceType(), ((MethodDescriptor) descriptor).getDeclaringType());
             }
             setAnnotations(parameters.get(i), parameterDescriptor);
         }
     }
 
-    private void setReturnType(MethodDeclaration methodDeclaration, MethodDescriptor methodDescriptor) {
+    private void setReturnType(MethodDeclaration methodDeclaration) {
         Type returnType = methodDeclaration.getType();
-        methodDescriptor.setReturns(visitorHelper.resolveDependency(visitorHelper.getQualifiedName(returnType), methodDescriptor.getDeclaringType()));
+        ((MethodDescriptor) descriptor)
+                .setReturns(visitorHelper.resolveDependency(visitorHelper.getQualifiedName(returnType), ((MethodDescriptor) descriptor).getDeclaringType()));
         if (returnType.isClassOrInterfaceType()) {
             // TODO are there other types?
-            setTypeParameterDependency(returnType.asClassOrInterfaceType(), methodDescriptor.getDeclaringType());
+            setTypeParameterDependency(returnType.asClassOrInterfaceType(), ((MethodDescriptor) descriptor).getDeclaringType());
         }
     }
 
-    private void setExceptions(CallableDeclaration<?> callableDeclaration, MethodDescriptor methodDescriptor) {
+    private void setExceptions(CallableDeclaration<?> callableDeclaration) {
         callableDeclaration.getThrownExceptions().forEach(exception -> {
-            methodDescriptor.getDeclaredThrowables()
-                    .add(visitorHelper.resolveDependency(visitorHelper.getQualifiedName(exception), methodDescriptor.getDeclaringType()));
+            ((MethodDescriptor) descriptor).getDeclaredThrowables()
+                    .add(visitorHelper.resolveDependency(visitorHelper.getQualifiedName(exception), ((MethodDescriptor) descriptor).getDeclaringType()));
         });
     }
 
-    private void setLineCount(Node node, MethodDescriptor methodDescriptor) {
+    private void setLineCount(Node node) {
         node.getBegin().ifPresent(position -> {
-            methodDescriptor.setFirstLineNumber(position.line);
+            ((MethodDescriptor) descriptor).setFirstLineNumber(position.line);
         });
         node.getEnd().ifPresent(position -> {
-            methodDescriptor.setLastLineNumber(position.line);
+            ((MethodDescriptor) descriptor).setLastLineNumber(position.line);
         });
         // TODO what is effective line count?
-        methodDescriptor.setEffectiveLineCount(methodDescriptor.getLastLineNumber() - methodDescriptor.getFirstLineNumber() + 1);
+        ((MethodDescriptor) descriptor)
+                .setEffectiveLineCount(((MethodDescriptor) descriptor).getLastLineNumber() - ((MethodDescriptor) descriptor).getFirstLineNumber() + 1);
     }
 
-    private void setCyclomaticComplexity(Node node, MethodDescriptor methodDescriptor) {
-        methodDescriptor.setCyclomaticComplexity(calculateCyclomaticComplexity(node));
+    private void setCyclomaticComplexity(Node node) {
+        ((MethodDescriptor) descriptor).setCyclomaticComplexity(calculateCyclomaticComplexity(node));
     }
 
-    private void setInvokes(NodeWithBlockStmt<?> nodeWithOptionalBlockStmt, MethodDescriptor methodDescriptor) {
+    private void setInvokes(NodeWithBlockStmt<?> nodeWithOptionalBlockStmt) {
         BlockStmt body = nodeWithOptionalBlockStmt.getBody();
         if (body != null) {
-            body.accept(new MethodBodyVisitor(visitorHelper), methodDescriptor);
+            body.accept(new MethodBodyVisitor(visitorHelper), ((MethodDescriptor) descriptor));
         }
     }
 
-    private void setInvokes(NodeWithOptionalBlockStmt<?> nodeWithOptionalBlockStmt, MethodDescriptor methodDescriptor) {
-        nodeWithOptionalBlockStmt.getBody().ifPresent(body -> body.accept(new MethodBodyVisitor(visitorHelper), methodDescriptor));
+    private void setInvokes(NodeWithOptionalBlockStmt<?> nodeWithOptionalBlockStmt) {
+        nodeWithOptionalBlockStmt.getBody().ifPresent(body -> body.accept(new MethodBodyVisitor(visitorHelper), ((MethodDescriptor) descriptor)));
     }
 
-    private void setAnnotationMemberDefaultValue(AnnotationMemberDeclaration annotationMemberDeclaration, MethodDescriptor methodDescriptor) {
+    private void setAnnotationMemberDefaultValue(AnnotationMemberDeclaration annotationMemberDeclaration) {
         annotationMemberDeclaration.getDefaultValue().ifPresent(value -> {
-            methodDescriptor
-                    .setHasDefault(createValueDescriptor(visitorHelper.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value, methodDescriptor.getDeclaringType()));
+            ((MethodDescriptor) descriptor).setHasDefault(
+                    createValueDescriptor(visitorHelper.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value, ((MethodDescriptor) descriptor).getDeclaringType()));
         });
 
     }
