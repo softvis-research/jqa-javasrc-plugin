@@ -1,12 +1,15 @@
 /**
  * 
  */
-package org.jqassistant.contrib.plugin.javasrc.impl.scanner;
+package org.jqassistant.contrib.plugin.javasrc.impl.scanner.solver;
 
 import java.io.File;
 
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
@@ -14,6 +17,8 @@ import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
+import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
@@ -25,6 +30,7 @@ import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFactory;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.MemoryTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
 /**
@@ -33,12 +39,21 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
  */
 public class JavaTypeSolver {
     private JavaParserFacade facade;
+    private CombinedTypeSolver combinedTypeSolver;
 
     public JavaTypeSolver(String srcDir) {
-        CombinedTypeSolver javaTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(), new JavaParserTypeSolver(new File(srcDir)));
-        facade = JavaParserFacade.get(javaTypeSolver);
-        JavaParser.getStaticConfiguration().setSymbolResolver(new com.github.javaparser.symbolsolver.JavaSymbolSolver(javaTypeSolver));
+        combinedTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(), new JavaParserTypeSolver(new File(srcDir)));
+        facade = JavaParserFacade.get(combinedTypeSolver);
+        JavaParser.getStaticConfiguration().setSymbolResolver(new com.github.javaparser.symbolsolver.JavaSymbolSolver(combinedTypeSolver));
+    }
 
+    public void addImportDeclarations(NodeList<ImportDeclaration> importDeclarations) {
+        MemoryTypeSolver memoryTypeSolver = new MemoryTypeSolver();
+        for (ImportDeclaration importDeclaration : importDeclarations) {
+            final String name = importDeclaration.getNameAsString();
+            memoryTypeSolver.addDeclaration(name, new ResolvedImportTypeDeclaration(name));
+        }
+        this.combinedTypeSolver.add(memoryTypeSolver);
     }
 
     public Object solve(Node node) {
@@ -56,14 +71,16 @@ public class JavaTypeSolver {
                 resolved = facade.convertToUsage(((Type) node));
             } else if (node instanceof Resolvable) {
                 resolved = ((Resolvable<?>) node).resolve();
-            } else if (node instanceof FieldAccessExpr) {
-                resolved = facade.solve(((FieldAccessExpr) node).asFieldAccessExpr()).getCorrespondingDeclaration().getType();
+                // } else if (node instanceof FieldAccessExpr) {
+                // resolved = facade.solve(((FieldAccessExpr)
+                // node).asFieldAccessExpr()).getCorrespondingDeclaration().getType();
             } else {
                 throw new IllegalArgumentException("Unexpected type of parsed node: " + node + " " + node.getClass());
             }
 
         } catch (UnsolvedSymbolException use) {
-            System.out.println("SOMETHING UNSOLVED in resolve" + use.getMessage());
+            System.out.println("SOMETHING UNSOLVED in solve: " + use.getMessage());
+            // TODO handle unsolved types
         }
 
         return resolved;
@@ -78,32 +95,64 @@ public class JavaTypeSolver {
                 return ((ResolvedTypeDeclaration) resolved).asType().getQualifiedName();
             } else if (resolved instanceof ResolvedType) {
                 return getQualifiedName((ResolvedType) resolved);
+            } else if (resolved instanceof ResolvedEnumConstantDeclaration) {
+                return getQualifiedName(((ResolvedEnumConstantDeclaration) resolved).getType());
             } else if (resolved instanceof ResolvedFieldDeclaration) {
-                return getQualifiedName(((ResolvedFieldDeclaration) resolved).asField().getType());
+                return getQualifiedName(((ResolvedFieldDeclaration) resolved).getType());
             } else {
                 throw new IllegalArgumentException("Unexpected type of resolved node: " + resolved + " " + resolved.getClass());
             }
 
-        } catch (UnsolvedSymbolException use) {
+        } catch (
+
+        UnsolvedSymbolException use) {
             System.out.println("SOMETHING UNSOLVED in getQualifiedName" + use.getMessage());
         }
         return "";
     }
 
     public String getQualifiedName(ResolvedType resolvedType) {
-        if (resolvedType.isReferenceType()) {
-            return resolvedType.asReferenceType().getQualifiedName();
-        } else if (resolvedType.isPrimitive()) {
-            return resolvedType.asPrimitive().describe();
-        } else if (resolvedType.isVoid()) {
-            return resolvedType.describe();
-        } else if (resolvedType.isArray()) {
-            return resolvedType.asArrayType().describe();
-        } else if (resolvedType.isTypeVariable()) {
-            return resolvedType.asTypeVariable().qualifiedName();
-        } else {
-            throw new IllegalArgumentException("Unexpected type of resolved type: " + resolvedType + " " + resolvedType.getClass());
+        try {
+
+            if (resolvedType.isReferenceType()) {
+                return resolvedType.asReferenceType().getQualifiedName();
+            } else if (resolvedType.isPrimitive()) {
+                return resolvedType.asPrimitive().describe();
+            } else if (resolvedType.isVoid()) {
+                return resolvedType.describe();
+            } else if (resolvedType.isArray()) {
+                return resolvedType.asArrayType().describe();
+            } else if (resolvedType.isTypeVariable()) {
+                return resolvedType.asTypeVariable().qualifiedName();
+            } else {
+                throw new IllegalArgumentException("Unexpected type of resolved type: " + resolvedType + " " + resolvedType.getClass());
+            }
+        } catch (UnsolvedSymbolException e) {
+            System.out.println("CAUGHT " + e.getMessage());
         }
+        return "";
+    }
+
+    public String getQualifiedSignature(BodyDeclaration<?> bodyDeclaration) {
+        Object resolved = null;
+        try {
+            resolved = solve(bodyDeclaration);
+
+            if (resolved instanceof ResolvedMethodDeclaration) {
+                return ((ResolvedMethodDeclaration) resolved).getSignature();
+            } else if (resolved instanceof ResolvedConstructorDeclaration) {
+                ResolvedConstructorDeclaration resolvedConstructorDeclaration = ((ResolvedConstructorDeclaration) resolved);
+                return resolvedConstructorDeclaration.getSignature().replaceAll(resolvedConstructorDeclaration.getName(), "");
+            } else {
+                throw new IllegalArgumentException("Unexpected type of resolved body declaration: " + resolved + " " + resolved.getClass());
+            }
+
+        } catch (
+
+        UnsolvedSymbolException use) {
+            System.out.println("SOMETHING UNSOLVED in getQualifiedSignature" + use.getMessage());
+        }
+        return "";
     }
 
     private ResolvedValueDeclaration solveValueDeclaration(NameExpr nameExpr) {

@@ -1,13 +1,10 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
-import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.type.Type;
-import com.github.javaparser.resolution.Resolvable;
-import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
@@ -47,8 +44,8 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         super.visit(enumConstantDeclaration, typeDescriptor);
     }
 
-    private FieldDescriptor createField(Resolvable<?> resolvable, TypeDescriptor parent) {
-        return visitorHelper.getFieldDescriptor(getFieldSignature(resolvable), parent);
+    private FieldDescriptor createField(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
+        return visitorHelper.getFieldDescriptor(getFieldSignature(bodyDeclaration), parent);
     }
 
     private void setFieldType(FieldDeclaration fieldDeclaration, FieldDescriptor fieldDescriptor) {
@@ -72,16 +69,15 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         });
     }
 
-    private String getFieldSignature(Resolvable<?> resolvable) {
-        Object resolvedDeclaration = visitorHelper.solve((Node) resolvable);
-        if (resolvedDeclaration instanceof ResolvedFieldDeclaration) {
-            ResolvedFieldDeclaration resolvedFieldDeclaration = ((ResolvedFieldDeclaration) resolvedDeclaration).asField();
-            return visitorHelper.getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName();
-        } else if (resolvedDeclaration instanceof ResolvedEnumConstantDeclaration) {
-            ResolvedEnumConstantDeclaration resolvedEnumConstantDeclaration = ((ResolvedEnumConstantDeclaration) resolvedDeclaration);
-            return visitorHelper.getQualifiedName(resolvedEnumConstantDeclaration.getType()) + " " + resolvedEnumConstantDeclaration.getName();
+    private String getFieldSignature(BodyDeclaration<?> bodyDEclaration) {
+        if (bodyDEclaration instanceof FieldDeclaration) {
+            FieldDeclaration fieldDeclaration = bodyDEclaration.asFieldDeclaration();
+            return visitorHelper.getQualifiedName(fieldDeclaration.getElementType()) + " " + fieldDeclaration.getVariable(0).getName();
+        } else if (bodyDEclaration instanceof EnumConstantDeclaration) {
+            EnumConstantDeclaration enumConstantDeclaration = bodyDEclaration.asEnumConstantDeclaration();
+            return visitorHelper.getQualifiedName(enumConstantDeclaration) + " " + enumConstantDeclaration.getName();
         } else {
-            throw new IllegalArgumentException("Field signature could not be create for: " + resolvable.toString());
+            throw new IllegalArgumentException("Field signature could not be create for: " + bodyDEclaration.toString());
         }
     }
 }

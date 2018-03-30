@@ -26,8 +26,6 @@ import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.type.Type;
-import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
@@ -232,12 +230,10 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
 
     private String getMethodSignature(BodyDeclaration<?> bodyDeclaration) throws IllegalArgumentException {
         if (bodyDeclaration.isMethodDeclaration()) {
-            ResolvedMethodDeclaration resolvedMethodDeclaration = (ResolvedMethodDeclaration) visitorHelper.solve(bodyDeclaration.asMethodDeclaration());
-            return visitorHelper.getQualifiedName(resolvedMethodDeclaration.getReturnType()) + " " + resolvedMethodDeclaration.getSignature();
+            MethodDeclaration methodDeclaration = bodyDeclaration.asMethodDeclaration();
+            return visitorHelper.getQualifiedName(methodDeclaration.getType()) + " " + visitorHelper.getQualifiedSignature(bodyDeclaration);
         } else if (bodyDeclaration.isConstructorDeclaration()) {
-            ResolvedConstructorDeclaration resolvedConstructorDeclaration = (ResolvedConstructorDeclaration) visitorHelper
-                    .solve(bodyDeclaration.asConstructorDeclaration());
-            final String constructorParameter = resolvedConstructorDeclaration.getSignature().replaceAll(resolvedConstructorDeclaration.getName(), "");
+            final String constructorParameter = visitorHelper.getQualifiedSignature(bodyDeclaration);
             return visitorHelper.CONSTRUCTOR_SIGNATURE + constructorParameter;
         } else if (bodyDeclaration.isAnnotationMemberDeclaration()) {
             return visitorHelper.getQualifiedName(bodyDeclaration.asAnnotationMemberDeclaration().getType()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE;

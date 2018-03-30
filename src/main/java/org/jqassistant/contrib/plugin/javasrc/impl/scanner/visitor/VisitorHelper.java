@@ -8,6 +8,7 @@ import java.util.Iterator;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
 import org.apache.commons.lang.StringUtils;
@@ -23,7 +24,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.ReadsDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.WritesDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaTypeResolver;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaTypeSolver;
+import org.jqassistant.contrib.plugin.javasrc.impl.scanner.solver.JavaTypeSolver;
 
 /**
  * The helper delegates creation and caching of types to the type resolver,
@@ -153,6 +154,10 @@ public class VisitorHelper {
 
     public String getQualifiedName(Node node) {
         return getJavaTypeResolver().getQualifiedName(node);
+    }
+
+    public String getQualifiedSignature(BodyDeclaration<?> bodyDeclaration) {
+        return getJavaTypeResolver().getQualifiedSignature(bodyDeclaration);
     }
 
     public Object getQualifiedName(ResolvedType resolvedType) {
