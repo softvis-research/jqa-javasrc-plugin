@@ -109,6 +109,9 @@ public class JavaTypeSolver {
             return resolvedType.asArrayType().describe();
         } else if (resolvedType.isTypeVariable()) {
             return resolvedType.asTypeVariable().qualifiedName();
+        } else if (resolvedType.isWildcard()) {
+            // TODO implement test case
+            return resolvedType.asWildcard().getBoundedType().describe();
         } else {
             throw new IllegalArgumentException("Unexpected type of resolved type: " + resolvedType + " " + resolvedType.getClass());
         }
@@ -132,7 +135,7 @@ public class JavaTypeSolver {
         if (symbolReference.isSolved()) {
             return symbolReference.getCorrespondingDeclaration();
         } else {
-            throw new UnsolvedSymbolException("Variable declaration could not be solved: " + nameExpr);
+            throw new UnsolvedSymbolException("Variable declaration could not be solved: " + nameExpr.getNameAsString() + " " + nameExpr.getClass());
         }
     }
 
