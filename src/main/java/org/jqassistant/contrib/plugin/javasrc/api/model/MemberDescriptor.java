@@ -9,7 +9,8 @@ import com.buschmais.xo.neo4j.api.annotation.Relation.Incoming;
  * Defines a member of Java type.
  */
 @Label("Member")
-public interface MemberDescriptor extends JavaDescriptor, NamedDescriptor, SignatureDescriptor, AnnotatedDescriptor, AccessModifierDescriptor, Descriptor {
+public interface MemberDescriptor
+        extends JavaSourceCodeDescriptor, NamedDescriptor, SignatureDescriptor, AnnotatedDescriptor, AccessModifierDescriptor, Descriptor {
 
     /**
      * Return the declaring type.

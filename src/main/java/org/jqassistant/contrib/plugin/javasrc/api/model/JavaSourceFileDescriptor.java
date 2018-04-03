@@ -8,12 +8,12 @@ import com.buschmais.xo.api.annotation.ResultOf.Parameter;
 import com.buschmais.xo.neo4j.api.annotation.Cypher;
 import com.buschmais.xo.neo4j.api.annotation.Relation;
 
-public interface JavaSourceFileDescriptor extends JavaDescriptor, FileDescriptor {
+public interface JavaSourceFileDescriptor extends JavaSourceCodeDescriptor, FileDescriptor {
 
     @Relation("CONTAINS")
     List<TypeDescriptor> getTypes();
 
     @ResultOf
-    @Cypher("MATCH (file:JavaSource:File) WHERE id(file)={this} MERGE (file)-[:CONTAINS]->(type:JavaSource:Type{fqn:{fqn}}) RETURN type")
+    @Cypher("MATCH (file:Java:SourceCode:File) WHERE id(file)={this} MERGE (file)-[:CONTAINS]->(type:Java:SourceCode:Type{fqn:{fqn}}) RETURN type")
     TypeDescriptor resolveType(@Parameter("fqn") String fqn);
 }

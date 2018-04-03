@@ -35,7 +35,7 @@
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.WritesDescriptor</class>       
         <!-- added by DM -->
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDescriptor</class>
+        <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceCodeDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor</class>
     	<!-- added by DM -->
