@@ -3,5 +3,5 @@ package org.jqassistant.contrib.plugin.javasrc.api.model;
 import com.buschmais.jqassistant.plugin.common.api.model.ArtifactFileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.DirectoryDescriptor;
 
-public interface JavaSourceDirectoryDescriptor extends DirectoryDescriptor, JavaDescriptor, ArtifactFileDescriptor {
+public interface JavaSourceDirectoryDescriptor extends DirectoryDescriptor, JavaSourceDescriptor, ArtifactFileDescriptor {
 }

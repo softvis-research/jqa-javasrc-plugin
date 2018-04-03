@@ -14,6 +14,6 @@ public interface JavaSourceFileDescriptor extends JavaSourceCodeDescriptor, File
     List<TypeDescriptor> getTypes();
 
     @ResultOf
-    @Cypher("MATCH (file:Java:SourceCode:File) WHERE id(file)={this} MERGE (file)-[:CONTAINS]->(type:Java:SourceCode:Type{fqn:{fqn}}) RETURN type")
+    @Cypher("MATCH (file:JavaSource:SourceCode:File) WHERE id(file)={this} MERGE (file)-[:CONTAINS]->(type:JavaSource:SourceCode:Type{fqn:{fqn}}) RETURN type")
     TypeDescriptor resolveType(@Parameter("fqn") String fqn);
 }
