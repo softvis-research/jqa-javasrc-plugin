@@ -2,36 +2,48 @@
                                name="XML">
     <description>Provides scanners for Source Code (currently Java).</description>
     <model>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.AbstractDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.AccessModifierDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationTypeDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.ClassDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.ClassFileDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.ClassValueDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.ConstructorDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.EnumDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.EnumTypeDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.EnumValueDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.InterfaceTypeDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.InvokesDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.LineNumberDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.MemberDescriptor</class>
+   		<class>org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.PackageDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.TypeDependsOnDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.InterfaceTypeDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.EnumTypeDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationTypeDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.InvokesDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.ReadsDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.WritesDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.ConstructorDescriptor</class>
+        <class>org.jqassistant.contrib.plugin.javasrc.api.model.PackageMemberDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.ClassValueDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor</class>
-        <class>org.jqassistant.contrib.plugin.javasrc.api.model.EnumValueDescriptor</class>
+        <class>org.jqassistant.contrib.plugin.javasrc.api.model.ReadsDescriptor</class>
+        <class>org.jqassistant.contrib.plugin.javasrc.api.model.SignatureDescriptor</class>
+        <class>org.jqassistant.contrib.plugin.javasrc.api.model.TypedDescriptor</class>
+        <class>org.jqassistant.contrib.plugin.javasrc.api.model.TypeDependsOnDescriptor</class>        
+        <class>org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.VariableDescriptor</class>
+        <class>org.jqassistant.contrib.plugin.javasrc.api.model.WritesDescriptor</class>       
         <!-- added by DM -->
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor</class>
+    	<!-- added by DM -->
     </model>
     <scope>
         <class>org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope</class>
     </scope>
-    <scanner>
-        <!-- added by DM -->
+    <scanner> 
         <class>org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaSourceDirectoryScannerPlugin</class>
         <class>org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaSourceFileScannerPlugin</class>
     </scanner>
