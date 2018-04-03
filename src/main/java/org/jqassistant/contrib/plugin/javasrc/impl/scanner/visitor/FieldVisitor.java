@@ -79,6 +79,7 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
             EnumConstantDeclaration enumConstantDeclaration = bodyDEclaration.asEnumConstantDeclaration();
             return visitorHelper.getQualifiedName(enumConstantDeclaration) + " " + enumConstantDeclaration.getName();
         } else {
+            // TODO remove exception
             throw new IllegalArgumentException("Field signature could not be create for: " + bodyDEclaration.toString());
         }
     }
