@@ -37,14 +37,25 @@
 		</license>
 	</licenses>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </pluginRepository>
+    </pluginRepositories>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<com.buschmais.jqassistant.plugin.version>1.3</com.buschmais.jqassistant.plugin.version>
-		<com.buschmais.xo.version>0.8.1</com.buschmais.xo.version>
-		<org.neo4j.version>3.1.3</org.neo4j.version>
+		<com.buschmais.jqassistant.version>1.4.0-SNAPSHOT</com.buschmais.jqassistant.version>
+		<com.buschmais.jqassistant.plugin.version>1.4-SNAPSHOT</com.buschmais.jqassistant.plugin.version>
+		<com.buschmais.xo.version>0.9.0</com.buschmais.xo.version>
+		<org.neo4j.version>3.3.4</org.neo4j.version>
 		<org.slf4j.version>1.7.12</org.slf4j.version>
 		<org.hamcrest.version>2.0.0.0</org.hamcrest.version>
-		<jqa-xml-plugin.version>1.4-SNAPSHOT</jqa-xml-plugin.version>
 	</properties>
 
 	<build>
@@ -163,5 +174,11 @@
 			<artifactId>javaparser-symbol-solver-core</artifactId>
 			<version>3.5.17</version>
 		</dependency>
+		<!-- Declared to detect ambiguities between data models of bytecode and src parser -->
+        <dependency>
+        	<groupId>com.buschmais.jqassistant.plugin</groupId>
+            <artifactId>java</artifactId>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 </project>
