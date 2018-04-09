@@ -18,6 +18,7 @@ import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.resolution.Resolvable;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
@@ -74,10 +75,8 @@ public class JavaTypeSolver {
             } else {
                 throw new IllegalArgumentException("Unexpected type of parsed node: " + node + " " + node.getClass());
             }
-
         } catch (UnsolvedSymbolException use) {
-            System.out.println("SOMETHING UNSOLVED in solve: " + use.getMessage());
-            // TODO handle unsolved types
+            System.out.println("SOMETHING UNSOLVED: " + use.getMessage());
         }
 
         return resolved;
@@ -93,6 +92,8 @@ public class JavaTypeSolver {
             return getQualifiedName(((ResolvedEnumConstantDeclaration) resolved).getType());
         } else if (resolved instanceof ResolvedFieldDeclaration) {
             return getQualifiedName(((ResolvedFieldDeclaration) resolved).getType());
+        } else if (resolved instanceof ResolvedValueDeclaration) {
+            return getQualifiedName(((ResolvedValueDeclaration) resolved).getType());
         } else {
             throw new IllegalArgumentException("Unexpected type of resolved node: " + resolved + " " + resolved.getClass());
         }
@@ -110,7 +111,6 @@ public class JavaTypeSolver {
         } else if (resolvedType.isTypeVariable()) {
             return resolvedType.asTypeVariable().qualifiedName();
         } else if (resolvedType.isWildcard()) {
-            // TODO implement test case
             return resolvedType.asWildcard().getBoundedType().describe();
         } else {
             throw new IllegalArgumentException("Unexpected type of resolved type: " + resolvedType + " " + resolvedType.getClass());
@@ -159,12 +159,19 @@ public class JavaTypeSolver {
         }
     }
 
-    private ResolvedFieldDeclaration solveFieldAccess(FieldAccessExpr fieldAccessExpr) throws UnsolvedSymbolException {
-        SymbolReference<ResolvedFieldDeclaration> symbolReference = facade.solve(fieldAccessExpr);
-        if (symbolReference.isSolved()) {
-            return symbolReference.getCorrespondingDeclaration();
-        } else {
-            throw new UnsolvedSymbolException("Field access could not be solved: " + fieldAccessExpr);
+    private ResolvedDeclaration solveFieldAccess(FieldAccessExpr fieldAccessExpr) throws UnsolvedSymbolException {
+        SymbolReference<ResolvedFieldDeclaration> symbolFieldReference = facade.solve(fieldAccessExpr);
+        if (symbolFieldReference.isSolved()) {
+            return symbolFieldReference.getCorrespondingDeclaration();
+        } else {// external type with scope, e.g., Enum.VALUE
+            // TODO is it the correct type?
+            SymbolReference<? extends ResolvedTypeDeclaration> symbolTypeReference = facade.getSymbolSolver().solveType(fieldAccessExpr.getScope().toString(),
+                    fieldAccessExpr);
+            if (symbolTypeReference.isSolved()) {
+                return symbolTypeReference.getCorrespondingDeclaration();
+            } else {
+                throw new UnsolvedSymbolException("Field access could not be solved: " + fieldAccessExpr);
+            }
         }
     }
 }
