@@ -70,11 +70,8 @@ public class AnnotationIT extends AbstractPluginIT {
         assertThat(values, hasItem(valueDescriptor("arrayValue", hasItems(valueDescriptor("[0]", is("a")), (valueDescriptor("[1]", is("b")))))));
         assertThat(values, hasItem(valueDescriptor("enumerationValue", fieldDescriptor(NON_DEFAULT))));
         assertThat(values, hasItem(valueDescriptor("nestedAnnotationValue", hasItem(valueDescriptor("value", is("nestedClass"))))));
-        // TODO get this test working
-        // assertThat(values,
-        // hasItem(valueDescriptor("nestedAnnotationValues",
-        // hasItem(valueDescriptor("[0]", hasItem(valueDescriptor("value",
-        // is("nestedClasses"))))))));
+        assertThat(values,
+                hasItem(valueDescriptor("nestedAnnotationValues", hasItem(valueDescriptor("[0]", hasItem(valueDescriptor("value", is("nestedClasses"))))))));
         store.commitTransaction();
     }
 
