@@ -15,9 +15,9 @@
  */
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner.resolve;
 
-import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation.Enumeration;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.external.ExternalEnumeration;
 
-public class ExternalEnumeration {
-    @Annotation(enumerationValue = Enumeration.NON_DEFAULT)
+public class ResolveExternalEnumeration {
+    @Annotation(enumerationValue = ExternalEnumeration.NON_DEFAULT)
     protected Integer id;
 }
