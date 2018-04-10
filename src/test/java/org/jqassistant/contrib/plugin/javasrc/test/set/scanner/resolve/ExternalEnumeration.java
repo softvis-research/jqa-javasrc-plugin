@@ -17,7 +17,7 @@ package org.jqassistant.contrib.plugin.javasrc.test.set.scanner.resolve;
 
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation.Enumeration;
 
-public class ExternalEnum {
+public class ExternalEnumeration {
     @Annotation(enumerationValue = Enumeration.NON_DEFAULT)
     protected Integer id;
 }
