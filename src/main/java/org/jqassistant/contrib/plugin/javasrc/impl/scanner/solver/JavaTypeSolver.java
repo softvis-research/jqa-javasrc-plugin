@@ -25,6 +25,7 @@ import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.resolution.types.ResolvedWildcard;
 import com.github.javaparser.symbolsolver.core.resolution.Context;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFactory;
@@ -111,7 +112,12 @@ public class JavaTypeSolver {
         } else if (resolvedType.isTypeVariable()) {
             return resolvedType.asTypeVariable().qualifiedName();
         } else if (resolvedType.isWildcard()) {
-            return resolvedType.asWildcard().getBoundedType().describe();
+            ResolvedWildcard wildcard = resolvedType.asWildcard();
+            if (wildcard.isBounded()) {
+                return wildcard.getBoundedType().describe();
+            } else {
+                return wildcard.describe();
+            }
         } else {
             throw new IllegalArgumentException("Unexpected type of resolved type: " + resolvedType + " " + resolvedType.getClass());
         }
