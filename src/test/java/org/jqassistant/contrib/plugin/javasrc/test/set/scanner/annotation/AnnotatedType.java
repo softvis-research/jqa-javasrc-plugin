@@ -5,7 +5,7 @@ package org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation;
  */
 @Annotation(value = "class", arrayValue = { "a",
         "b" }, classValue = Number.class, enumerationValue = Enumeration.NON_DEFAULT, nestedAnnotationValue = @NestedAnnotation("nestedClass"), nestedAnnotationValues = {
-                @NestedAnnotation("nestedClasses") })
+                @NestedAnnotation("nestedClasses") }, nestedNormalAnnotationValue = @NestedAnnotation(value = "normalAnnotation"))
 public class AnnotatedType {
 
     @Annotation(value = "field")

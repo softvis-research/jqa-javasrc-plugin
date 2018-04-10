@@ -63,7 +63,7 @@ public class AnnotationIT extends AbstractPluginIT {
         assertThat((TypeDescriptor) row.get("at"), typeDescriptor(Annotation.class));
         // verify values
         testResult = query("MATCH (t:Type:Class)-[:ANNOTATED_BY]->(a:Value:Annotation)-[:HAS]->(value:Value) RETURN value");
-        assertThat(testResult.getRows().size(), equalTo(6));
+        assertThat(testResult.getRows().size(), equalTo(7));
         List<Object> values = testResult.getColumn("value");
         assertThat(values, hasItem(valueDescriptor("value", is("class"))));
         assertThat(values, hasItem(valueDescriptor("classValue", typeDescriptor(Number.class))));
@@ -72,6 +72,7 @@ public class AnnotationIT extends AbstractPluginIT {
         assertThat(values, hasItem(valueDescriptor("nestedAnnotationValue", hasItem(valueDescriptor("value", is("nestedClass"))))));
         assertThat(values,
                 hasItem(valueDescriptor("nestedAnnotationValues", hasItem(valueDescriptor("[0]", hasItem(valueDescriptor("value", is("nestedClasses"))))))));
+        assertThat(values, hasItem(valueDescriptor("nestedNormalAnnotationValue", hasItem(valueDescriptor("value", is("normalAnnotation"))))));
         store.commitTransaction();
     }
 

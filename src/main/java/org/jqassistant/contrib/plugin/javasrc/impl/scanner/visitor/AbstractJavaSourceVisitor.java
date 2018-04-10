@@ -10,7 +10,9 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
 import com.github.javaparser.ast.nodeTypes.NodeWithModifiers;
@@ -104,7 +106,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             SingleMemberAnnotationExpr singleMemberAnnotationExpr = value.asSingleMemberAnnotationExpr();
             AnnotationValueDescriptor annotationValueDescriptor = visitorHelper
                     .getAnnotationValueDescriptor(visitorHelper.getQualifiedName(singleMemberAnnotationExpr), name, null);
-            // annotationValueDescriptor.setName(name);
+            // TODO annotationValueDescriptor.setName(name);?
             annotationValueDescriptor.getValue()
                     .add(createValueDescriptor(visitorHelper.SINGLE_MEMBER_ANNOTATION_NAME, singleMemberAnnotationExpr.getMemberValue(), typeDescriptor));
             return annotationValueDescriptor;
@@ -114,6 +116,16 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             primitiveValueDescriptor.setName(name);
             primitiveValueDescriptor.setValue(value.toString());
             return primitiveValueDescriptor;
+        } else if (value.isNormalAnnotationExpr()) {
+            NormalAnnotationExpr normalAnnotationExpr = value.asNormalAnnotationExpr();
+            AnnotationValueDescriptor annotationValueDescriptor = visitorHelper
+                    .getAnnotationValueDescriptor(visitorHelper.getQualifiedName(normalAnnotationExpr), name, null);
+            for (MemberValuePair memberValuePair : normalAnnotationExpr.getPairs()) {
+                annotationValueDescriptor.getValue()
+                        .add(createValueDescriptor(memberValuePair.getNameAsString(), memberValuePair.getValue(), annotationValueDescriptor.getType()));
+            }
+            // TODO annotationValueDescriptor.setName(name);?
+            return annotationValueDescriptor;
         } else
             throw new RuntimeException("Type of annotation value is not supported: " + name + " " + value.getClass());
     }
