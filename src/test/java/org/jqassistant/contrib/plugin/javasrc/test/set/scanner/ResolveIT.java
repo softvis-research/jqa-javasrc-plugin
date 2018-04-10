@@ -67,6 +67,6 @@ public class ResolveIT extends AbstractPluginIT {
         TestResult testResult = query("MATCH (caller:Method)-[INVOKES]->(callee:Method) WHERE caller.name='callExternalStaticMethod' RETURN callee");
         // verify methods
         assertThat(testResult.getColumn("callee").size(), equalTo(1));
-        assertThat(testResult.getColumn("callee"), hasItem(methodDescriptor(ExternalClass.class, "externalStaticMethod")));
+        assertThat(testResult.getColumn("callee"), hasItem(methodDescriptor(ExternalClass.class, "externalStaticMethod", List.class)));
     }
 }
