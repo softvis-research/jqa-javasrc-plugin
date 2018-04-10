@@ -12,7 +12,7 @@ import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.dependency.Dependency;
-import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.resolve.ExternalEnumeration;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.external.ExternalClass;
 import org.junit.Test;
 
 /**
@@ -49,7 +49,7 @@ public class DependencyIT extends AbstractPluginIT {
         assertThat(query("MATCH (dependent:Type)-[:DEPENDS_ON]->(dependency:Type) WHERE dependent.name = 'ExternalDependency' RETURN dependency")
                 .getColumn("dependency").size(), equalTo(1));
         assertThat(query("MATCH (dependent:Type)-[:DEPENDS_ON]->(dependency:Type) WHERE dependent.name = 'ExternalDependency' RETURN dependency")
-                .getColumn("dependency"), hasItem(typeDescriptor(ExternalEnumeration.class)));
+                .getColumn("dependency"), hasItem(typeDescriptor(ExternalClass.class)));
         store.commitTransaction();
     }
 }

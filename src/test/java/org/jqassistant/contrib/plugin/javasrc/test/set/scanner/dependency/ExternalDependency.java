@@ -1,8 +1,8 @@
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner.dependency;
 
-import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.resolve.ExternalEnumeration;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.external.ExternalClass;
 
 public class ExternalDependency {
 
-    ExternalEnumeration externalEnumeration;
+    ExternalClass externalClass;
 }
