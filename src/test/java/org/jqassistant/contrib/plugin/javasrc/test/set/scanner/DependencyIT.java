@@ -9,10 +9,10 @@ import static org.junit.Assert.assertThat;
 import java.io.File;
 
 import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
-import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.dependency.Dependency;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.resolve.ExternalEnum;
 import org.junit.Test;
 
 /**
@@ -49,7 +49,7 @@ public class DependencyIT extends AbstractPluginIT {
         assertThat(query("MATCH (dependent:Type)-[:DEPENDS_ON]->(dependency:Type) WHERE dependent.name = 'ExternalDependency' RETURN dependency")
                 .getColumn("dependency").size(), equalTo(1));
         assertThat(query("MATCH (dependent:Type)-[:DEPENDS_ON]->(dependency:Type) WHERE dependent.name = 'ExternalDependency' RETURN dependency")
-                .getColumn("dependency"), hasItem(typeDescriptor(JavaSourceDescriptor.class)));
+                .getColumn("dependency"), hasItem(typeDescriptor(ExternalEnum.class)));
         store.commitTransaction();
     }
 }

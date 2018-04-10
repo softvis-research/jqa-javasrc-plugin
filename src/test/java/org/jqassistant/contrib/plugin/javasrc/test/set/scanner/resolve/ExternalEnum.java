@@ -15,9 +15,9 @@
  */
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner.resolve;
 
-import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation.Enumeration;
 
 public class ExternalEnum {
-    @Annotation(enumerationValue = JavaScope.SRC)
+    @Annotation(enumerationValue = Enumeration.NON_DEFAULT)
     protected Integer id;
 }

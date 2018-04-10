@@ -23,6 +23,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.annotation.Enumeration;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.resolve.Annotation;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.resolve.ExternalEnum;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.resolve.GenericType;
@@ -51,20 +52,36 @@ public class ResolveIT extends AbstractPluginIT {
         testResult = query("MATCH (f:Field)-[:ANNOTATED_BY]->(a:Value:Annotation)-[:HAS]->(value:Value) RETURN value");
         assertThat(testResult.getRows().size(), equalTo(1));
         List<Object> values = testResult.getColumn("value");
-        assertThat(values, hasItem(valueDescriptor("enumerationValue", fieldDescriptor(JavaScope.SRC))));
+        assertThat(values, hasItem(valueDescriptor("enumerationValue", fieldDescriptor(Enumeration.NON_DEFAULT))));
         store.commitTransaction();
     }
 
     @Test
-    public void testResolveWildcard() throws IOException, NoSuchFieldException, NoSuchMethodException {
+    public void testResolveWildcardBounded() throws IOException, NoSuchFieldException, NoSuchMethodException {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/resolve/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
-        TestResult testResult = query("MATCH (t:Type)-[:DEPENDS_ON]->(dependents:Type) WHERE t.name = 'WildcardParameter' RETURN dependents");
+        TestResult testResult = query("MATCH (t:Type)-[:DEPENDS_ON]->(dependents:Type) WHERE t.name = 'WildcardParameterBounded' RETURN dependents");
         List<Object> dependents = testResult.getColumn("dependents");
+        assertThat(dependents.size(), equalTo(3));
         assertThat(dependents, hasItem(typeDescriptor(String.class)));
+        assertThat(dependents, hasItem(typeDescriptor(GenericType.class)));
+        assertThat(dependents, hasItem(typeDescriptor(void.class)));
+        store.commitTransaction();
+    }
+
+    @Test
+    public void testResolveWildcardUnBounded() throws IOException, NoSuchFieldException, NoSuchMethodException {
+        final String TEST_DIRECTORY_PATH = "src/test/java/";
+        final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/resolve/";
+        File directory = new File(FILE_DIRECTORY_PATH);
+        store.beginTransaction();
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
+        TestResult testResult = query("MATCH (t:Type)-[:DEPENDS_ON]->(dependents:Type) WHERE t.name = 'WildcardParameterUnbounded' RETURN dependents");
+        List<Object> dependents = testResult.getColumn("dependents");
+        assertThat(dependents.size(), equalTo(3));
         assertThat(dependents, hasItem(typeDescriptor(GenericType.class)));
         assertThat(dependents, hasItem(typeDescriptor(void.class)));
         store.commitTransaction();
