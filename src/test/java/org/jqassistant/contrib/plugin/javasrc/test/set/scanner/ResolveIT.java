@@ -28,7 +28,6 @@ import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.external.External
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.external.ExternalEnumeration;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.resolve.Annotation;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.resolve.ResolveExternalEnumeration;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -59,7 +58,6 @@ public class ResolveIT extends AbstractPluginIT {
     }
 
     @Test
-    @Ignore
     public void testResolveExternalStaticMethodCall() throws NoSuchMethodException {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/resolve/";
