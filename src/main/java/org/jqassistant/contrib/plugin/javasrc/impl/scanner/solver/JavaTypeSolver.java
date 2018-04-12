@@ -23,8 +23,20 @@ public class JavaTypeSolver {
     private CombinedTypeSolver combinedTypeSolver;
 
     public JavaTypeSolver(String srcDir) throws IOException {
-        combinedTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(), new JavaParserTypeSolver(new File(srcDir)),
-                new JarTypeSolver(new File("src/test/resources/jqassistant-javasrc-plugin-0.0.9.jar")));
+        // create type solver
+        combinedTypeSolver = new CombinedTypeSolver();
+        // add source directory
+        combinedTypeSolver.add(new JavaParserTypeSolver(new File(srcDir)));
+        // add jre types
+        combinedTypeSolver.add(new ReflectionTypeSolver());
+        // add external libs
+        final File jarFolder = new File("src/test/resources");
+        for (final File fileEntry : jarFolder.listFiles()) {
+            if (!fileEntry.isDirectory()) {
+                combinedTypeSolver.add(new JarTypeSolver(fileEntry.getPath()));
+            }
+        }
+        // set created type solver globally
         JavaParser.getStaticConfiguration().setSymbolResolver(new JavaSymbolSolver(combinedTypeSolver));
     }
 
