@@ -46,11 +46,19 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     }
 
     private void createField(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
-        descriptor = visitorHelper.getFieldDescriptor(getFieldSignature(bodyDeclaration), parent);
+        if (bodyDeclaration instanceof FieldDeclaration) {
+            FieldDeclaration fieldDeclaration = bodyDeclaration.asFieldDeclaration();
+            descriptor = visitorHelper.getFieldDescriptor(
+                    visitorHelper.getQualifiedName(fieldDeclaration.getVariable(0).getType()) + " " + fieldDeclaration.getVariable(0).getName(), parent);
+        } else if (bodyDeclaration instanceof EnumConstantDeclaration) {
+            EnumConstantDeclaration enumConstantDeclaration = bodyDeclaration.asEnumConstantDeclaration();
+            descriptor = visitorHelper.getFieldDescriptor(visitorHelper.getQualifiedName(enumConstantDeclaration) + " " + enumConstantDeclaration.getName(),
+                    parent);
+        }
     }
 
     private void setFieldType(FieldDeclaration fieldDeclaration) {
-        Type fieldType = fieldDeclaration.getElementType();
+        Type fieldType = fieldDeclaration.getVariables().get(0).getType();
         TypeDescriptor fieldTypeDescriptor = visitorHelper.resolveDependency(visitorHelper.getQualifiedName(fieldType),
                 ((FieldDescriptor) descriptor).getDeclaringType());
         ((FieldDescriptor) descriptor).setType(fieldTypeDescriptor);
@@ -69,18 +77,5 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
             valueDescriptor.setValue(getLiteralExpressionValue(value));
             ((FieldDescriptor) descriptor).setValue(valueDescriptor);
         });
-    }
-
-    private String getFieldSignature(BodyDeclaration<?> bodyDEclaration) {
-        if (bodyDEclaration instanceof FieldDeclaration) {
-            FieldDeclaration fieldDeclaration = bodyDEclaration.asFieldDeclaration();
-            return visitorHelper.getQualifiedName(fieldDeclaration.getElementType()) + " " + fieldDeclaration.getVariable(0).getName();
-        } else if (bodyDEclaration instanceof EnumConstantDeclaration) {
-            EnumConstantDeclaration enumConstantDeclaration = bodyDEclaration.asEnumConstantDeclaration();
-            return visitorHelper.getQualifiedName(enumConstantDeclaration) + " " + enumConstantDeclaration.getName();
-        } else {
-            // TODO remove exception
-            throw new IllegalArgumentException("Field signature could not be create for: " + bodyDEclaration.toString());
-        }
     }
 }
