@@ -29,10 +29,10 @@ public class JavaTypeSolver {
         combinedTypeSolver.add(new JavaParserTypeSolver(new File(srcDir)));
         // add jre types
         combinedTypeSolver.add(new ReflectionTypeSolver());
-        // add external libs
+        // add external jars
         final File jarFolder = new File("src/test/resources");
         for (final File fileEntry : jarFolder.listFiles()) {
-            if (!fileEntry.isDirectory()) {
+            if (fileEntry.isFile() && fileEntry.getName().toLowerCase().endsWith("jar")) {
                 combinedTypeSolver.add(new JarTypeSolver(fileEntry.getPath()));
             }
         }
