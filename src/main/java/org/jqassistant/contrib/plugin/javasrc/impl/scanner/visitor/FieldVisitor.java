@@ -5,6 +5,7 @@ import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor;
@@ -49,17 +50,17 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         if (bodyDeclaration instanceof FieldDeclaration) {
             FieldDeclaration fieldDeclaration = bodyDeclaration.asFieldDeclaration();
             descriptor = visitorHelper.getFieldDescriptor(
-                    visitorHelper.getQualifiedName(fieldDeclaration.getVariable(0).getType()) + " " + fieldDeclaration.getVariable(0).getName(), parent);
+                    getQualifiedName(fieldDeclaration.getVariable(0).getType().resolve()) + " " + fieldDeclaration.getVariable(0).getName(), parent);
         } else if (bodyDeclaration instanceof EnumConstantDeclaration) {
             EnumConstantDeclaration enumConstantDeclaration = bodyDeclaration.asEnumConstantDeclaration();
-            descriptor = visitorHelper.getFieldDescriptor(visitorHelper.getQualifiedName(enumConstantDeclaration) + " " + enumConstantDeclaration.getName(),
-                    parent);
+            ResolvedEnumConstantDeclaration solvedEnum = enumConstantDeclaration.resolve();
+            descriptor = visitorHelper.getFieldDescriptor(getQualifiedName(solvedEnum.getType()) + " " + enumConstantDeclaration.getName(), parent);
         }
     }
 
     private void setFieldType(FieldDeclaration fieldDeclaration) {
         Type fieldType = fieldDeclaration.getVariables().get(0).getType();
-        TypeDescriptor fieldTypeDescriptor = visitorHelper.resolveDependency(visitorHelper.getQualifiedName(fieldType),
+        TypeDescriptor fieldTypeDescriptor = visitorHelper.resolveDependency(getQualifiedName(fieldType.resolve()),
                 ((FieldDescriptor) descriptor).getDeclaringType());
         ((FieldDescriptor) descriptor).setType(fieldTypeDescriptor);
         if (fieldType.isClassOrInterfaceType()) {

@@ -37,19 +37,19 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
 
     @Override
     public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        // setInvokes(methodCallExpr, methodDescriptor);
+        setInvokes(methodCallExpr, methodDescriptor);
         super.visit(methodCallExpr, methodDescriptor);
     }
 
     @Override
     public void visit(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
-        // setWrites(assignExpr, methodDescriptor);
+        setWrites(assignExpr, methodDescriptor);
         super.visit(assignExpr, methodDescriptor);
     }
 
     @Override
     public void visit(FieldAccessExpr fieldAccessExpr, MethodDescriptor methodDescriptor) {
-        // setReads(fieldAccessExpr, methodDescriptor);
+        setReads(fieldAccessExpr, methodDescriptor);
         super.visit(fieldAccessExpr, methodDescriptor);
     }
 
@@ -83,7 +83,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     }
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = (ResolvedMethodDeclaration) visitorHelper.solve(methodCallExpr);
+        ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = visitorHelper.getFacade().solveMethodAsUsage(methodCallExpr).getDeclaration();
         TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(resolvedInvokedMethodDeclaration.declaringType().getQualifiedName(),
                 methodDescriptor.getDeclaringType());
         MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(getMethodSignature(resolvedInvokedMethodDeclaration), invokedMethodParent);
@@ -105,7 +105,9 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
                 visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
             });
         } else if (target.isNameExpr()) {
-            ResolvedValueDeclaration resolvedValueDeclaration = (ResolvedValueDeclaration) visitorHelper.solve(target.asNameExpr());
+            // TODO extract in method
+            ResolvedValueDeclaration resolvedValueDeclaration = (ResolvedValueDeclaration) visitorHelper.getFacade().solve(target.asNameExpr())
+                    .getCorrespondingDeclaration();
             if (resolvedValueDeclaration.isField()) {
                 // FIELD = VALUE;
                 FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getFieldSignature(resolvedValueDeclaration.asField()),
@@ -128,7 +130,9 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
                 visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
             });
         } else if (expression instanceof NameExpr) {
-            ResolvedValueDeclaration resolvedValueDeclaration = (ResolvedValueDeclaration) visitorHelper.solve((NameExpr) expression);
+            // TODO extract in method
+            ResolvedValueDeclaration resolvedValueDeclaration = (ResolvedValueDeclaration) visitorHelper.getFacade().solve((NameExpr) expression)
+                    .getCorrespondingDeclaration();
             if (resolvedValueDeclaration.isField()) {
                 // FIELD
                 FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getFieldSignature(resolvedValueDeclaration.asField()),
@@ -142,10 +146,10 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     }
 
     private String getMethodSignature(ResolvedMethodDeclaration resolvedMethodDeclaration) {
-        return visitorHelper.getQualifiedName(resolvedMethodDeclaration.getReturnType()) + " " + resolvedMethodDeclaration.getSignature();
+        return getQualifiedName(resolvedMethodDeclaration.getReturnType()) + " " + resolvedMethodDeclaration.getSignature();
     }
 
     private String getFieldSignature(ResolvedFieldDeclaration resolvedFieldDeclaration) {
-        return visitorHelper.getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName();
+        return getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName();
     }
 }

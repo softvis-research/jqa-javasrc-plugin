@@ -26,6 +26,9 @@ import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.resolution.types.ResolvedType;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
@@ -93,15 +96,17 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void createMethod(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
         if (bodyDeclaration.isMethodDeclaration()) {
             MethodDeclaration methodDeclaration = bodyDeclaration.asMethodDeclaration();
-            descriptor = visitorHelper.getMethodDescriptor(visitorHelper.getQualifiedName(methodDeclaration.getType()) + " "
-                    + visitorHelper.getQualifiedSignature(methodDeclaration.getNameAsString(), methodDeclaration.getParameters()), parent);
+            ResolvedMethodDeclaration solvedMethod = methodDeclaration.resolve();
+            descriptor = visitorHelper.getMethodDescriptor(getQualifiedName(solvedMethod.getReturnType()) + " " + solvedMethod.getSignature(), parent);
         } else if (bodyDeclaration.isConstructorDeclaration()) {
             ConstructorDeclaration constructorDeclaration = bodyDeclaration.asConstructorDeclaration();
+            ResolvedConstructorDeclaration solvedConstructor = constructorDeclaration.resolve();
             descriptor = visitorHelper.getMethodDescriptor(
-                    visitorHelper.getQualifiedSignature(visitorHelper.CONSTRUCTOR_SIGNATURE, constructorDeclaration.getParameters()), parent);
+                    visitorHelper.CONSTRUCTOR_SIGNATURE + solvedConstructor.getSignature().replaceAll(solvedConstructor.getName(), ""), parent);
         } else if (bodyDeclaration.isAnnotationMemberDeclaration()) {
+
             descriptor = visitorHelper.getMethodDescriptor(
-                    visitorHelper.getQualifiedName(bodyDeclaration.asAnnotationMemberDeclaration().getType()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE,
+                    getQualifiedName(bodyDeclaration.asAnnotationMemberDeclaration().getType().resolve()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE,
                     parent);
         }
     }
@@ -109,12 +114,14 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void setParamters(CallableDeclaration<?> callableDeclaration) {
         List<Parameter> parameters = ((CallableDeclaration<?>) callableDeclaration).getParameters();
         for (int i = 0; i < parameters.size(); i++) {
-            TypeDescriptor parameterTypeDescriptor = visitorHelper.resolveDependency(visitorHelper.getQualifiedName(parameters.get(i).getType()),
+            ResolvedType solvedParameterType = visitorHelper.getFacade().convert(parameters.get(i).getType(), callableDeclaration);
+            TypeDescriptor parameterTypeDescriptor = visitorHelper.resolveDependency(getQualifiedName(solvedParameterType),
                     ((MethodDescriptor) descriptor).getDeclaringType());
             ParameterDescriptor parameterDescriptor = visitorHelper.getParameterDescriptor(((MethodDescriptor) descriptor), i);
             parameterDescriptor.setType(parameterTypeDescriptor);
             if (parameters.get(i).getType().isClassOrInterfaceType()) {
                 // TODO are there other types?
+                // TODO use the solved type!
                 setTypeParameterDependency(parameters.get(i).getType().asClassOrInterfaceType(), ((MethodDescriptor) descriptor).getDeclaringType());
             }
             setAnnotations(parameters.get(i), parameterDescriptor);
@@ -123,8 +130,9 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
 
     private void setReturnType(MethodDeclaration methodDeclaration) {
         Type returnType = methodDeclaration.getType();
+        ResolvedType solvedReturnType = visitorHelper.getFacade().convertToUsage(returnType, methodDeclaration);
         ((MethodDescriptor) descriptor)
-                .setReturns(visitorHelper.resolveDependency(visitorHelper.getQualifiedName(returnType), ((MethodDescriptor) descriptor).getDeclaringType()));
+                .setReturns(visitorHelper.resolveDependency(getQualifiedName(solvedReturnType), ((MethodDescriptor) descriptor).getDeclaringType()));
         if (returnType.isClassOrInterfaceType()) {
             // TODO are there other types?
             setTypeParameterDependency(returnType.asClassOrInterfaceType(), ((MethodDescriptor) descriptor).getDeclaringType());
@@ -134,7 +142,7 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void setExceptions(CallableDeclaration<?> callableDeclaration) {
         callableDeclaration.getThrownExceptions().forEach(exception -> {
             ((MethodDescriptor) descriptor).getDeclaredThrowables()
-                    .add(visitorHelper.resolveDependency(visitorHelper.getQualifiedName(exception), ((MethodDescriptor) descriptor).getDeclaringType()));
+                    .add(visitorHelper.resolveDependency(getQualifiedName(exception.resolve()), ((MethodDescriptor) descriptor).getDeclaringType()));
         });
     }
 

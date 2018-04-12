@@ -33,8 +33,7 @@ public class AnnotationVisitor extends AbstractJavaSourceVisitor<AnnotatedDescri
     }
 
     private void createAnnotation(AnnotationExpr annotationExpr, AnnotatedDescriptor annotatedDescriptor) {
-        descriptor = visitorHelper.getAnnotationValueDescriptor(visitorHelper.getQualifiedName(annotationExpr), annotationExpr.getNameAsString(),
-                annotatedDescriptor);
+        descriptor = visitorHelper.getAnnotationValueDescriptor(getQualifiedName(annotationExpr), annotationExpr.getNameAsString(), annotatedDescriptor);
 
     }
 

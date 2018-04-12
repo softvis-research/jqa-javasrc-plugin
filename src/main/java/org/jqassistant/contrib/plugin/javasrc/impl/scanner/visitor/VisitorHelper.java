@@ -7,10 +7,8 @@ import java.util.Iterator;
 
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
-import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.Parameter;
-import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
+import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import org.apache.commons.lang.StringUtils;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
@@ -31,13 +29,15 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.solver.JavaTypeSolver
  * holds a reference to the symbol solver, and provides the visitors with
  * descriptors.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class VisitorHelper {
 
     private ScannerContext scannerContext;
     private JavaSourceFileDescriptor javaSourceFileDescriptor;
+    private JavaParserFacade facade;
+    private TypeSolver typeSolver;
     public final String CONSTRUCTOR_NAME = "<init>";
     public final String VOID = "void";
     public final String CONSTRUCTOR_SIGNATURE = "void <init>";
@@ -48,14 +48,11 @@ public class VisitorHelper {
     public VisitorHelper(ScannerContext scannerContext, JavaSourceFileDescriptor javaSourceFileDescriptor) {
         this.scannerContext = scannerContext;
         this.javaSourceFileDescriptor = javaSourceFileDescriptor;
+        this.facade = getJavaTypeSolver().getFacade();
+        this.typeSolver = getJavaTypeSolver().getTypeSolver();
 
     }
 
-    public JavaSourceFileDescriptor getJavaSourceFileDescriptor() {
-        return this.javaSourceFileDescriptor;
-    }
-
-    // TODO change back to TypeDeclaration?
     public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor, Class<T> type) {
         return getTypeResolver().createType(fqn, javaSourcefileDescriptor, type);
     }
@@ -66,7 +63,7 @@ public class VisitorHelper {
 
     public MethodDescriptor getMethodDescriptor(String signature, TypeDescriptor parent) {
         MethodDescriptor methodDescriptor = null;
-        for (Iterator iterator = parent.getDeclaredFields().iterator(); iterator.hasNext();) {
+        for (Iterator<MethodDescriptor> iterator = parent.getDeclaredMethods().iterator(); iterator.hasNext();) {
             Object member = iterator.next();
             if (member instanceof MethodDescriptor) {
                 MethodDescriptor existingMethodDescriptor = (MethodDescriptor) member;
@@ -92,7 +89,7 @@ public class VisitorHelper {
 
     public FieldDescriptor getFieldDescriptor(String signature, TypeDescriptor parent) {
         FieldDescriptor fieldDescriptor = null;
-        for (Iterator iterator = parent.getDeclaredFields().iterator(); iterator.hasNext();) {
+        for (Iterator<FieldDescriptor> iterator = parent.getDeclaredFields().iterator(); iterator.hasNext();) {
             Object member = iterator.next();
             if (member instanceof FieldDescriptor) {
                 FieldDescriptor existingFieldDescriptor = (FieldDescriptor) member;
@@ -156,20 +153,16 @@ public class VisitorHelper {
         getTypeResolver().addDependencies();
     }
 
-    public Object solve(Node node) {
-        return getJavaTypeResolver().solve(node);
+    public JavaParserFacade getFacade() {
+        return this.facade;
     }
 
-    public String getQualifiedName(Node node) {
-        return getJavaTypeResolver().getQualifiedName(node);
+    public TypeSolver getTypeSolver() {
+        return this.typeSolver;
     }
 
-    public String getQualifiedSignature(String name, NodeList<Parameter> parameters) {
-        return getJavaTypeResolver().getQualifiedSignature(name, parameters);
-    }
-
-    public Object getQualifiedName(ResolvedType resolvedType) {
-        return getJavaTypeResolver().getQualifiedName(resolvedType);
+    public JavaSourceFileDescriptor getJavaSourceFileDescriptor() {
+        return this.javaSourceFileDescriptor;
     }
 
     /**
@@ -190,15 +183,15 @@ public class VisitorHelper {
     }
 
     /**
-     * Returns the type resolver.
+     * Returns the type solver.
      * <p>
      * Looks up an instance in the scanner context. If none can be found the
      * default resolver is used.
      * </p>
      *
-     * @return The type resolver.
+     * @return The type solver.
      */
-    private JavaTypeSolver getJavaTypeResolver() {
+    private JavaTypeSolver getJavaTypeSolver() {
         JavaTypeSolver javaTypeResolver = scannerContext.peek(JavaTypeSolver.class);
         if (javaTypeResolver == null) {
             throw new IllegalStateException("Cannot find Java type resolver.");

@@ -14,7 +14,6 @@ import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.solver.JavaTypeSolver;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.TypeVisitor;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.VisitorHelper;
 
@@ -29,14 +28,11 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
     @Override
     public JavaSourceFileDescriptor scan(FileResource item, String path, Scope scope, Scanner scanner) throws IOException {
         ScannerContext scannerContext = scanner.getContext();
-
-        JavaTypeSolver javaTypeSolver = scannerContext.peek(JavaTypeSolver.class);
         FileDescriptor fileDescriptor = scannerContext.getCurrentDescriptor();
         JavaSourceFileDescriptor javaSourceFileDescriptor = scannerContext.getStore().addDescriptorType(fileDescriptor, JavaSourceFileDescriptor.class);
         VisitorHelper visitorHelper = new VisitorHelper(scannerContext, javaSourceFileDescriptor);
         try (InputStream in = item.createStream()) {
             CompilationUnit cu = JavaParser.parse(in);
-            javaTypeSolver.addImportDeclarations(cu.getImports());
             cu.accept(new TypeVisitor(visitorHelper), javaSourceFileDescriptor);
         }
         visitorHelper.addDependencies();
