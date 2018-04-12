@@ -91,12 +91,19 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     }
 
     private void createMethod(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
-        // bodyDeclaration.getParentNode().ifPresent(parentNode -> {
-        // if (!(parentNode instanceof ObjectCreationExpr)) {
-        descriptor = visitorHelper.getMethodDescriptor(getMethodSignature(bodyDeclaration), parent);
-        // }
-        // });
-
+        if (bodyDeclaration.isMethodDeclaration()) {
+            MethodDeclaration methodDeclaration = bodyDeclaration.asMethodDeclaration();
+            descriptor = visitorHelper.getMethodDescriptor(visitorHelper.getQualifiedName(methodDeclaration.getType()) + " "
+                    + visitorHelper.getQualifiedSignature(methodDeclaration.getNameAsString(), methodDeclaration.getParameters()), parent);
+        } else if (bodyDeclaration.isConstructorDeclaration()) {
+            ConstructorDeclaration constructorDeclaration = bodyDeclaration.asConstructorDeclaration();
+            descriptor = visitorHelper.getMethodDescriptor(
+                    visitorHelper.getQualifiedSignature(visitorHelper.CONSTRUCTOR_SIGNATURE, constructorDeclaration.getParameters()), parent);
+        } else if (bodyDeclaration.isAnnotationMemberDeclaration()) {
+            descriptor = visitorHelper.getMethodDescriptor(
+                    visitorHelper.getQualifiedName(bodyDeclaration.asAnnotationMemberDeclaration().getType()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE,
+                    parent);
+        }
     }
 
     private void setParamters(CallableDeclaration<?> callableDeclaration) {
@@ -177,6 +184,7 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
      * @param node
      * @return cyclomatic complexity
      */
+    @SuppressWarnings("unused")
     private int calculateCyclomaticComplexity(Node node) {
         // TODO ForEachStmt?
         int complexity = 1;
@@ -237,20 +245,5 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         }
 
         return complexity;
-    }
-
-    private String getMethodSignature(BodyDeclaration<?> bodyDeclaration) throws IllegalArgumentException {
-        if (bodyDeclaration.isMethodDeclaration()) {
-            MethodDeclaration methodDeclaration = bodyDeclaration.asMethodDeclaration();
-            return visitorHelper.getQualifiedName(methodDeclaration.getType()) + " "
-                    + visitorHelper.getQualifiedSignature(methodDeclaration.getNameAsString(), methodDeclaration.getParameters());
-        } else if (bodyDeclaration.isConstructorDeclaration()) {
-            ConstructorDeclaration constructorDeclaration = bodyDeclaration.asConstructorDeclaration();
-            return visitorHelper.getQualifiedSignature(visitorHelper.CONSTRUCTOR_SIGNATURE, constructorDeclaration.getParameters());
-        } else if (bodyDeclaration.isAnnotationMemberDeclaration()) {
-            return visitorHelper.getQualifiedName(bodyDeclaration.asAnnotationMemberDeclaration().getType()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE;
-        } else {
-            throw new IllegalArgumentException("Method signature could not be create for: " + bodyDeclaration.toString());
-        }
     }
 }
