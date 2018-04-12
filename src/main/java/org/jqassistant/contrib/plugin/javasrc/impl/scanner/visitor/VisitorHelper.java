@@ -38,12 +38,12 @@ public class VisitorHelper {
 
     private ScannerContext scannerContext;
     private JavaSourceFileDescriptor javaSourceFileDescriptor;
-    public static final String CONSTRUCTOR_NAME = "<init>";
-    public static final String VOID = "void";
-    public static final String CONSTRUCTOR_SIGNATURE = "void <init>";
-    public static final String ANNOTATION_MEMBER_SIGNATURE = "()";
-    public static final String ANNOTATION_MEMBER_DEFAULT_VALUE_NAME = "null";
-    public static final String SINGLE_MEMBER_ANNOTATION_NAME = "value";
+    public final String CONSTRUCTOR_NAME = "<init>";
+    public final String VOID = "void";
+    public final String CONSTRUCTOR_SIGNATURE = "void <init>";
+    public final String ANNOTATION_MEMBER_SIGNATURE = "()";
+    public final String ANNOTATION_MEMBER_DEFAULT_VALUE_NAME = "null";
+    public final String SINGLE_MEMBER_ANNOTATION_NAME = "value";
 
     public VisitorHelper(ScannerContext scannerContext, JavaSourceFileDescriptor javaSourceFileDescriptor) {
         this.scannerContext = scannerContext;
