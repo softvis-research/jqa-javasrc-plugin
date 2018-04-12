@@ -29,10 +29,11 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
     @Override
     public JavaSourceFileDescriptor scan(FileResource item, String path, Scope scope, Scanner scanner) throws IOException {
         ScannerContext scannerContext = scanner.getContext();
-        VisitorHelper visitorHelper = new VisitorHelper(scannerContext);
+
         JavaTypeSolver javaTypeSolver = scannerContext.peek(JavaTypeSolver.class);
         FileDescriptor fileDescriptor = scannerContext.getCurrentDescriptor();
         JavaSourceFileDescriptor javaSourceFileDescriptor = scannerContext.getStore().addDescriptorType(fileDescriptor, JavaSourceFileDescriptor.class);
+        VisitorHelper visitorHelper = new VisitorHelper(scannerContext, javaSourceFileDescriptor);
         try (InputStream in = item.createStream()) {
             CompilationUnit cu = JavaParser.parse(in);
             javaTypeSolver.addImportDeclarations(cu.getImports());

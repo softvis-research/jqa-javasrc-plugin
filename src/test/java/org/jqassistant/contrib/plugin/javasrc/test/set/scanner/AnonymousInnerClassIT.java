@@ -14,13 +14,12 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.innerclass.AnonymousInnerClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Contains test on relations between outer and inner classes.
  * 
- * authors Dirk Mahler, Richard Müller
+ * authors Dirk Mahler, Richard Mueller
  */
 public class AnonymousInnerClassIT extends AbstractPluginIT {
 
@@ -31,15 +30,12 @@ public class AnonymousInnerClassIT extends AbstractPluginIT {
      * the inner class.
      */
     @Test
-    @Ignore
     public void testOuterClassContainsInnerClass() throws NoSuchMethodException {
-        // TODO get this test working
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/innerclass/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, FILE_DIRECTORY_PATH, JavaScope.SRC);
-
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query(
                 "MATCH (outerClass:Type)-[:DECLARES]->(innerClass:Type)<-[:DECLARES]-(method:Method)<-[:DECLARES]-(outerClass) RETURN outerClass, innerClass, method");
         assertThat(testResult.getRows().size(), equalTo(1));
@@ -53,4 +49,28 @@ public class AnonymousInnerClassIT extends AbstractPluginIT {
         store.commitTransaction();
     }
 
+    @Test
+    public void testAnonymousClassField() throws NoSuchMethodException {
+        final String TEST_DIRECTORY_PATH = "src/test/java/";
+        final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/innerclass/";
+        File directory = new File(FILE_DIRECTORY_PATH);
+        store.beginTransaction();
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
+        TestResult testResult = query("MATCH (anonymousClass:Type)-[:DECLARES]->(field:Field) WHERE anonymousClass.fqn='" + INNERCLASS_NAME + "' RETURN field");
+        assertThat(testResult.getRows().size(), equalTo(1));
+        store.commitTransaction();
+    }
+
+    @Test
+    public void testAnonymousClassMethod() throws NoSuchMethodException {
+        final String TEST_DIRECTORY_PATH = "src/test/java/";
+        final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/innerclass/";
+        File directory = new File(FILE_DIRECTORY_PATH);
+        store.beginTransaction();
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
+        TestResult testResult = query(
+                "MATCH (anonymousClass:Type)-[:DECLARES]->(method:Method) WHERE anonymousClass.fqn='" + INNERCLASS_NAME + "' RETURN method");
+        assertThat(testResult.getRows().size(), equalTo(3));
+        store.commitTransaction();
+    }
 }

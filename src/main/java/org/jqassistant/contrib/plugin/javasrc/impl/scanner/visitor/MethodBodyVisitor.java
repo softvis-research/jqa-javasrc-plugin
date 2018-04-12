@@ -3,14 +3,20 @@
  */
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.BodyDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
+import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
@@ -23,6 +29,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
  *
  */
 public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescriptor> {
+    private int anonymousInnerClassCounter = 0;
 
     public MethodBodyVisitor(VisitorHelper visitorHelper) {
         super(visitorHelper);
@@ -30,26 +37,49 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
 
     @Override
     public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        setInvokes(methodCallExpr, methodDescriptor);
+        // setInvokes(methodCallExpr, methodDescriptor);
         super.visit(methodCallExpr, methodDescriptor);
     }
 
     @Override
     public void visit(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
-        setWrites(assignExpr, methodDescriptor);
+        // setWrites(assignExpr, methodDescriptor);
         super.visit(assignExpr, methodDescriptor);
     }
 
     @Override
     public void visit(FieldAccessExpr fieldAccessExpr, MethodDescriptor methodDescriptor) {
-        setReads(fieldAccessExpr, methodDescriptor);
+        // setReads(fieldAccessExpr, methodDescriptor);
         super.visit(fieldAccessExpr, methodDescriptor);
     }
 
     @Override
     public void visit(NameExpr nameExpr, MethodDescriptor methodDescriptor) {
-        setReads(nameExpr, methodDescriptor);
+        // setReads(nameExpr, methodDescriptor);
         super.visit(nameExpr, methodDescriptor);
+    }
+
+    @Override
+    public void visit(ObjectCreationExpr objectCreationExpr, MethodDescriptor methodDescriptor) {
+        // anonymous class
+        if (objectCreationExpr.getAnonymousClassBody().isPresent()) {
+            anonymousInnerClassCounter++;
+            TypeDescriptor anonymousInnerClass = visitorHelper.createType(
+                    methodDescriptor.getDeclaringType().getFullQualifiedName() + "$" + anonymousInnerClassCounter, visitorHelper.getJavaSourceFileDescriptor(),
+                    ClassTypeDescriptor.class);
+            methodDescriptor.getDeclaredInnerClasses().add(anonymousInnerClass);
+            methodDescriptor.getDeclaringType().getDeclaredInnerClasses().add(anonymousInnerClass);
+            NodeList<BodyDeclaration<?>> bodyDeclarations = objectCreationExpr.getAnonymousClassBody().get();
+            for (BodyDeclaration<?> bodyDeclaration : bodyDeclarations) {
+                if (bodyDeclaration instanceof MethodDeclaration) {
+                    bodyDeclaration.accept(new MethodVisitor(visitorHelper), anonymousInnerClass);
+                }
+                if (bodyDeclaration instanceof FieldDeclaration) {
+                    bodyDeclaration.accept(new FieldVisitor(visitorHelper), anonymousInnerClass);
+                }
+            }
+        }
+        super.visit(objectCreationExpr, methodDescriptor);
     }
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {

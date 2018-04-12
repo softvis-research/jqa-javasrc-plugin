@@ -8,8 +8,8 @@ import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithConstructors;
 import com.github.javaparser.ast.nodeTypes.NodeWithMembers;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
@@ -39,7 +39,6 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
     public void visit(ClassOrInterfaceDeclaration classOrInterfaceDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
         // TODO call super first because of inner classes?
         super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
-
         // class or interface
         createType(classOrInterfaceDeclaration, javaSourceFileDescriptor);
         setConstructors(classOrInterfaceDeclaration);
@@ -81,14 +80,14 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
 
         if (typeDeclaration instanceof ClassOrInterfaceDeclaration) {
             if (typeDeclaration.asClassOrInterfaceDeclaration().isInterface()) {
-                descriptor = visitorHelper.createType(typeDeclaration, javaSourceFileDescriptor, InterfaceTypeDescriptor.class);
+                descriptor = visitorHelper.createType(visitorHelper.getQualifiedName(typeDeclaration), javaSourceFileDescriptor, InterfaceTypeDescriptor.class);
             } else {
-                descriptor = visitorHelper.createType(typeDeclaration, javaSourceFileDescriptor, ClassTypeDescriptor.class);
+                descriptor = visitorHelper.createType(visitorHelper.getQualifiedName(typeDeclaration), javaSourceFileDescriptor, ClassTypeDescriptor.class);
             }
         } else if (typeDeclaration instanceof EnumDeclaration) {
-            descriptor = visitorHelper.createType(typeDeclaration, javaSourceFileDescriptor, EnumTypeDescriptor.class);
+            descriptor = visitorHelper.createType(visitorHelper.getQualifiedName(typeDeclaration), javaSourceFileDescriptor, EnumTypeDescriptor.class);
         } else if (typeDeclaration instanceof AnnotationDeclaration) {
-            descriptor = visitorHelper.createType(typeDeclaration, javaSourceFileDescriptor, AnnotationTypeDescriptor.class);
+            descriptor = visitorHelper.createType(visitorHelper.getQualifiedName(typeDeclaration), javaSourceFileDescriptor, AnnotationTypeDescriptor.class);
         }
     }
 
@@ -131,9 +130,14 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
     }
 
     private void setMethods(Node nodeWithMembers) {
-        for (MethodDeclaration method : ((NodeWithMembers<?>) nodeWithMembers).getMethods()) {
-            method.accept(new MethodVisitor(visitorHelper), (TypeDescriptor) descriptor);
-        }
+        ((NodeWithMembers<?>) nodeWithMembers).getMethods().forEach(method -> {
+            method.getParentNode().ifPresent(parentNode -> {
+                // filter methods of anonymous inner classes
+                if (!(parentNode instanceof ObjectCreationExpr)) {
+                    method.accept(new MethodVisitor(visitorHelper), (TypeDescriptor) descriptor);
+                }
+            });
+        });
     }
 
     private void setAnnotationMembers(AnnotationDeclaration annotationDeclaration) {

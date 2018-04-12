@@ -8,8 +8,8 @@ import java.util.Iterator;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.body.BodyDeclaration;
-import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.resolution.types.ResolvedType;
 import org.apache.commons.lang.StringUtils;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
@@ -37,6 +37,7 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.solver.JavaTypeSolver
 public class VisitorHelper {
 
     private ScannerContext scannerContext;
+    private JavaSourceFileDescriptor javaSourceFileDescriptor;
     public static final String CONSTRUCTOR_NAME = "<init>";
     public static final String VOID = "void";
     public static final String CONSTRUCTOR_SIGNATURE = "void <init>";
@@ -44,12 +45,19 @@ public class VisitorHelper {
     public static final String ANNOTATION_MEMBER_DEFAULT_VALUE_NAME = "null";
     public static final String SINGLE_MEMBER_ANNOTATION_NAME = "value";
 
-    public VisitorHelper(ScannerContext scannerContext) {
+    public VisitorHelper(ScannerContext scannerContext, JavaSourceFileDescriptor javaSourceFileDescriptor) {
         this.scannerContext = scannerContext;
+        this.javaSourceFileDescriptor = javaSourceFileDescriptor;
+
     }
 
-    public <T extends TypeDescriptor> T createType(TypeDeclaration typeDeclaration, JavaSourceFileDescriptor javaSourcefileDescriptor, Class<T> type) {
-        return getTypeResolver().createType(getJavaTypeResolver().getQualifiedName(typeDeclaration), javaSourcefileDescriptor, type);
+    public JavaSourceFileDescriptor getJavaSourceFileDescriptor() {
+        return this.javaSourceFileDescriptor;
+    }
+
+    // TODO change back to TypeDeclaration?
+    public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor, Class<T> type) {
+        return getTypeResolver().createType(fqn, javaSourcefileDescriptor, type);
     }
 
     public TypeDescriptor resolveDependency(String fqn, TypeDescriptor dependent) {
@@ -156,8 +164,8 @@ public class VisitorHelper {
         return getJavaTypeResolver().getQualifiedName(node);
     }
 
-    public String getQualifiedSignature(BodyDeclaration<?> bodyDeclaration) {
-        return getJavaTypeResolver().getQualifiedSignature(bodyDeclaration);
+    public String getQualifiedSignature(String name, NodeList<Parameter> parameters) {
+        return getJavaTypeResolver().getQualifiedSignature(name, parameters);
     }
 
     public Object getQualifiedName(ResolvedType resolvedType) {

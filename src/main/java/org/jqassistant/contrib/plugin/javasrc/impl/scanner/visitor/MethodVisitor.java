@@ -57,6 +57,9 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setLineCount(methodDeclaration);
         setCyclomaticComplexity(methodDeclaration);
         setInvokes(methodDeclaration);
+        if (methodDeclaration.isTypeDeclaration()) {
+            System.out.println(methodDeclaration);
+        }
 
         super.visit(methodDeclaration, typeDescriptor);
     }
@@ -88,7 +91,12 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     }
 
     private void createMethod(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
+        // bodyDeclaration.getParentNode().ifPresent(parentNode -> {
+        // if (!(parentNode instanceof ObjectCreationExpr)) {
         descriptor = visitorHelper.getMethodDescriptor(getMethodSignature(bodyDeclaration), parent);
+        // }
+        // });
+
     }
 
     private void setParamters(CallableDeclaration<?> callableDeclaration) {
@@ -234,10 +242,11 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private String getMethodSignature(BodyDeclaration<?> bodyDeclaration) throws IllegalArgumentException {
         if (bodyDeclaration.isMethodDeclaration()) {
             MethodDeclaration methodDeclaration = bodyDeclaration.asMethodDeclaration();
-            return visitorHelper.getQualifiedName(methodDeclaration.getType()) + " " + visitorHelper.getQualifiedSignature(bodyDeclaration);
+            return visitorHelper.getQualifiedName(methodDeclaration.getType()) + " "
+                    + visitorHelper.getQualifiedSignature(methodDeclaration.getNameAsString(), methodDeclaration.getParameters());
         } else if (bodyDeclaration.isConstructorDeclaration()) {
-            final String constructorParameter = visitorHelper.getQualifiedSignature(bodyDeclaration);
-            return visitorHelper.CONSTRUCTOR_SIGNATURE + constructorParameter;
+            ConstructorDeclaration constructorDeclaration = bodyDeclaration.asConstructorDeclaration();
+            return visitorHelper.getQualifiedSignature(visitorHelper.CONSTRUCTOR_SIGNATURE, constructorDeclaration.getParameters());
         } else if (bodyDeclaration.isAnnotationMemberDeclaration()) {
             return visitorHelper.getQualifiedName(bodyDeclaration.asAnnotationMemberDeclaration().getType()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE;
         } else {

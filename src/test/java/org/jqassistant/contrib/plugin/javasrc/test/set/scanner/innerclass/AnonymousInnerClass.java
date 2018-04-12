@@ -10,6 +10,8 @@ public class AnonymousInnerClass<X> {
 
     public Iterator<X> iterator() {
         return new Iterator<X>() {
+            int i;
+
             @Override
             public boolean hasNext() {
                 return false;
