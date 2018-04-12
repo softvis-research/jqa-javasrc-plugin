@@ -13,7 +13,6 @@ import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
-import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
@@ -143,13 +142,5 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
             }
         }
 
-    }
-
-    private String getMethodSignature(ResolvedMethodDeclaration resolvedMethodDeclaration) {
-        return getQualifiedName(resolvedMethodDeclaration.getReturnType()) + " " + resolvedMethodDeclaration.getSignature();
-    }
-
-    private String getFieldSignature(ResolvedFieldDeclaration resolvedFieldDeclaration) {
-        return getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName();
     }
 }

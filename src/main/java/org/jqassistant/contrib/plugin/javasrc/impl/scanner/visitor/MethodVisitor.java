@@ -97,14 +97,13 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         if (bodyDeclaration.isMethodDeclaration()) {
             MethodDeclaration methodDeclaration = bodyDeclaration.asMethodDeclaration();
             ResolvedMethodDeclaration solvedMethod = methodDeclaration.resolve();
-            descriptor = visitorHelper.getMethodDescriptor(getQualifiedName(solvedMethod.getReturnType()) + " " + solvedMethod.getSignature(), parent);
+            descriptor = visitorHelper.getMethodDescriptor(getMethodSignature(solvedMethod), parent);
         } else if (bodyDeclaration.isConstructorDeclaration()) {
             ConstructorDeclaration constructorDeclaration = bodyDeclaration.asConstructorDeclaration();
             ResolvedConstructorDeclaration solvedConstructor = constructorDeclaration.resolve();
             descriptor = visitorHelper.getMethodDescriptor(
                     visitorHelper.CONSTRUCTOR_SIGNATURE + solvedConstructor.getSignature().replaceAll(solvedConstructor.getName(), ""), parent);
         } else if (bodyDeclaration.isAnnotationMemberDeclaration()) {
-
             descriptor = visitorHelper.getMethodDescriptor(
                     getQualifiedName(bodyDeclaration.asAnnotationMemberDeclaration().getType().resolve()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE,
                     parent);

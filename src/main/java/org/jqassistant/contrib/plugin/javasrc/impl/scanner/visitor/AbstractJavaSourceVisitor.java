@@ -23,6 +23,7 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.resolution.types.ResolvedWildcard;
@@ -186,6 +187,14 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
 
     protected String getFieldSignature(FieldAccessExpr fieldAccessExpr) {
         return getQualifiedName(fieldAccessExpr) + " " + fieldAccessExpr.getNameAsString();
+    }
+
+    protected String getMethodSignature(ResolvedMethodDeclaration resolvedMethodDeclaration) {
+        return getQualifiedName(resolvedMethodDeclaration.getReturnType()) + " " + resolvedMethodDeclaration.getSignature();
+    }
+
+    protected String getFieldSignature(ResolvedFieldDeclaration resolvedFieldDeclaration) {
+        return getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName();
     }
 
     protected String getQualifiedName(AnnotationExpr annotationExpr) {
