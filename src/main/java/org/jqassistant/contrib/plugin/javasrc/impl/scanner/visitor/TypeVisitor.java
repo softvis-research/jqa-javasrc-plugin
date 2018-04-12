@@ -2,17 +2,12 @@ package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.AnnotationDeclaration;
-import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.ConstructorDeclaration;
-import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
-import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithConstructors;
 import com.github.javaparser.ast.nodeTypes.NodeWithMembers;
-import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassFileDescriptor;
@@ -76,8 +71,7 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
         super.visit(annotationDeclaration, javaSourceFileDescriptor);
     }
 
-    private void createType(TypeDeclaration typeDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
-
+    private void createType(TypeDeclaration<?> typeDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
         if (typeDeclaration instanceof ClassOrInterfaceDeclaration) {
             if (typeDeclaration.asClassOrInterfaceDeclaration().isInterface()) {
                 descriptor = visitorHelper.createType(visitorHelper.getQualifiedName(typeDeclaration), javaSourceFileDescriptor, InterfaceTypeDescriptor.class);
@@ -92,20 +86,20 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
     }
 
     private void setSuperType(ClassOrInterfaceDeclaration classOrInterfaceDeclaration) {
-        // TODO an interface might extend from multiple interfaces
-        for (ClassOrInterfaceType superType : classOrInterfaceDeclaration.getExtendedTypes()) {
+        // TODO an interface might extend multiple interfaces
+        classOrInterfaceDeclaration.getExtendedTypes().forEach(superType -> {
             ((ClassFileDescriptor) descriptor)
                     .setSuperClass(visitorHelper.resolveDependency(visitorHelper.getQualifiedName(superType), (TypeDescriptor) descriptor));
             setTypeParameterDependency(superType, (TypeDescriptor) descriptor);
-        }
+        });
     }
 
     private void setImplementedInterfaces(ClassOrInterfaceDeclaration classOrInterfaceDeclaration) {
-        for (ClassOrInterfaceType superType : classOrInterfaceDeclaration.getImplementedTypes()) {
+        classOrInterfaceDeclaration.getImplementedTypes().forEach(superType -> {
             ((ClassFileDescriptor) descriptor).getInterfaces()
                     .add(visitorHelper.resolveDependency(visitorHelper.getQualifiedName(superType), (TypeDescriptor) descriptor));
             setTypeParameterDependency(superType, (TypeDescriptor) descriptor);
-        }
+        });
     }
 
     private void setInnerClassesForParent(ClassOrInterfaceDeclaration classOrInterfaceDeclaration) {
@@ -118,15 +112,15 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
     }
 
     private void setFields(Node nodeWithFields) {
-        for (FieldDeclaration field : ((NodeWithMembers<?>) nodeWithFields).getFields()) {
+        ((NodeWithMembers<?>) nodeWithFields).getFields().forEach(field -> {
             field.accept(new FieldVisitor(visitorHelper), (TypeDescriptor) descriptor);
-        }
+        });
     }
 
     private void setConstructors(Node node) {
-        for (ConstructorDeclaration constructors : ((NodeWithConstructors<?>) node).getConstructors()) {
-            constructors.accept(new MethodVisitor(visitorHelper), (TypeDescriptor) descriptor);
-        }
+        ((NodeWithConstructors<?>) node).getConstructors().forEach(constructor -> {
+            constructor.accept(new MethodVisitor(visitorHelper), (TypeDescriptor) descriptor);
+        });
     }
 
     private void setMethods(Node nodeWithMembers) {
@@ -141,16 +135,16 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
     }
 
     private void setAnnotationMembers(AnnotationDeclaration annotationDeclaration) {
-        for (BodyDeclaration<?> member : annotationDeclaration.getMembers()) {
+        annotationDeclaration.getMembers().forEach(member -> {
             if (member.isAnnotationMemberDeclaration()) {
                 member.accept(new MethodVisitor(visitorHelper), (TypeDescriptor) descriptor);
             }
-        }
+        });
     }
 
     private void setEnumConstants(EnumDeclaration enumDeclaration) {
-        for (EnumConstantDeclaration entry : enumDeclaration.getEntries()) {
+        enumDeclaration.getEntries().forEach(entry -> {
             entry.accept(new FieldVisitor(visitorHelper), (TypeDescriptor) descriptor);
-        }
+        });
     }
 }
