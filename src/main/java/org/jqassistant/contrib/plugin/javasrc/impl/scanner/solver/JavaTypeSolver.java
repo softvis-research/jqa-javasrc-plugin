@@ -14,6 +14,8 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSol
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Richard Mueller
@@ -21,6 +23,7 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
  */
 public class JavaTypeSolver {
     private CombinedTypeSolver combinedTypeSolver;
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaTypeSolver.class);
 
     public JavaTypeSolver(String srcDir) throws IOException {
         // create type solver
@@ -30,11 +33,20 @@ public class JavaTypeSolver {
         // add jre types
         combinedTypeSolver.add(new ReflectionTypeSolver());
         // add external jars
-        final File jarFolder = new File("src/test/resources");
-        for (final File fileEntry : jarFolder.listFiles()) {
-            if (fileEntry.isFile() && fileEntry.getName().toLowerCase().endsWith("jar")) {
-                combinedTypeSolver.add(new JarTypeSolver(fileEntry.getPath()));
+        final String pathToJars = "src/test/resources";
+        final File jarFolder = new File(pathToJars);
+        LOGGER.info("Looking for jar libraries in '{}'.", pathToJars);
+        if (jarFolder.exists()) {
+            int jarCounter = 0;
+            for (final File fileEntry : jarFolder.listFiles()) {
+                if (fileEntry.isFile() && fileEntry.getName().toLowerCase().endsWith("jar")) {
+                    combinedTypeSolver.add(new JarTypeSolver(fileEntry.getPath()));
+                    jarCounter++;
+                }
             }
+            LOGGER.info("Added " + jarCounter + " jar " + ((jarCounter == 1) ? "library" : "libraries") + " to solver from '{}'.", pathToJars);
+        } else {
+            LOGGER.info("No folder '{}' found.", pathToJars);
         }
         // set created type solver globally
         JavaParser.getStaticConfiguration().setSymbolResolver(new JavaSymbolSolver(combinedTypeSolver));
