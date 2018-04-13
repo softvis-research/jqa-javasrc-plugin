@@ -222,8 +222,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         if (node instanceof BodyDeclaration<?>) {
             BodyDeclaration<?> bodyDeclaration = (BodyDeclaration<?>) node;
             if (bodyDeclaration instanceof TypeDeclaration<?>) {
-                // class, enum, or annotation declaration
-                // TODO check for inner type
+                // types such as class, enum, or annotation declaration
                 return visitorHelper.getFacade().getTypeDeclaration(bodyDeclaration).getQualifiedName();
             }
         } else if (node instanceof Type) {

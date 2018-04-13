@@ -1,7 +1,6 @@
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItem;
 import static org.jqassistant.contrib.plugin.javasrc.test.matcher.TypeDescriptorMatcher.typeDescriptor;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -15,7 +14,6 @@ import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
 import org.hamcrest.Matcher;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
-import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.innerclass.EnumWithInnerClass;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.innerclass.NestedInnerClasses;
 import org.junit.Test;
 
@@ -51,8 +49,8 @@ public class NestedInnerClassesIT extends AbstractPluginIT {
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
-        assertThat(query("MATCH (e:Enum)-[:DECLARES]->(innerClass:Class) RETURN innerClass").getColumn("innerClass"),
-                hasItem(typeDescriptor(EnumWithInnerClass.Innerclass.class)));
+        assertEquals(query("MATCH (e:Enum)-[:DECLARES]->(innerClass:Class) RETURN innerClass.name").getColumn("innerClass.name").get(0).toString(),
+                "InnerClass");
         store.commitTransaction();
     }
 }
