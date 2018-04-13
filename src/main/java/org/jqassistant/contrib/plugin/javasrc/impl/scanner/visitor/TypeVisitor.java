@@ -21,7 +21,8 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 
 /**
  * This visitor handles parsed types, i.e. interfaces, classes, enums, and
- * annotations, and creates corresponding descriptors.
+ * annotations, and creates corresponding descriptors. The call of super is
+ * necessary because we need all types of a file.
  * 
  * @author Richard Mueller
  *
@@ -34,7 +35,6 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
 
     @Override
     public void visit(ClassOrInterfaceDeclaration classOrInterfaceDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
-        // TODO call super first because of inner classes?
         super.visit(classOrInterfaceDeclaration, javaSourceFileDescriptor);
         // class or interface
         createType(classOrInterfaceDeclaration, javaSourceFileDescriptor);
@@ -47,10 +47,12 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
         setFields(classOrInterfaceDeclaration);
         setMethods(classOrInterfaceDeclaration);
         setAnnotations(classOrInterfaceDeclaration, (AnnotatedDescriptor) descriptor);
+
     }
 
     @Override
     public void visit(EnumDeclaration enumDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
+        super.visit(enumDeclaration, javaSourceFileDescriptor);
         // enum
         createType(enumDeclaration, javaSourceFileDescriptor);
         setVisibility(enumDeclaration);
@@ -59,22 +61,20 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescrip
         setMethods(enumDeclaration);
         setAnnotations(enumDeclaration, (AnnotatedDescriptor) descriptor);
 
-        super.visit(enumDeclaration, javaSourceFileDescriptor);
     }
 
     @Override
     public void visit(AnnotationDeclaration annotationDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
+        super.visit(annotationDeclaration, javaSourceFileDescriptor);
         // annotation
         createType(annotationDeclaration, javaSourceFileDescriptor);
         setVisibility(annotationDeclaration);
         setAccessModifier(annotationDeclaration);
         setAnnotationMembers(annotationDeclaration);
 
-        super.visit(annotationDeclaration, javaSourceFileDescriptor);
     }
 
     private void createType(TypeDeclaration<?> typeDeclaration, JavaSourceFileDescriptor javaSourceFileDescriptor) {
-
         if (typeDeclaration instanceof ClassOrInterfaceDeclaration) {
             ResolvedReferenceTypeDeclaration solvedClassOrInterface = typeDeclaration.asClassOrInterfaceDeclaration().resolve();
             if (typeDeclaration.asClassOrInterfaceDeclaration().isInterface()) {

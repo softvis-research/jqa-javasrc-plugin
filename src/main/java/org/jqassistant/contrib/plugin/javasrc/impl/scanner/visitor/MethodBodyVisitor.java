@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
 import com.github.javaparser.ast.NodeList;
@@ -22,7 +19,8 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 
 /**
  * This visitor handles parsed method invocations, anonymous inner classes,
- * field reads, and field writes and creates corresponding descriptors.
+ * field reads, and field writes and creates corresponding descriptors. The call
+ * of super is necessary because we need all expressions of the method body.
  * 
  * @author Richard Mueller
  *
@@ -36,6 +34,8 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
 
     @Override
     public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
+        super.visit(methodCallExpr, methodDescriptor);
+        // method calls
         try {
             setInvokes(methodCallExpr, methodDescriptor);
         } catch (UnsupportedOperationException ue) {
@@ -43,12 +43,11 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         } catch (RuntimeException re) {
             System.out.println("Unresolved call: " + methodCallExpr + " type: " + re.getClass());
         }
-
-        super.visit(methodCallExpr, methodDescriptor);
     }
 
     @Override
     public void visit(ObjectCreationExpr objectCreationExpr, MethodDescriptor methodDescriptor) {
+        super.visit(objectCreationExpr, methodDescriptor);
         // anonymous class
         if (objectCreationExpr.getAnonymousClassBody().isPresent()) {
             anonymousInnerClassCounter++;
@@ -67,23 +66,25 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
                 }
             }
         }
-        super.visit(objectCreationExpr, methodDescriptor);
     }
 
     @Override
     public void visit(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
-        setWrites(assignExpr, methodDescriptor);
         super.visit(assignExpr, methodDescriptor);
+        // field writes
+        setWrites(assignExpr, methodDescriptor);
     }
 
     @Override
     public void visit(FieldAccessExpr fieldAccessExpr, MethodDescriptor methodDescriptor) {
-        setReads(fieldAccessExpr, methodDescriptor);
         super.visit(fieldAccessExpr, methodDescriptor);
+        // field reads
+        setReads(fieldAccessExpr, methodDescriptor);
     }
 
     @Override
     public void visit(NameExpr nameExpr, MethodDescriptor methodDescriptor) {
+        // field reads
         // setReads(nameExpr, methodDescriptor);
         super.visit(nameExpr, methodDescriptor);
     }
@@ -148,6 +149,5 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
                 });
             }
         }
-
     }
 }
