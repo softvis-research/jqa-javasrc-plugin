@@ -21,8 +21,8 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 
 /**
- * This visitor handles parsed method invocations, field reads, and field writes
- * and creates corresponding descriptors.
+ * This visitor handles parsed method invocations, anonymous inner classes,
+ * field reads, and field writes and creates corresponding descriptors.
  * 
  * @author Richard Müller
  *
@@ -36,26 +36,15 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
 
     @Override
     public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        setInvokes(methodCallExpr, methodDescriptor);
+        try {
+            setInvokes(methodCallExpr, methodDescriptor);
+        } catch (UnsupportedOperationException ue) {
+            System.out.println("Unresolved call: " + methodCallExpr + " type: " + ue.getClass());
+        } catch (RuntimeException re) {
+            System.out.println("Unresolved call: " + methodCallExpr + " type: " + re.getClass());
+        }
+
         super.visit(methodCallExpr, methodDescriptor);
-    }
-
-    @Override
-    public void visit(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
-        setWrites(assignExpr, methodDescriptor);
-        super.visit(assignExpr, methodDescriptor);
-    }
-
-    @Override
-    public void visit(FieldAccessExpr fieldAccessExpr, MethodDescriptor methodDescriptor) {
-        setReads(fieldAccessExpr, methodDescriptor);
-        super.visit(fieldAccessExpr, methodDescriptor);
-    }
-
-    @Override
-    public void visit(NameExpr nameExpr, MethodDescriptor methodDescriptor) {
-        // setReads(nameExpr, methodDescriptor);
-        super.visit(nameExpr, methodDescriptor);
     }
 
     @Override
@@ -81,8 +70,26 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         super.visit(objectCreationExpr, methodDescriptor);
     }
 
+    @Override
+    public void visit(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
+        setWrites(assignExpr, methodDescriptor);
+        super.visit(assignExpr, methodDescriptor);
+    }
+
+    @Override
+    public void visit(FieldAccessExpr fieldAccessExpr, MethodDescriptor methodDescriptor) {
+        setReads(fieldAccessExpr, methodDescriptor);
+        super.visit(fieldAccessExpr, methodDescriptor);
+    }
+
+    @Override
+    public void visit(NameExpr nameExpr, MethodDescriptor methodDescriptor) {
+        // setReads(nameExpr, methodDescriptor);
+        super.visit(nameExpr, methodDescriptor);
+    }
+
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = visitorHelper.getFacade().solveMethodAsUsage(methodCallExpr).getDeclaration();
+        ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = methodCallExpr.resolveInvokedMethod();
         TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(resolvedInvokedMethodDeclaration.declaringType().getQualifiedName(),
                 methodDescriptor.getDeclaringType());
         MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(getMethodSignature(resolvedInvokedMethodDeclaration), invokedMethodParent);
