@@ -1,7 +1,4 @@
-/**
- * 
- */
-package org.jqassistant.contrib.plugin.javasrc.impl.scanner.solver;
+package org.jqassistant.contrib.plugin.javasrc.impl.scanner;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The solver calculates qualified names of types based on source code,
+ * reflection, and provided jar libraries.
+ * 
  * @author Richard Mueller
  *
  */
@@ -28,12 +28,12 @@ public class JavaTypeSolver {
     public JavaTypeSolver(String srcDir) throws IOException {
         // create type solver
         combinedTypeSolver = new CombinedTypeSolver();
-        // add source directory
+        // add source solver
         combinedTypeSolver.add(new JavaParserTypeSolver(new File(srcDir)));
-        // add jre types
+        // add reflection solver
         combinedTypeSolver.add(new ReflectionTypeSolver());
-        // add external jars
-        final String pathToJars = "src/test/resources";
+        // add external jar solvers
+        final String pathToJars = "dependencies";
         final File jarFolder = new File(pathToJars);
         LOGGER.info("Looking for jar libraries in '{}'.", pathToJars);
         if (jarFolder.exists()) {
