@@ -23,7 +23,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
  * This visitor handles parsed types, i.e. interfaces, classes, enums, and
  * annotations, and creates corresponding descriptors.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class TypeVisitor extends AbstractJavaSourceVisitor<JavaSourceFileDescriptor> {

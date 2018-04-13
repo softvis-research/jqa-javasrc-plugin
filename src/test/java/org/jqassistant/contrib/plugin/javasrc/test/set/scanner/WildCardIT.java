@@ -19,7 +19,7 @@ import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.wildcard.GenericT
 import org.junit.Test;
 
 /**
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class WildCardIT extends AbstractPluginIT {

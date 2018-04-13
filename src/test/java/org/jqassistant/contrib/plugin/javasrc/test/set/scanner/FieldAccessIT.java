@@ -18,7 +18,7 @@ import org.junit.Test;
  * Contains tests to verify correct scanning of read and write access of a
  * field.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class FieldAccessIT extends AbstractPluginIT {

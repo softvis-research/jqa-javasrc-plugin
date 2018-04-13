@@ -37,7 +37,7 @@ import org.junit.Test;
 /**
  * Contains test to verify correct scanning of annotations and annotated types.
  * 
- * @authors Dirk Mahler, Richard Müller
+ * @authors Dirk Mahler, Richard Mueller
  */
 public class AnnotationIT extends AbstractPluginIT {
 

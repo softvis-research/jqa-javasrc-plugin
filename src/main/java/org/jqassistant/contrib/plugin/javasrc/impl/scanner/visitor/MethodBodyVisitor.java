@@ -24,7 +24,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
  * This visitor handles parsed method invocations, anonymous inner classes,
  * field reads, and field writes and creates corresponding descriptors.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescriptor> {

@@ -38,7 +38,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
  * This visitor handles parsed methods, i.e. methods, constructors, and
  * annotation members and creates corresponding descriptors.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {

@@ -18,7 +18,7 @@ import org.junit.Test;
  * Contains tests to verify correct scanning of thrown exceptions by methods and
  * constructors.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class ThrowableIT extends AbstractPluginIT {

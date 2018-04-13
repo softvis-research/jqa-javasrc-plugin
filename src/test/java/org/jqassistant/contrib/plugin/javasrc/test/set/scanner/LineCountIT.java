@@ -13,7 +13,7 @@ import org.junit.Test;
 /**
  * Contains tests to verify correct scanning of LOC of methods and constructors.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class LineCountIT extends AbstractPluginIT {

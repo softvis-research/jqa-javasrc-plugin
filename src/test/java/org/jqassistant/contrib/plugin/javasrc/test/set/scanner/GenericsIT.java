@@ -21,7 +21,7 @@ import org.junit.Test;
 /**
  * Contains tests to verify correct scanning generics.
  * 
- * @author Dirk Mahler, Richard Müller
+ * @author Dirk Mahler, Richard Mueller
  *
  */
 public class GenericsIT extends AbstractPluginIT {

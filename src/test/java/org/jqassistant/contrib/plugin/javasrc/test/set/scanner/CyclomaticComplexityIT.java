@@ -20,7 +20,7 @@ import org.junit.Test;
 /**
  * Contains tests to verify correct scanning of complexity metrics of methods.
  * 
- * @authors Dirk Mahler, Richard Müller
+ * @authors Dirk Mahler, Richard Mueller
  *
  */
 public class CyclomaticComplexityIT extends AbstractPluginIT {

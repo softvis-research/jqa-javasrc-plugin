@@ -14,7 +14,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
  * The extended objects type resolver caches the parsed types and provides their
  * descriptors.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class JavaTypeResolver {

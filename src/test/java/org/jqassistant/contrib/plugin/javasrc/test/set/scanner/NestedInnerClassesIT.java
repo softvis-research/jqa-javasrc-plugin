@@ -21,7 +21,7 @@ import org.junit.Test;
  * Contains tests to verify correct scanning of relations between outer and
  * inner classes.
  * 
- * @authors Dirk Mahler, Richard Müller
+ * @authors Dirk Mahler, Richard Mueller
  *
  */
 public class NestedInnerClassesIT extends AbstractPluginIT {

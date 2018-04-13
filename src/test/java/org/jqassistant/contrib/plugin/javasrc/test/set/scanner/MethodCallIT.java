@@ -18,7 +18,7 @@ import org.junit.Test;
 /**
  * Contains tests to verify correct scanning of methods calls.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class MethodCallIT extends AbstractPluginIT {

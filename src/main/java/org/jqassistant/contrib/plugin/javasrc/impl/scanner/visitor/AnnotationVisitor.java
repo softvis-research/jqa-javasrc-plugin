@@ -11,7 +11,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescripto
  * This visitor handles parsed annotations and creates corresponding
  * descriptors.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class AnnotationVisitor extends AbstractJavaSourceVisitor<AnnotatedDescriptor> {

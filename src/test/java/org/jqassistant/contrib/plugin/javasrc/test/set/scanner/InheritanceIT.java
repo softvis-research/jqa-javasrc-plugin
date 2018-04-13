@@ -16,7 +16,7 @@ import org.junit.Test;
  * Contains tests to verify correct scanning of implements and extends
  * relations.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class InheritanceIT extends AbstractPluginIT {

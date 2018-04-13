@@ -15,7 +15,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
  * This visitor handles parsed fields and enum values and creates corresponding
  * descriptors.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
