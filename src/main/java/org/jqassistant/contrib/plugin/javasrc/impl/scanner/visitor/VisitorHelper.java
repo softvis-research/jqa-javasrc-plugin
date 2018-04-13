@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
 import java.util.Iterator;
@@ -22,12 +19,12 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.ReadsDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.WritesDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaTypeResolver;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.solver.JavaTypeSolver;
+import org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaTypeSolver;
 
 /**
  * The helper delegates creation and caching of types to the type resolver,
- * holds a reference to the symbol solver, and provides the visitors with
- * descriptors.
+ * holds a reference of the type solver and its facade, and provides the
+ * visitors with descriptors.
  * 
  * @author Richard Mueller
  *
