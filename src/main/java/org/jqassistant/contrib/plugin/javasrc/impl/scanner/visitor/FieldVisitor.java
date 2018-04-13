@@ -13,7 +13,8 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 
 /**
  * This visitor handles parsed fields and enum values and creates corresponding
- * descriptors.
+ * descriptors. The call of super is not necessary because only the fields of
+ * the current typedescriptor are relevant.
  * 
  * @author Richard Mueller
  *
@@ -33,8 +34,6 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setFieldType(fieldDeclaration);
         setFieldValue(fieldDeclaration);
         setAnnotations(fieldDeclaration, (AnnotatedDescriptor) descriptor);
-
-        super.visit(fieldDeclaration, typeDescriptor);
     }
 
     @Override
@@ -42,8 +41,6 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         // enum values
         createField(enumConstantDeclaration, typeDescriptor);
         setAnnotations(enumConstantDeclaration, (AnnotatedDescriptor) descriptor);
-
-        super.visit(enumConstantDeclaration, typeDescriptor);
     }
 
     private void createField(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {

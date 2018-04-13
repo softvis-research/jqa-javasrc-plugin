@@ -36,7 +36,9 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 
 /**
  * This visitor handles parsed methods, i.e. methods, constructors, and
- * annotation members and creates corresponding descriptors.
+ * annotation members and creates corresponding descriptors. The call of super
+ * is not necessary because only the methods of the current typedescriptor are
+ * relevant.
  * 
  * @author Richard Mueller
  *
@@ -60,11 +62,6 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setLineCount(methodDeclaration);
         setCyclomaticComplexity(methodDeclaration);
         setInvokes(methodDeclaration);
-        if (methodDeclaration.isTypeDeclaration()) {
-            System.out.println(methodDeclaration);
-        }
-
-        super.visit(methodDeclaration, typeDescriptor);
     }
 
     @Override
@@ -78,8 +75,6 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setLineCount(constructorDeclaration);
         setCyclomaticComplexity(constructorDeclaration);
         setInvokes(constructorDeclaration);
-
-        super.visit(constructorDeclaration, typeDescriptor);
     }
 
     @Override
