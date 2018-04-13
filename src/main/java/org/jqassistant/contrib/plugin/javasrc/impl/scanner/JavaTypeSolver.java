@@ -33,7 +33,7 @@ public class JavaTypeSolver {
         // add reflection solver
         combinedTypeSolver.add(new ReflectionTypeSolver());
         // add external jar solvers
-        final String pathToJars = "dependencies";
+        final String pathToJars = "src/test/resources";
         final File jarFolder = new File(pathToJars);
         LOGGER.info("Looking for jar libraries in '{}'.", pathToJars);
         if (jarFolder.exists()) {

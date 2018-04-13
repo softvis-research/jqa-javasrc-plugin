@@ -189,6 +189,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         } else if (expression.isNullLiteralExpr()) {
             return null;
         } else {
+            // TODO avoid exception
             throw new IllegalArgumentException("Expression value could not be resolved: " + expression.toString());
         }
     }
@@ -212,13 +213,12 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 return wildcard.describe();
             }
         } else {
+            // TODO avoid exception
             throw new IllegalArgumentException("Unexpected type of resolved type: " + resolvedType + " " + resolvedType.getClass());
         }
     }
 
     protected String getQualifiedName(Node node) {
-
-        String qualifiedName = "";
         if (node instanceof BodyDeclaration<?>) {
             BodyDeclaration<?> bodyDeclaration = (BodyDeclaration<?>) node;
             if (bodyDeclaration instanceof TypeDeclaration<?>) {
@@ -250,12 +250,10 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 return annotationExpr.getNameAsString();
             }
         }
-        return qualifiedName;
+        return "UNSOLVED_NAME";
     }
 
     protected String getQualifiedSignature(Node node) {
-
-        String qualifiedSignature = "";
         if (node instanceof BodyDeclaration<?>) {
             BodyDeclaration<?> bodyDeclaration = (BodyDeclaration<?>) node;
             if (bodyDeclaration instanceof MethodDeclaration) {
@@ -291,7 +289,6 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             }
 
         }
-        return qualifiedSignature;
+        return "UNSOLVED_SIGNATURE";
     }
-
 }
