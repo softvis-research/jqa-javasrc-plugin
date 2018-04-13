@@ -26,8 +26,6 @@ import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.type.Type;
-import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
@@ -89,27 +87,13 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     }
 
     private void createMethod(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
-        if (bodyDeclaration.isMethodDeclaration()) {
-            MethodDeclaration methodDeclaration = bodyDeclaration.asMethodDeclaration();
-            ResolvedMethodDeclaration solvedMethod = methodDeclaration.resolve();
-            descriptor = visitorHelper.getMethodDescriptor(getMethodSignature(solvedMethod), parent);
-        } else if (bodyDeclaration.isConstructorDeclaration()) {
-            ConstructorDeclaration constructorDeclaration = bodyDeclaration.asConstructorDeclaration();
-            ResolvedConstructorDeclaration solvedConstructor = constructorDeclaration.resolve();
-            descriptor = visitorHelper.getMethodDescriptor(
-                    visitorHelper.CONSTRUCTOR_SIGNATURE + solvedConstructor.getSignature().replaceAll(solvedConstructor.getName(), ""), parent);
-        } else if (bodyDeclaration.isAnnotationMemberDeclaration()) {
-            descriptor = visitorHelper.getMethodDescriptor(
-                    getQualifiedName(bodyDeclaration.asAnnotationMemberDeclaration().getType().resolve()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE,
-                    parent);
-        }
+        descriptor = visitorHelper.getMethodDescriptor(getQualifiedSignature(bodyDeclaration), parent);
     }
 
     private void setParamters(CallableDeclaration<?> callableDeclaration) {
         List<Parameter> parameters = ((CallableDeclaration<?>) callableDeclaration).getParameters();
         for (int i = 0; i < parameters.size(); i++) {
-            ResolvedType solvedParameterType = visitorHelper.getFacade().convert(parameters.get(i).getType(), callableDeclaration);
-            TypeDescriptor parameterTypeDescriptor = visitorHelper.resolveDependency(getQualifiedName(solvedParameterType),
+            TypeDescriptor parameterTypeDescriptor = visitorHelper.resolveDependency(getQualifiedName(parameters.get(i).getType()),
                     ((MethodDescriptor) descriptor).getDeclaringType());
             ParameterDescriptor parameterDescriptor = visitorHelper.getParameterDescriptor(((MethodDescriptor) descriptor), i);
             parameterDescriptor.setType(parameterTypeDescriptor);
@@ -136,7 +120,7 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void setExceptions(CallableDeclaration<?> callableDeclaration) {
         callableDeclaration.getThrownExceptions().forEach(exception -> {
             ((MethodDescriptor) descriptor).getDeclaredThrowables()
-                    .add(visitorHelper.resolveDependency(getQualifiedName(exception.resolve()), ((MethodDescriptor) descriptor).getDeclaringType()));
+                    .add(visitorHelper.resolveDependency(getQualifiedName(exception), ((MethodDescriptor) descriptor).getDeclaringType()));
         });
     }
 

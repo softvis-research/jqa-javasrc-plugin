@@ -12,6 +12,7 @@ import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.access.FieldAccess;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -24,6 +25,7 @@ import org.junit.Test;
 public class FieldAccessIT extends AbstractPluginIT {
 
     @Test
+    @Ignore
     public void testReadAccess() throws NoSuchMethodException, NoSuchFieldException {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/access/";
@@ -57,7 +59,7 @@ public class FieldAccessIT extends AbstractPluginIT {
         assertThat(testResult.getColumn("m").size(), equalTo(2));
         assertThat(testResult.getColumn("m"),
                 hasItems(methodDescriptor(FieldAccess.class, "setA", int.class), methodDescriptor(FieldAccess.class, "setB", int.class)));
-        // // verify fields
+        // verify fields
         assertThat(testResult.getColumn("f").size(), equalTo(2));
         assertThat(testResult.getColumn("f"), hasItems(fieldDescriptor(FieldAccess.class, "a"), fieldDescriptor(FieldAccess.class, "b")));
         // verify line numbers

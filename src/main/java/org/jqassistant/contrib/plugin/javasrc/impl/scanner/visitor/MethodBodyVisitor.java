@@ -10,6 +10,7 @@ import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
@@ -107,7 +108,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
             FieldAccessExpr fieldAccessExpr = target.asFieldAccessExpr();
             // TODO methodDescriptor.getDeclaringType()? might be better to get
             // the parent of fieldAccessExpr?
-            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getFieldSignature(fieldAccessExpr), methodDescriptor.getDeclaringType());
+            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getQualifiedSignature(fieldAccessExpr), methodDescriptor.getDeclaringType());
             assignExpr.getBegin().ifPresent((position) -> {
                 visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
             });
@@ -132,7 +133,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
             FieldAccessExpr fieldAccessExpr = expression.asFieldAccessExpr();
             // TODO methodDescriptor.getDeclaringType()? might be better to get
             // the parent of fieldAccessExpr?
-            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getFieldSignature(fieldAccessExpr), methodDescriptor.getDeclaringType());
+            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getQualifiedSignature(fieldAccessExpr), methodDescriptor.getDeclaringType());
             expression.getBegin().ifPresent((position) -> {
                 visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
             });
@@ -149,5 +150,13 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
                 });
             }
         }
+    }
+
+    private String getMethodSignature(ResolvedMethodDeclaration resolvedMethodDeclaration) {
+        return getQualifiedName(resolvedMethodDeclaration.getReturnType()) + " " + resolvedMethodDeclaration.getSignature();
+    }
+
+    private String getFieldSignature(ResolvedFieldDeclaration resolvedFieldDeclaration) {
+        return getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName();
     }
 }

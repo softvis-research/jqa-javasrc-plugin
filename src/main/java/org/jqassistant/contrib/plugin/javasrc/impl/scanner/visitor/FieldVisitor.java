@@ -5,7 +5,6 @@ import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.type.Type;
-import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor;
@@ -44,15 +43,7 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     }
 
     private void createField(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
-        if (bodyDeclaration instanceof FieldDeclaration) {
-            FieldDeclaration fieldDeclaration = bodyDeclaration.asFieldDeclaration();
-            descriptor = visitorHelper.getFieldDescriptor(
-                    getQualifiedName(fieldDeclaration.getVariable(0).getType().resolve()) + " " + fieldDeclaration.getVariable(0).getName(), parent);
-        } else if (bodyDeclaration instanceof EnumConstantDeclaration) {
-            EnumConstantDeclaration enumConstantDeclaration = bodyDeclaration.asEnumConstantDeclaration();
-            ResolvedEnumConstantDeclaration solvedEnum = enumConstantDeclaration.resolve();
-            descriptor = visitorHelper.getFieldDescriptor(getQualifiedName(solvedEnum.getType()) + " " + enumConstantDeclaration.getName(), parent);
-        }
+        descriptor = visitorHelper.getFieldDescriptor(getQualifiedSignature(bodyDeclaration), parent);
     }
 
     private void setFieldType(FieldDeclaration fieldDeclaration) {
