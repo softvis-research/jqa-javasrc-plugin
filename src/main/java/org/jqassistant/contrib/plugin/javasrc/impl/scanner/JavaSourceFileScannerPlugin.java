@@ -12,13 +12,17 @@ import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.TypeVisitor;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.VisitorHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Requires(FileDescriptor.class)
 public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResource, JavaSourceFileDescriptor> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaSourceFileScannerPlugin.class);
 
     @Override
     public boolean accepts(FileResource item, String path, Scope scope) throws IOException {
@@ -34,6 +38,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         try (InputStream in = item.createStream()) {
             CompilationUnit cu = JavaParser.parse(in);
             cu.getTypes().accept(new TypeVisitor(visitorHelper), null);
+        } catch (UnsolvedSymbolException e) {
+            LOGGER.warn(e.getMessage() + " in " + javaSourceFileDescriptor.getFileName());
         }
         visitorHelper.addDependencies();
         return javaSourceFileDescriptor;

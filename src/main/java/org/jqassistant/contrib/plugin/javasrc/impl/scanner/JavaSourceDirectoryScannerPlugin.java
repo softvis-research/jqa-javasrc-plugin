@@ -8,12 +8,27 @@ import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractDirectoryScannerPlugin;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JavaSourceDirectoryScannerPlugin extends AbstractDirectoryScannerPlugin<JavaSourceDirectoryDescriptor> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaSourceDirectoryScannerPlugin.class);
+    private final String JQASSISTANT_PLUGIN_JAVASRC_JAR_DIRNAME = "jqassistant.plugin.javasrc.jar.dirname";
+    private String jarDirName = "src/test/resources";
 
     @Override
     protected Scope getRequiredScope() {
         return JavaScope.SRC;
+    }
+
+    @Override
+    protected void configure() {
+        super.configure();
+        if (getProperties().containsKey(JQASSISTANT_PLUGIN_JAVASRC_JAR_DIRNAME)) {
+            jarDirName = (String) getProperties().get(JQASSISTANT_PLUGIN_JAVASRC_JAR_DIRNAME);
+        }
+
+        LOGGER.info("Java Sourcecode Parser plugin looks for jar files in directory '{}'", jarDirName);
     }
 
     @Override
@@ -27,7 +42,7 @@ public class JavaSourceDirectoryScannerPlugin extends AbstractDirectoryScannerPl
             scannerContext.push(JavaTypeResolver.class, new JavaTypeResolver(scannerContext));
         }
         if (scannerContext.peekOrDefault(JavaTypeSolver.class, null) == null) {
-            scannerContext.push(JavaTypeSolver.class, new JavaTypeSolver(containerDescriptor.getFileName()));
+            scannerContext.push(JavaTypeSolver.class, new JavaTypeSolver(containerDescriptor.getFileName(), this.jarDirName));
         }
     }
 

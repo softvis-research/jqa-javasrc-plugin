@@ -25,17 +25,15 @@ public class JavaTypeSolver {
     private CombinedTypeSolver combinedTypeSolver;
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaTypeSolver.class);
 
-    public JavaTypeSolver(String srcDir) throws IOException {
+    public JavaTypeSolver(String srcDirName, String jarDirName) throws IOException {
         // create type solver
         combinedTypeSolver = new CombinedTypeSolver();
         // add source solver
-        combinedTypeSolver.add(new JavaParserTypeSolver(new File(srcDir)));
+        combinedTypeSolver.add(new JavaParserTypeSolver(new File(srcDirName)));
         // add reflection solver
         combinedTypeSolver.add(new ReflectionTypeSolver());
         // add external jar solvers
-        final String pathToJars = "src/test/resources";
-        final File jarFolder = new File(pathToJars);
-        LOGGER.info("Looking for jar libraries in '{}'.", pathToJars);
+        final File jarFolder = new File(jarDirName);
         if (jarFolder.exists()) {
             int jarCounter = 0;
             for (final File fileEntry : jarFolder.listFiles()) {
@@ -44,9 +42,7 @@ public class JavaTypeSolver {
                     jarCounter++;
                 }
             }
-            LOGGER.info("Added " + jarCounter + " jar " + ((jarCounter == 1) ? "library" : "libraries") + " to solver from '{}'.", pathToJars);
-        } else {
-            LOGGER.info("No folder '{}' found.", pathToJars);
+            LOGGER.info("Added " + jarCounter + " jar " + ((jarCounter == 1) ? "file" : "files") + " to solver from '{}'.", jarDirName);
         }
         // set created type solver globally
         JavaParser.getStaticConfiguration().setSymbolResolver(new JavaSymbolSolver(combinedTypeSolver));
