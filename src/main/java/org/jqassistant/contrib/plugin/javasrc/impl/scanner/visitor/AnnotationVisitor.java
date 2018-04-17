@@ -9,8 +9,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescripto
 
 /**
  * This visitor handles parsed annotations and creates corresponding
- * descriptors. The call of super is not necessary because we already have
- * collected all annotations of the annotated descriptor.
+ * descriptors.
  * 
  * @author Richard Mueller
  *

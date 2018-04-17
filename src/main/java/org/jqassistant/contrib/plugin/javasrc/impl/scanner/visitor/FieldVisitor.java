@@ -12,8 +12,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 
 /**
  * This visitor handles parsed fields and enum values and creates corresponding
- * descriptors. The call of super is not necessary because we already have
- * collected all fields of the type descriptor.
+ * descriptors.
  * 
  * @author Richard Mueller
  *
