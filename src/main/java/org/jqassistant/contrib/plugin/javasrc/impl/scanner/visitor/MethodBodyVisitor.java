@@ -14,6 +14,7 @@ import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
+import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
@@ -34,16 +35,16 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     }
 
     @Override
-    public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
+    public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) throws UnsolvedSymbolException {
         // method calls
         try {
             setInvokes(methodCallExpr, methodDescriptor);
         } catch (UnsupportedOperationException ue) {
-            LOGGER.debug("Unresolved method call: " + methodCallExpr + " (" + ue.getClass() + ")");
+            throw new UnsolvedSymbolException("Unresolved method call: " + methodCallExpr + " " + ue.getMessage());
         } catch (UnsolvedSymbolException use) {
-            LOGGER.debug("Unresolved method call: " + methodCallExpr + " (" + use.getClass() + ")");
+            throw new UnsolvedSymbolException("Unresolved method call: " + methodCallExpr + " " + use.getMessage());
         } catch (RuntimeException re) {
-            LOGGER.debug("Unresolved method call: " + methodCallExpr + " (" + re.getClass() + ")");
+            throw new UnsolvedSymbolException("Unresolved method call: " + methodCallExpr + " " + re.getMessage());
         }
     }
 
@@ -88,14 +89,26 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     }
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = methodCallExpr.resolveInvokedMethod();
-        TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(resolvedInvokedMethodDeclaration.declaringType().getQualifiedName(),
-                methodDescriptor.getDeclaringType());
-        MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(getMethodSignature(resolvedInvokedMethodDeclaration), invokedMethodParent);
-        methodCallExpr.getBegin().ifPresent((position) -> {
-            visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
-        });
+        SymbolReference<ResolvedMethodDeclaration> symbolReference = SymbolReference.unsolved(ResolvedMethodDeclaration.class);
+        try {
+            symbolReference = visitorHelper.getFacade().solve(methodCallExpr);
+        } catch (RuntimeException re) {
+            ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = visitorHelper.getFacade().solveMethodAsUsage(methodCallExpr).getDeclaration();
+            if (resolvedInvokedMethodDeclaration != null) {
+                symbolReference = SymbolReference.solved(resolvedInvokedMethodDeclaration);
+            }
+        }
+        if (symbolReference.isSolved()) {
+            ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = symbolReference.getCorrespondingDeclaration();
+            TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(resolvedInvokedMethodDeclaration.declaringType().getQualifiedName(),
+                    methodDescriptor.getDeclaringType());
+            MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(getMethodSignature(resolvedInvokedMethodDeclaration),
+                    invokedMethodParent);
+            methodCallExpr.getBegin().ifPresent((position) -> {
+                visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
+            });
 
+        }
     }
 
     private void setWrites(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
