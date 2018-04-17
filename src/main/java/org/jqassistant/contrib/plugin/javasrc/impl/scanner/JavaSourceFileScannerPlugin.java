@@ -33,7 +33,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         VisitorHelper visitorHelper = new VisitorHelper(scannerContext, javaSourceFileDescriptor);
         try (InputStream in = item.createStream()) {
             CompilationUnit cu = JavaParser.parse(in);
-            cu.accept(new TypeVisitor(visitorHelper), javaSourceFileDescriptor);
+            cu.getTypes().accept(new TypeVisitor(visitorHelper), null);
         }
         visitorHelper.addDependencies();
         return javaSourceFileDescriptor;
