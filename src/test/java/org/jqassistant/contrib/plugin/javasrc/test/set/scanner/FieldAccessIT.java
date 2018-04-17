@@ -48,7 +48,6 @@ public class FieldAccessIT extends AbstractPluginIT {
     }
 
     @Test
-    @Ignore
     public void testWriteAccess() throws NoSuchMethodException, NoSuchFieldException {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/access/";
