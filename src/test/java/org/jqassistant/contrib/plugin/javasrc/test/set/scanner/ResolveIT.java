@@ -67,7 +67,6 @@ public class ResolveIT extends AbstractPluginIT {
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query("MATCH (caller:Method)-[INVOKES]->(callee:Method) WHERE caller.name='callExternalStaticMethod' RETURN callee");
         // verify methods
-        assertThat(testResult.getColumn("callee").size(), equalTo(1));
         assertThat(testResult.getColumn("callee"), hasItem(methodDescriptor(ExternalClass.class, "externalStaticMethod", String.class)));
     }
 
