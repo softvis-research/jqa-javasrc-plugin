@@ -21,8 +21,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 
 /**
  * This visitor handles parsed method invocations, anonymous inner classes,
- * field reads, and field writes and creates corresponding descriptors. The call
- * of super is necessary because we need all expressions of the method body.
+ * field reads, and field writes and creates corresponding descriptors.
  * 
  * @author Richard Mueller
  *
@@ -36,7 +35,6 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
 
     @Override
     public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        super.visit(methodCallExpr, methodDescriptor);
         // method calls
         try {
             setInvokes(methodCallExpr, methodDescriptor);
@@ -51,7 +49,6 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
 
     @Override
     public void visit(ObjectCreationExpr objectCreationExpr, MethodDescriptor methodDescriptor) {
-        super.visit(objectCreationExpr, methodDescriptor);
         // anonymous class
         if (objectCreationExpr.getAnonymousClassBody().isPresent()) {
             anonymousInnerClassCounter++;
@@ -74,23 +71,20 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
 
     @Override
     public void visit(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
-        super.visit(assignExpr, methodDescriptor);
         // field writes
         setWrites(assignExpr, methodDescriptor);
     }
 
     @Override
     public void visit(FieldAccessExpr fieldAccessExpr, MethodDescriptor methodDescriptor) {
-        super.visit(fieldAccessExpr, methodDescriptor);
         // field reads
-        setReads(fieldAccessExpr, methodDescriptor);
+        // setReads(fieldAccessExpr, methodDescriptor);
     }
 
     @Override
     public void visit(NameExpr nameExpr, MethodDescriptor methodDescriptor) {
         // field reads
         // setReads(nameExpr, methodDescriptor);
-        super.visit(nameExpr, methodDescriptor);
     }
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
