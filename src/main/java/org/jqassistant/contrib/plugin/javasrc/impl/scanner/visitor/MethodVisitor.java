@@ -9,12 +9,12 @@ import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.BinaryExpr.Operator;
 import com.github.javaparser.ast.expr.ConditionalExpr;
-import com.github.javaparser.ast.nodeTypes.NodeWithBlockStmt;
-import com.github.javaparser.ast.nodeTypes.NodeWithOptionalBlockStmt;
-import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.stmt.BreakStmt;
 import com.github.javaparser.ast.stmt.CatchClause;
 import com.github.javaparser.ast.stmt.ContinueStmt;
@@ -57,7 +57,9 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setExceptions(methodDeclaration);
         setLineCount(methodDeclaration);
         setCyclomaticComplexity(methodDeclaration);
-        setInvokes(methodDeclaration);
+        setInvocations(methodDeclaration);
+        setWrites(methodDeclaration);
+        setAnonymousClasses(methodDeclaration);
     }
 
     @Override
@@ -70,7 +72,9 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setExceptions(constructorDeclaration);
         setLineCount(constructorDeclaration);
         setCyclomaticComplexity(constructorDeclaration);
-        setInvokes(constructorDeclaration);
+        setInvocations(constructorDeclaration);
+        setWrites(constructorDeclaration);
+        setAnonymousClasses(constructorDeclaration);
     }
 
     @Override
@@ -138,15 +142,22 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         ((MethodDescriptor) descriptor).setCyclomaticComplexity(calculateCyclomaticComplexity(node));
     }
 
-    private void setInvokes(NodeWithBlockStmt<?> nodeWithOptionalBlockStmt) {
-        BlockStmt body = nodeWithOptionalBlockStmt.getBody();
-        if (body != null) {
-            body.accept(new MethodBodyVisitor(visitorHelper), ((MethodDescriptor) descriptor));
-        }
+    private void setInvocations(CallableDeclaration<?> callableDeclaration) {
+        callableDeclaration.findAll(MethodCallExpr.class).forEach(methodCall -> {
+            methodCall.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
+        });
     }
 
-    private void setInvokes(NodeWithOptionalBlockStmt<?> nodeWithOptionalBlockStmt) {
-        nodeWithOptionalBlockStmt.getBody().ifPresent(body -> body.accept(new MethodBodyVisitor(visitorHelper), ((MethodDescriptor) descriptor)));
+    private void setWrites(CallableDeclaration<?> callableDeclaration) {
+        callableDeclaration.findAll(AssignExpr.class).forEach(methodCall -> {
+            methodCall.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
+        });
+    }
+
+    private void setAnonymousClasses(CallableDeclaration<?> callableDeclaration) {
+        callableDeclaration.findAll(ObjectCreationExpr.class).forEach(methodCall -> {
+            methodCall.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
+        });
     }
 
     private void setAnnotationMemberDefaultValue(AnnotationMemberDeclaration annotationMemberDeclaration) {
