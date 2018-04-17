@@ -49,9 +49,11 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.VisibilityModifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends VoidVisitorAdapter<D> {
-
+    protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractJavaSourceVisitor.class);
     protected VisitorHelper visitorHelper;
     protected Descriptor descriptor;
 
