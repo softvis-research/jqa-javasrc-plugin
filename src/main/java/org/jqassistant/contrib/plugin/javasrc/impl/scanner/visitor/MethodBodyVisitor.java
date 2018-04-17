@@ -10,6 +10,7 @@ import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
@@ -40,9 +41,11 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         try {
             setInvokes(methodCallExpr, methodDescriptor);
         } catch (UnsupportedOperationException ue) {
-            System.out.println("Unresolved call: " + methodCallExpr + " type: " + ue.getClass());
+            LOGGER.debug("Unresolved method call: " + methodCallExpr + " (" + ue.getClass() + ")");
+        } catch (UnsolvedSymbolException use) {
+            LOGGER.debug("Unresolved method call: " + methodCallExpr + " (" + use.getClass() + ")");
         } catch (RuntimeException re) {
-            System.out.println("Unresolved call: " + methodCallExpr + " type: " + re.getClass());
+            LOGGER.debug("Unresolved method call: " + methodCallExpr + " (" + re.getClass() + ")");
         }
     }
 
