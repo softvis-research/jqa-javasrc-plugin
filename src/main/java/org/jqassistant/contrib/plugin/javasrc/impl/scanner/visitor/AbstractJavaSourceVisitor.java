@@ -29,6 +29,7 @@ import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithStaticModifier;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
@@ -49,11 +50,8 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.VisibilityModifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends VoidVisitorAdapter<D> {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractJavaSourceVisitor.class);
     protected VisitorHelper visitorHelper;
     protected Descriptor descriptor;
 
@@ -173,7 +171,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
      * @param expression
      * @return value as Object
      */
-    protected Object getLiteralExpressionValue(Expression expression) {
+    protected Object getLiteralExpressionValue(Expression expression) throws UnsolvedSymbolException {
         if (expression.isBooleanLiteralExpr()) {
             return expression.asBooleanLiteralExpr().getValue();
         } else if (expression.isDoubleLiteralExpr()) {
@@ -191,12 +189,11 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         } else if (expression.isNullLiteralExpr()) {
             return null;
         } else {
-            // TODO avoid exception
-            throw new IllegalArgumentException("Expression value could not be resolved: " + expression.toString());
+            throw new UnsolvedSymbolException("Expression value could not be resolved: " + expression);
         }
     }
 
-    protected String getQualifiedName(ResolvedType resolvedType) {
+    protected String getQualifiedName(ResolvedType resolvedType) throws UnsolvedSymbolException {
         if (resolvedType.isReferenceType()) {
             return resolvedType.asReferenceType().getQualifiedName();
         } else if (resolvedType.isPrimitive()) {
@@ -215,17 +212,18 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 return wildcard.describe();
             }
         } else {
-            // TODO avoid exception
-            throw new IllegalArgumentException("Unexpected type of resolved type: " + resolvedType + " " + resolvedType.getClass());
+            throw new UnsolvedSymbolException("Unexpected type of resolved type: " + resolvedType.getClass());
         }
     }
 
-    protected String getQualifiedName(Node node) {
+    protected String getQualifiedName(Node node) throws UnsolvedSymbolException {
         if (node instanceof BodyDeclaration<?>) {
             BodyDeclaration<?> bodyDeclaration = (BodyDeclaration<?>) node;
             if (bodyDeclaration instanceof TypeDeclaration<?>) {
                 // types such as class, enum, or annotation declaration
                 return visitorHelper.getFacade().getTypeDeclaration(bodyDeclaration).getQualifiedName();
+            } else {
+                throw new UnsolvedSymbolException("Qualified name could not be resolved: " + node);
             }
         } else if (node instanceof Type) {
             // interfaces, super class, parameter types, exceptions
@@ -251,11 +249,12 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 // TODO show a warning
                 return annotationExpr.getNameAsString();
             }
+        } else {
+            throw new UnsolvedSymbolException("Qualified name could not be resolved: " + node);
         }
-        return "UNSOLVED_NAME";
     }
 
-    protected String getQualifiedSignature(Node node) {
+    protected String getQualifiedSignature(Node node) throws UnsolvedSymbolException {
         if (node instanceof BodyDeclaration<?>) {
             BodyDeclaration<?> bodyDeclaration = (BodyDeclaration<?>) node;
             if (bodyDeclaration instanceof MethodDeclaration) {
@@ -278,6 +277,8 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 EnumConstantDeclaration enumConstantDeclaration = bodyDeclaration.asEnumConstantDeclaration();
                 ResolvedEnumConstantDeclaration solvedEnum = bodyDeclaration.asEnumConstantDeclaration().resolve();
                 return getQualifiedName(solvedEnum.getType()) + " " + enumConstantDeclaration.getName();
+            } else {
+                throw new UnsolvedSymbolException("Qualified method signature could not be resolved: " + node);
             }
         } else if (node instanceof FieldAccessExpr) {
             // field signature
@@ -289,8 +290,8 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 // TODO show a warning
                 return fieldAccessExpr.getNameAsString();
             }
-
+        } else {
+            throw new UnsolvedSymbolException("Qualified signature could not be resolved: " + node);
         }
-        return "UNSOLVED_SIGNATURE";
     }
 }
