@@ -15,6 +15,7 @@ import com.github.javaparser.ast.expr.BinaryExpr.Operator;
 import com.github.javaparser.ast.expr.ConditionalExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.BreakStmt;
 import com.github.javaparser.ast.stmt.CatchClause;
 import com.github.javaparser.ast.stmt.ContinueStmt;
@@ -59,6 +60,7 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setCyclomaticComplexity(methodDeclaration);
         setInvocations(methodDeclaration);
         setWrites(methodDeclaration);
+        setVariables(methodDeclaration);
         setAnonymousClasses(methodDeclaration);
     }
 
@@ -74,6 +76,7 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setCyclomaticComplexity(constructorDeclaration);
         setInvocations(constructorDeclaration);
         setWrites(constructorDeclaration);
+        setVariables(constructorDeclaration);
         setAnonymousClasses(constructorDeclaration);
     }
 
@@ -157,6 +160,12 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void setAnonymousClasses(CallableDeclaration<?> callableDeclaration) {
         callableDeclaration.findAll(ObjectCreationExpr.class).forEach(methodCall -> {
             methodCall.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
+        });
+    }
+
+    private void setVariables(CallableDeclaration<?> callableDeclaration) {
+        callableDeclaration.findAll(VariableDeclarationExpr.class).forEach(variable -> {
+            variable.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
         });
     }
 

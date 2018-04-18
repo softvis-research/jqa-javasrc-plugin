@@ -17,6 +17,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ReadsDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.VariableDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.WritesDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaTypeResolver;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaTypeSolver;
@@ -144,6 +145,13 @@ public class VisitorHelper {
     public void addReads(MethodDescriptor methodDescriptor, final Integer lineNumber, FieldDescriptor fieldDescriptor) {
         ReadsDescriptor readsDescriptor = scannerContext.getStore().create(methodDescriptor, ReadsDescriptor.class, fieldDescriptor);
         readsDescriptor.setLineNumber(lineNumber);
+    }
+
+    public VariableDescriptor getVariableDescriptor(String name, String signature) {
+        VariableDescriptor variableDescriptor = scannerContext.getStore().create(VariableDescriptor.class);
+        variableDescriptor.setName(name);
+        variableDescriptor.setSignature(signature);
+        return variableDescriptor;
     }
 
     public void addDependencies() {

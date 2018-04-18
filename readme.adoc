@@ -57,6 +57,7 @@ method
 + loc (firstLineNumber, lastLineNumber, effectiveLineCount)
 + complexity
 + anonymous inner classes
++ variables
 
 field
 + signature
@@ -68,7 +69,6 @@ field
 
 == TODO
 - check effective line count (comments, empty methods)
-- add method variables
 - check field read and write access
 - add implicit default constructor?
 - add enum constructor (in v0.6.3 not supported)

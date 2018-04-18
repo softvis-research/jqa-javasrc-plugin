@@ -10,19 +10,23 @@ import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
+import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.VariableDescriptor;
 
 /**
  * This visitor handles parsed method invocations, anonymous inner classes,
- * field reads, and field writes and creates corresponding descriptors.
+ * variables, field reads, and field writes and creates corresponding
+ * descriptors.
  * 
  * @author Richard Mueller
  *
@@ -68,6 +72,18 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
                 }
             }
         }
+    }
+
+    @Override
+    public void visit(VariableDeclarationExpr variableDeclarationExpr, MethodDescriptor methodDescriptor) {
+        // method variables
+        variableDeclarationExpr.getVariables().forEach(variable -> {
+            ResolvedType solvedVariable = visitorHelper.getFacade().convertToUsageVariableType(variable);
+            VariableDescriptor variableDescriptor = visitorHelper.getVariableDescriptor(variable.getNameAsString(),
+                    getQualifiedName(solvedVariable) + " " + variable.getNameAsString());
+            variableDescriptor.setType(visitorHelper.resolveDependency(getQualifiedName(solvedVariable), methodDescriptor.getDeclaringType()));
+            methodDescriptor.getVariables().add(variableDescriptor);
+        });
     }
 
     @Override
