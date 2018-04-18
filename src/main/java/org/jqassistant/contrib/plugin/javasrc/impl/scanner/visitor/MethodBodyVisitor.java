@@ -55,35 +55,13 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     @Override
     public void visit(ObjectCreationExpr objectCreationExpr, MethodDescriptor methodDescriptor) {
         // anonymous class
-        if (objectCreationExpr.getAnonymousClassBody().isPresent()) {
-            anonymousInnerClassCounter++;
-            TypeDescriptor anonymousInnerClass = visitorHelper.createType(
-                    methodDescriptor.getDeclaringType().getFullQualifiedName() + "$" + anonymousInnerClassCounter, visitorHelper.getJavaSourceFileDescriptor(),
-                    ClassTypeDescriptor.class);
-            methodDescriptor.getDeclaredInnerClasses().add(anonymousInnerClass);
-            methodDescriptor.getDeclaringType().getDeclaredInnerClasses().add(anonymousInnerClass);
-            NodeList<BodyDeclaration<?>> bodyDeclarations = objectCreationExpr.getAnonymousClassBody().get();
-            for (BodyDeclaration<?> bodyDeclaration : bodyDeclarations) {
-                if (bodyDeclaration instanceof MethodDeclaration) {
-                    bodyDeclaration.accept(new MethodVisitor(visitorHelper), anonymousInnerClass);
-                }
-                if (bodyDeclaration instanceof FieldDeclaration) {
-                    bodyDeclaration.accept(new FieldVisitor(visitorHelper), anonymousInnerClass);
-                }
-            }
-        }
+        setAnonymousInnerClasses(objectCreationExpr, methodDescriptor);
     }
 
     @Override
     public void visit(VariableDeclarationExpr variableDeclarationExpr, MethodDescriptor methodDescriptor) {
         // method variables
-        variableDeclarationExpr.getVariables().forEach(variable -> {
-            ResolvedType solvedVariable = visitorHelper.getFacade().convertToUsageVariableType(variable);
-            VariableDescriptor variableDescriptor = visitorHelper.getVariableDescriptor(variable.getNameAsString(),
-                    getQualifiedName(solvedVariable) + " " + variable.getNameAsString());
-            variableDescriptor.setType(visitorHelper.resolveDependency(getQualifiedName(solvedVariable), methodDescriptor.getDeclaringType()));
-            methodDescriptor.getVariables().add(variableDescriptor);
-        });
+        setVariables(variableDeclarationExpr, methodDescriptor);
     }
 
     @Override
@@ -124,6 +102,41 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
                 visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
             });
 
+        }
+    }
+
+    private void setVariables(VariableDeclarationExpr variableDeclarationExpr, MethodDescriptor methodDescriptor) {
+        variableDeclarationExpr.getVariables().forEach(variable -> {
+            ResolvedType solvedVariable = visitorHelper.getFacade().convertToUsageVariableType(variable);
+            VariableDescriptor variableDescriptor = visitorHelper.getVariableDescriptor(variable.getNameAsString(),
+                    getQualifiedName(solvedVariable) + " " + variable.getNameAsString());
+            variableDescriptor.setType(visitorHelper.resolveDependency(getQualifiedName(solvedVariable), methodDescriptor.getDeclaringType()));
+            methodDescriptor.getVariables().add(variableDescriptor);
+            // type parameters
+            if (variable.getType().isClassOrInterfaceType()) {
+                setTypeParameterDependency(variable.getType().asClassOrInterfaceType(), methodDescriptor.getDeclaringType());
+            }
+    
+        });
+    }
+
+    private void setAnonymousInnerClasses(ObjectCreationExpr objectCreationExpr, MethodDescriptor methodDescriptor) {
+        if (objectCreationExpr.getAnonymousClassBody().isPresent()) {
+            anonymousInnerClassCounter++;
+            TypeDescriptor anonymousInnerClass = visitorHelper.createType(
+                    methodDescriptor.getDeclaringType().getFullQualifiedName() + "$" + anonymousInnerClassCounter, visitorHelper.getJavaSourceFileDescriptor(),
+                    ClassTypeDescriptor.class);
+            methodDescriptor.getDeclaredInnerClasses().add(anonymousInnerClass);
+            methodDescriptor.getDeclaringType().getDeclaredInnerClasses().add(anonymousInnerClass);
+            NodeList<BodyDeclaration<?>> bodyDeclarations = objectCreationExpr.getAnonymousClassBody().get();
+            for (BodyDeclaration<?> bodyDeclaration : bodyDeclarations) {
+                if (bodyDeclaration instanceof MethodDeclaration) {
+                    bodyDeclaration.accept(new MethodVisitor(visitorHelper), anonymousInnerClass);
+                }
+                if (bodyDeclaration instanceof FieldDeclaration) {
+                    bodyDeclaration.accept(new FieldVisitor(visitorHelper), anonymousInnerClass);
+                }
+            }
         }
     }
 
