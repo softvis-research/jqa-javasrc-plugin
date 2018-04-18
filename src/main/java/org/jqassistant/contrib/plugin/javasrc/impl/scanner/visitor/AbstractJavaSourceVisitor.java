@@ -13,6 +13,7 @@ import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
@@ -21,6 +22,7 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
 import com.github.javaparser.ast.nodeTypes.NodeWithModifiers;
 import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithAbstractModifier;
@@ -245,6 +247,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 return annotationExpr.getNameAsString();
             }
         } else if (node instanceof MethodCallExpr) {
+            // method call
             MethodCallExpr methodCallExpr = (MethodCallExpr) node;
             SymbolReference<ResolvedMethodDeclaration> symbolReference = SymbolReference.unsolved(ResolvedMethodDeclaration.class);
             try {
@@ -262,6 +265,10 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 // TODO show a warning
                 return methodCallExpr.getNameAsString();
             }
+        } else if (node instanceof VariableDeclarator) {
+            // method variable
+            ResolvedType solvedVariable = visitorHelper.getFacade().convertToUsageVariableType((VariableDeclarator) node);
+            return getQualifiedName(solvedVariable);
         } else {
             throw new UnsolvedSymbolException("Qualified name could not be resolved: " + node);
         }

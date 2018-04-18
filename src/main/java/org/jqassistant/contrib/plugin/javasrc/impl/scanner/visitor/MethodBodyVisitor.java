@@ -13,9 +13,7 @@ import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
-import com.github.javaparser.resolution.types.ResolvedType;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
@@ -91,16 +89,14 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
 
     private void setVariables(VariableDeclarationExpr variableDeclarationExpr, MethodDescriptor methodDescriptor) {
         variableDeclarationExpr.getVariables().forEach(variable -> {
-            ResolvedType solvedVariable = visitorHelper.getFacade().convertToUsageVariableType(variable);
             VariableDescriptor variableDescriptor = visitorHelper.getVariableDescriptor(variable.getNameAsString(),
-                    getQualifiedName(solvedVariable) + " " + variable.getNameAsString());
-            variableDescriptor.setType(visitorHelper.resolveDependency(getQualifiedName(solvedVariable), methodDescriptor.getDeclaringType()));
+                    getQualifiedName(variable) + " " + variable.getNameAsString());
+            variableDescriptor.setType(visitorHelper.resolveDependency(getQualifiedName(variable), methodDescriptor.getDeclaringType()));
             methodDescriptor.getVariables().add(variableDescriptor);
             // type parameters
             if (variable.getType().isClassOrInterfaceType()) {
                 setTypeParameterDependency(variable.getType().asClassOrInterfaceType(), methodDescriptor.getDeclaringType());
             }
-
         });
     }
 
@@ -173,10 +169,6 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
                 });
             }
         }
-    }
-
-    private String getMethodSignature(ResolvedMethodDeclaration resolvedMethodDeclaration) {
-        return getQualifiedName(resolvedMethodDeclaration.getReturnType()) + " " + resolvedMethodDeclaration.getSignature();
     }
 
     private String getFieldSignature(ResolvedFieldDeclaration resolvedFieldDeclaration) {
