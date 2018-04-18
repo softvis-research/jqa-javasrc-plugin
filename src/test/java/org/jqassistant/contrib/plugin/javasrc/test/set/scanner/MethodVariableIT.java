@@ -26,7 +26,7 @@ public class MethodVariableIT extends AbstractPluginIT {
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query("MATCH (m:Method)-[:DECLARES]->(v:Variable) WHERE m.name='methodWithVariables' RETURN v");
-        assertThat(testResult.getRows().size(), equalTo(5));
+        assertThat(testResult.getRows().size(), equalTo(6));
         store.commitTransaction();
     }
 
@@ -38,7 +38,7 @@ public class MethodVariableIT extends AbstractPluginIT {
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query("MATCH (m:Method:Constructor)-[:DECLARES]->(v:Variable) RETURN v");
-        assertThat(testResult.getRows().size(), equalTo(4));
+        assertThat(testResult.getRows().size(), equalTo(5));
         store.commitTransaction();
     }
 }

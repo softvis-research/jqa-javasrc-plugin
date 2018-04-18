@@ -1,5 +1,7 @@
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner.variable;
 
+import java.util.List;
+
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 
 public class MethodVariables {
@@ -13,6 +15,7 @@ public class MethodVariables {
         char charArray[] = { 'a', 'b' };
         long longVariable;
         stringField = stringVariable;
+        List<Double> stringList;
 
     }
 
@@ -23,6 +26,7 @@ public class MethodVariables {
         JavaScope scopeVariable = JavaScope.SRC;
         char charArray[] = { 'a', 'b' };
         long longVariable;
+        List<Double> stringList;
         return boolField;
     }
 }
