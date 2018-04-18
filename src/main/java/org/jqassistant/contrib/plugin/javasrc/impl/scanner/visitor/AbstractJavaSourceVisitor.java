@@ -22,7 +22,6 @@ import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
 import com.github.javaparser.ast.nodeTypes.NodeWithModifiers;
 import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithAbstractModifier;
@@ -219,112 +218,128 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
     }
 
     protected String getQualifiedName(Node node) throws UnsolvedSymbolException {
-        if (node instanceof TypeDeclaration<?>) {
-            // types such as class, enum, or annotation declaration
-            return visitorHelper.getFacade().getTypeDeclaration(node).getQualifiedName();
-        } else if (node instanceof Type) {
-            // interfaces, super class, parameter types, exceptions
-            return getQualifiedName(visitorHelper.getFacade().convertToUsage(((Type) node), node));
-        } else if (node instanceof FieldAccessExpr) {
-            // field e.g. in annotations
-            FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) node;
-            SymbolReference<ResolvedFieldDeclaration> symbolReference = visitorHelper.getFacade().solve(fieldAccessExpr);
-            if (symbolReference.isSolved()) {
-                return getQualifiedName(symbolReference.getCorrespondingDeclaration().getType());
-            } else {
-                // TODO show a warning
-                return fieldAccessExpr.getNameAsString();
-            }
-        } else if (node instanceof AnnotationExpr) {
-            // annotations
-            AnnotationExpr annotationExpr = (AnnotationExpr) node;
-            Context context = JavaParserFactory.getContext(annotationExpr, visitorHelper.getTypeSolver());
-            SymbolReference<ResolvedTypeDeclaration> symbolReference = context.solveType(annotationExpr.getNameAsString(), visitorHelper.getTypeSolver());
-            if (symbolReference.isSolved()) {
-                return symbolReference.getCorrespondingDeclaration().getQualifiedName();
-            } else {
-                // TODO show a warning
-                return annotationExpr.getNameAsString();
-            }
-        } else if (node instanceof MethodCallExpr) {
-            // method call
-            MethodCallExpr methodCallExpr = (MethodCallExpr) node;
-            SymbolReference<ResolvedMethodDeclaration> symbolReference = SymbolReference.unsolved(ResolvedMethodDeclaration.class);
-            try {
-                symbolReference = visitorHelper.getFacade().solve(methodCallExpr);
-            } catch (RuntimeException re) {
-                ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = visitorHelper.getFacade().solveMethodAsUsage(methodCallExpr).getDeclaration();
-                if (resolvedInvokedMethodDeclaration != null) {
-                    symbolReference = SymbolReference.solved(resolvedInvokedMethodDeclaration);
+        try {
+            if (node instanceof TypeDeclaration<?>) {
+                // types such as class, enum, or annotation declaration
+                return visitorHelper.getFacade().getTypeDeclaration(node).getQualifiedName();
+            } else if (node instanceof Type) {
+                // interfaces, super class, parameter types, exceptions
+                return getQualifiedName(visitorHelper.getFacade().convertToUsage(((Type) node), node));
+            } else if (node instanceof FieldAccessExpr) {
+                // field e.g. in annotations
+                FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) node;
+                SymbolReference<ResolvedFieldDeclaration> symbolReference = visitorHelper.getFacade().solve(fieldAccessExpr);
+                if (symbolReference.isSolved()) {
+                    return getQualifiedName(symbolReference.getCorrespondingDeclaration().getType());
+                } else {
+                    // TODO show a warning
+                    return fieldAccessExpr.getNameAsString();
                 }
-            }
-            if (symbolReference.isSolved()) {
-                ResolvedMethodDeclaration solvedInvokedMethod = symbolReference.getCorrespondingDeclaration();
-                return solvedInvokedMethod.declaringType().getQualifiedName();
+            } else if (node instanceof AnnotationExpr) {
+                // annotations
+                AnnotationExpr annotationExpr = (AnnotationExpr) node;
+                Context context = JavaParserFactory.getContext(annotationExpr, visitorHelper.getTypeSolver());
+                SymbolReference<ResolvedTypeDeclaration> symbolReference = context.solveType(annotationExpr.getNameAsString(), visitorHelper.getTypeSolver());
+                if (symbolReference.isSolved()) {
+                    return symbolReference.getCorrespondingDeclaration().getQualifiedName();
+                } else {
+                    // TODO show a warning
+                    return annotationExpr.getNameAsString();
+                }
+            } else if (node instanceof MethodCallExpr) {
+                // method call
+                MethodCallExpr methodCallExpr = (MethodCallExpr) node;
+                SymbolReference<ResolvedMethodDeclaration> symbolReference = SymbolReference.unsolved(ResolvedMethodDeclaration.class);
+                try {
+                    symbolReference = visitorHelper.getFacade().solve(methodCallExpr);
+                } catch (RuntimeException re) {
+                    ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = visitorHelper.getFacade().solveMethodAsUsage(methodCallExpr).getDeclaration();
+                    if (resolvedInvokedMethodDeclaration != null) {
+                        symbolReference = SymbolReference.solved(resolvedInvokedMethodDeclaration);
+                    }
+                }
+                if (symbolReference.isSolved()) {
+                    ResolvedMethodDeclaration solvedInvokedMethod = symbolReference.getCorrespondingDeclaration();
+                    return solvedInvokedMethod.declaringType().getQualifiedName();
+                } else {
+                    // TODO show a warning
+                    return methodCallExpr.getNameAsString();
+                }
+            } else if (node instanceof VariableDeclarator) {
+                // method variable
+                ResolvedType solvedVariable = visitorHelper.getFacade().convertToUsageVariableType((VariableDeclarator) node);
+                return getQualifiedName(solvedVariable);
             } else {
-                // TODO show a warning
-                return methodCallExpr.getNameAsString();
+                throw new UnsolvedSymbolException("Qualified name could not be resolved: " + node);
             }
-        } else if (node instanceof VariableDeclarator) {
-            // method variable
-            ResolvedType solvedVariable = visitorHelper.getFacade().convertToUsageVariableType((VariableDeclarator) node);
-            return getQualifiedName(solvedVariable);
-        } else {
-            throw new UnsolvedSymbolException("Qualified name could not be resolved: " + node);
+        } catch (UnsupportedOperationException ue) {
+            throw new UnsolvedSymbolException("Qualified name could not be resolved: " + node + " " + ue.getMessage());
+        } catch (UnsolvedSymbolException use) {
+            throw new UnsolvedSymbolException("Qualified name could not be resolved: " + node + " " + use.getMessage());
+        } catch (RuntimeException re) {
+            throw new UnsolvedSymbolException("Qualified name could not be resolved: " + node + " " + re.getMessage());
         }
     }
 
     protected String getQualifiedSignature(Node node) throws UnsolvedSymbolException {
-        if (node instanceof MethodDeclaration) {
-            // method signature
-            ResolvedMethodDeclaration solvedMethod = ((MethodDeclaration) node).resolve();
-            return getQualifiedName(solvedMethod.getReturnType()) + " " + solvedMethod.getSignature();
-        } else if (node instanceof ConstructorDeclaration) {
-            // constructor signature
-            ResolvedConstructorDeclaration solvedConstructor = ((ConstructorDeclaration) node).resolve();
-            return visitorHelper.CONSTRUCTOR_SIGNATURE + solvedConstructor.getSignature().replaceAll(solvedConstructor.getName(), "");
-        } else if (node instanceof AnnotationMemberDeclaration) {
-            // annotation member signature
-            return getQualifiedName(((AnnotationMemberDeclaration) node).getType().resolve()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE;
-        } else if (node instanceof FieldDeclaration) {
-            // field signature
-            FieldDeclaration fieldDeclaration = ((FieldDeclaration) node);
-            return getQualifiedName(fieldDeclaration.getVariable(0).getType().resolve()) + " " + fieldDeclaration.getVariable(0).getName();
-        } else if (node instanceof EnumConstantDeclaration) {
-            // enum signature
-            EnumConstantDeclaration enumConstantDeclaration = ((EnumConstantDeclaration) node);
-            ResolvedEnumConstantDeclaration solvedEnum = enumConstantDeclaration.resolve();
-            return getQualifiedName(solvedEnum.getType()) + " " + enumConstantDeclaration.getName();
-        } else if (node instanceof FieldAccessExpr) {
-            // field signature
-            FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) node;
-            SymbolReference<ResolvedFieldDeclaration> symbolReference = visitorHelper.getFacade().solve(fieldAccessExpr);
-            if (symbolReference.isSolved()) {
-                return getQualifiedName(symbolReference.getCorrespondingDeclaration().getType()) + " " + fieldAccessExpr.getNameAsString();
-            } else {
-                // TODO show a warning
-                return fieldAccessExpr.getNameAsString();
-            }
-        } else if (node instanceof MethodCallExpr) {
-            MethodCallExpr methodCallExpr = (MethodCallExpr) node;
-            SymbolReference<ResolvedMethodDeclaration> symbolReference = SymbolReference.unsolved(ResolvedMethodDeclaration.class);
-            try {
-                symbolReference = visitorHelper.getFacade().solve(methodCallExpr);
-            } catch (RuntimeException re) {
-                ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = visitorHelper.getFacade().solveMethodAsUsage(methodCallExpr).getDeclaration();
-                if (resolvedInvokedMethodDeclaration != null) {
-                    symbolReference = SymbolReference.solved(resolvedInvokedMethodDeclaration);
+        try {
+            if (node instanceof MethodDeclaration) {
+                // method signature
+                ResolvedMethodDeclaration solvedMethod = ((MethodDeclaration) node).resolve();
+                return getQualifiedName(solvedMethod.getReturnType()) + " " + solvedMethod.getSignature();
+            } else if (node instanceof ConstructorDeclaration) {
+                // constructor signature
+                ResolvedConstructorDeclaration solvedConstructor = ((ConstructorDeclaration) node).resolve();
+                return visitorHelper.CONSTRUCTOR_SIGNATURE + solvedConstructor.getSignature().replaceAll(solvedConstructor.getName(), "");
+            } else if (node instanceof AnnotationMemberDeclaration) {
+                // annotation member signature
+                return getQualifiedName(((AnnotationMemberDeclaration) node).getType().resolve()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE;
+            } else if (node instanceof FieldDeclaration) {
+                // field signature
+                FieldDeclaration fieldDeclaration = ((FieldDeclaration) node);
+                return getQualifiedName(fieldDeclaration.getVariable(0).getType().resolve()) + " " + fieldDeclaration.getVariable(0).getName();
+            } else if (node instanceof EnumConstantDeclaration) {
+                // enum signature
+                EnumConstantDeclaration enumConstantDeclaration = ((EnumConstantDeclaration) node);
+                ResolvedEnumConstantDeclaration solvedEnum = enumConstantDeclaration.resolve();
+                return getQualifiedName(solvedEnum.getType()) + " " + enumConstantDeclaration.getName();
+            } else if (node instanceof FieldAccessExpr) {
+                // field signature
+                FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) node;
+                SymbolReference<ResolvedFieldDeclaration> symbolReference = visitorHelper.getFacade().solve(fieldAccessExpr);
+                if (symbolReference.isSolved()) {
+                    return getQualifiedName(symbolReference.getCorrespondingDeclaration().getType()) + " " + fieldAccessExpr.getNameAsString();
+                } else {
+                    // TODO show a warning
+                    return fieldAccessExpr.getNameAsString();
                 }
-            }
-            if (symbolReference.isSolved()) {
-                ResolvedMethodDeclaration solvedInvokedMethod = symbolReference.getCorrespondingDeclaration();
-                return getQualifiedName(solvedInvokedMethod.getReturnType()) + " " + solvedInvokedMethod.getSignature();
+            } else if (node instanceof MethodCallExpr) {
+                MethodCallExpr methodCallExpr = (MethodCallExpr) node;
+                SymbolReference<ResolvedMethodDeclaration> symbolReference = SymbolReference.unsolved(ResolvedMethodDeclaration.class);
+                try {
+                    symbolReference = visitorHelper.getFacade().solve(methodCallExpr);
+                } catch (RuntimeException re) {
+                    ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = visitorHelper.getFacade().solveMethodAsUsage(methodCallExpr).getDeclaration();
+                    if (resolvedInvokedMethodDeclaration != null) {
+                        symbolReference = SymbolReference.solved(resolvedInvokedMethodDeclaration);
+                    }
+                }
+                if (symbolReference.isSolved()) {
+                    ResolvedMethodDeclaration solvedInvokedMethod = symbolReference.getCorrespondingDeclaration();
+                    return getQualifiedName(solvedInvokedMethod.getReturnType()) + " " + solvedInvokedMethod.getSignature();
+                } else {
+                    // TODO show a warning
+                    return methodCallExpr.getNameAsString();
+                }
             } else {
-                // TODO show a warning
-                return methodCallExpr.getNameAsString();
+                throw new UnsolvedSymbolException("Qualified signature could not be resolved: " + node);
             }
-        } else {
-            throw new UnsolvedSymbolException("Qualified signature could not be resolved: " + node);
+        } catch (UnsupportedOperationException ue) {
+            throw new UnsolvedSymbolException("Qualified signature could not be resolved: " + node + " " + ue.getMessage());
+        } catch (UnsolvedSymbolException use) {
+            throw new UnsolvedSymbolException("Qualified signature could not be resolved: " + node + " " + use.getMessage());
+        } catch (RuntimeException re) {
+            throw new UnsolvedSymbolException("Qualified signature could not be resolved: " + node + " " + re.getMessage());
         }
     }
 }

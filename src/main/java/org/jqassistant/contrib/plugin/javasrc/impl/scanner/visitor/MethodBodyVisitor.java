@@ -38,15 +38,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     @Override
     public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) throws UnsolvedSymbolException {
         // method calls
-        try {
-            setInvokes(methodCallExpr, methodDescriptor);
-        } catch (UnsupportedOperationException ue) {
-            throw new UnsolvedSymbolException("Unresolved method call: " + methodCallExpr + " " + ue.getMessage());
-        } catch (UnsolvedSymbolException use) {
-            throw new UnsolvedSymbolException("Unresolved method call: " + methodCallExpr + " " + use.getMessage());
-        } catch (RuntimeException re) {
-            throw new UnsolvedSymbolException("Unresolved method call: " + methodCallExpr + " " + re.getMessage());
-        }
+        setInvokes(methodCallExpr, methodDescriptor);
     }
 
     @Override
@@ -120,6 +112,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         }
     }
 
+    // TODO moving solving to super class
     private void setWrites(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
         Expression target = assignExpr.getTarget();
         if (target.isFieldAccessExpr()) {
@@ -146,6 +139,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         }
     }
 
+    // TODO moving solving to super class
     private void setReads(Expression expression, MethodDescriptor methodDescriptor) {
         if (expression instanceof FieldAccessExpr) {
             // this.FIELD
@@ -171,6 +165,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         }
     }
 
+    // TODO remove
     private String getFieldSignature(ResolvedFieldDeclaration resolvedFieldDeclaration) {
         return getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName();
     }
