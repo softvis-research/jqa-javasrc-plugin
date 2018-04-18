@@ -31,6 +31,7 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
+import com.github.javaparser.resolution.declarations.ResolvedAnnotationDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
@@ -240,15 +241,27 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                     return fieldAccessExpr.getNameAsString();
                 }
             } else if (node instanceof AnnotationExpr) {
+                // TODO check type of annotation before!
                 // annotations
                 AnnotationExpr annotationExpr = (AnnotationExpr) node;
-                Context context = JavaParserFactory.getContext(annotationExpr, visitorHelper.getTypeSolver());
-                SymbolReference<ResolvedTypeDeclaration> symbolReference = context.solveType(annotationExpr.getNameAsString(), visitorHelper.getTypeSolver());
-                if (symbolReference.isSolved()) {
-                    return symbolReference.getCorrespondingDeclaration().getQualifiedName();
-                } else {
-                    // TODO show a warning
-                    return annotationExpr.getNameAsString();
+                try {
+                    Context context = JavaParserFactory.getContext(annotationExpr, visitorHelper.getTypeSolver());
+                    SymbolReference<ResolvedTypeDeclaration> symbolReference = context.solveType(annotationExpr.getNameAsString(),
+                            visitorHelper.getTypeSolver());
+                    if (symbolReference.isSolved()) {
+                        return symbolReference.getCorrespondingDeclaration().getQualifiedName();
+                    } else {
+                        // TODO show a warning
+                        return annotationExpr.getNameAsString();
+                    }
+                } catch (RuntimeException re) {
+                    SymbolReference<ResolvedAnnotationDeclaration> symbolReference = visitorHelper.getFacade().solve(annotationExpr);
+                    if (symbolReference.isSolved()) {
+                        return symbolReference.getCorrespondingDeclaration().getQualifiedName();
+                    } else {
+                        // TODO show a warning
+                        return annotationExpr.getNameAsString();
+                    }
                 }
             } else if (node instanceof MethodCallExpr) {
                 // method call
