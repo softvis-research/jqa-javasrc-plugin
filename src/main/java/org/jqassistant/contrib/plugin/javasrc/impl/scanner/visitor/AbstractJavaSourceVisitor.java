@@ -8,7 +8,6 @@ import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
-import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
@@ -217,14 +216,9 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
     }
 
     protected String getQualifiedName(Node node) throws UnsolvedSymbolException {
-        if (node instanceof BodyDeclaration<?>) {
-            BodyDeclaration<?> bodyDeclaration = (BodyDeclaration<?>) node;
-            if (bodyDeclaration instanceof TypeDeclaration<?>) {
-                // types such as class, enum, or annotation declaration
-                return visitorHelper.getFacade().getTypeDeclaration(bodyDeclaration).getQualifiedName();
-            } else {
-                throw new UnsolvedSymbolException("Qualified name could not be resolved: " + node);
-            }
+        if (node instanceof TypeDeclaration<?>) {
+            // types such as class, enum, or annotation declaration
+            return visitorHelper.getFacade().getTypeDeclaration(node).getQualifiedName();
         } else if (node instanceof Type) {
             // interfaces, super class, parameter types, exceptions
             return getQualifiedName(visitorHelper.getFacade().convertToUsage(((Type) node), node));
@@ -255,31 +249,26 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
     }
 
     protected String getQualifiedSignature(Node node) throws UnsolvedSymbolException {
-        if (node instanceof BodyDeclaration<?>) {
-            BodyDeclaration<?> bodyDeclaration = (BodyDeclaration<?>) node;
-            if (bodyDeclaration instanceof MethodDeclaration) {
-                // method signature
-                ResolvedMethodDeclaration solvedMethod = bodyDeclaration.asMethodDeclaration().resolve();
-                return getQualifiedName(solvedMethod.getReturnType()) + " " + solvedMethod.getSignature();
-            } else if (bodyDeclaration instanceof ConstructorDeclaration) {
-                // constructor signature
-                ResolvedConstructorDeclaration solvedConstructor = ((ConstructorDeclaration) bodyDeclaration).resolve();
-                return visitorHelper.CONSTRUCTOR_SIGNATURE + solvedConstructor.getSignature().replaceAll(solvedConstructor.getName(), "");
-            } else if (bodyDeclaration instanceof AnnotationMemberDeclaration) {
-                // annotation member signature
-                return getQualifiedName(((AnnotationMemberDeclaration) bodyDeclaration).getType().resolve()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE;
-            } else if (bodyDeclaration instanceof FieldDeclaration) {
-                // field signature
-                FieldDeclaration fieldDeclaration = bodyDeclaration.asFieldDeclaration();
-                return getQualifiedName(fieldDeclaration.getVariable(0).getType().resolve()) + " " + fieldDeclaration.getVariable(0).getName();
-            } else if (bodyDeclaration instanceof EnumConstantDeclaration) {
-                // enum signature
-                EnumConstantDeclaration enumConstantDeclaration = bodyDeclaration.asEnumConstantDeclaration();
-                ResolvedEnumConstantDeclaration solvedEnum = bodyDeclaration.asEnumConstantDeclaration().resolve();
-                return getQualifiedName(solvedEnum.getType()) + " " + enumConstantDeclaration.getName();
-            } else {
-                throw new UnsolvedSymbolException("Qualified method signature could not be resolved: " + node);
-            }
+        if (node instanceof MethodDeclaration) {
+            // method signature
+            ResolvedMethodDeclaration solvedMethod = ((MethodDeclaration) node).resolve();
+            return getQualifiedName(solvedMethod.getReturnType()) + " " + solvedMethod.getSignature();
+        } else if (node instanceof ConstructorDeclaration) {
+            // constructor signature
+            ResolvedConstructorDeclaration solvedConstructor = ((ConstructorDeclaration) node).resolve();
+            return visitorHelper.CONSTRUCTOR_SIGNATURE + solvedConstructor.getSignature().replaceAll(solvedConstructor.getName(), "");
+        } else if (node instanceof AnnotationMemberDeclaration) {
+            // annotation member signature
+            return getQualifiedName(((AnnotationMemberDeclaration) node).getType().resolve()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE;
+        } else if (node instanceof FieldDeclaration) {
+            // field signature
+            FieldDeclaration fieldDeclaration = ((FieldDeclaration) node);
+            return getQualifiedName(fieldDeclaration.getVariable(0).getType().resolve()) + " " + fieldDeclaration.getVariable(0).getName();
+        } else if (node instanceof EnumConstantDeclaration) {
+            // enum signature
+            EnumConstantDeclaration enumConstantDeclaration = ((EnumConstantDeclaration) node);
+            ResolvedEnumConstantDeclaration solvedEnum = enumConstantDeclaration.resolve();
+            return getQualifiedName(solvedEnum.getType()) + " " + enumConstantDeclaration.getName();
         } else if (node instanceof FieldAccessExpr) {
             // field signature
             FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) node;
