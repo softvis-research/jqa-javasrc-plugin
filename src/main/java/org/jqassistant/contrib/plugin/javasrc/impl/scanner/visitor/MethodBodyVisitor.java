@@ -112,7 +112,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         }
     }
 
-    // TODO moving solving to super class
+    // TODO move solving to super class
     private void setWrites(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
         Expression target = assignExpr.getTarget();
         if (target.isFieldAccessExpr()) {
@@ -139,7 +139,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         }
     }
 
-    // TODO moving solving to super class
+    // TODO move solving to super class
     private void setReads(Expression expression, MethodDescriptor methodDescriptor) {
         if (expression instanceof FieldAccessExpr) {
             // this.FIELD
