@@ -17,6 +17,7 @@ import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
+import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
@@ -243,6 +244,24 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 // TODO show a warning
                 return annotationExpr.getNameAsString();
             }
+        } else if (node instanceof MethodCallExpr) {
+            MethodCallExpr methodCallExpr = (MethodCallExpr) node;
+            SymbolReference<ResolvedMethodDeclaration> symbolReference = SymbolReference.unsolved(ResolvedMethodDeclaration.class);
+            try {
+                symbolReference = visitorHelper.getFacade().solve(methodCallExpr);
+            } catch (RuntimeException re) {
+                ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = visitorHelper.getFacade().solveMethodAsUsage(methodCallExpr).getDeclaration();
+                if (resolvedInvokedMethodDeclaration != null) {
+                    symbolReference = SymbolReference.solved(resolvedInvokedMethodDeclaration);
+                }
+            }
+            if (symbolReference.isSolved()) {
+                ResolvedMethodDeclaration solvedInvokedMethod = symbolReference.getCorrespondingDeclaration();
+                return solvedInvokedMethod.declaringType().getQualifiedName();
+            } else {
+                // TODO show a warning
+                return methodCallExpr.getNameAsString();
+            }
         } else {
             throw new UnsolvedSymbolException("Qualified name could not be resolved: " + node);
         }
@@ -278,6 +297,24 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             } else {
                 // TODO show a warning
                 return fieldAccessExpr.getNameAsString();
+            }
+        } else if (node instanceof MethodCallExpr) {
+            MethodCallExpr methodCallExpr = (MethodCallExpr) node;
+            SymbolReference<ResolvedMethodDeclaration> symbolReference = SymbolReference.unsolved(ResolvedMethodDeclaration.class);
+            try {
+                symbolReference = visitorHelper.getFacade().solve(methodCallExpr);
+            } catch (RuntimeException re) {
+                ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = visitorHelper.getFacade().solveMethodAsUsage(methodCallExpr).getDeclaration();
+                if (resolvedInvokedMethodDeclaration != null) {
+                    symbolReference = SymbolReference.solved(resolvedInvokedMethodDeclaration);
+                }
+            }
+            if (symbolReference.isSolved()) {
+                ResolvedMethodDeclaration solvedInvokedMethod = symbolReference.getCorrespondingDeclaration();
+                return getQualifiedName(solvedInvokedMethod.getReturnType()) + " " + solvedInvokedMethod.getSignature();
+            } else {
+                // TODO show a warning
+                return methodCallExpr.getNameAsString();
             }
         } else {
             throw new UnsolvedSymbolException("Qualified signature could not be resolved: " + node);

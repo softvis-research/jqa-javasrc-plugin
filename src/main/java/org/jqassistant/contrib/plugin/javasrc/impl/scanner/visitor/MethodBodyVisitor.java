@@ -16,7 +16,6 @@ import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
-import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
@@ -83,26 +82,11 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     }
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        SymbolReference<ResolvedMethodDeclaration> symbolReference = SymbolReference.unsolved(ResolvedMethodDeclaration.class);
-        try {
-            symbolReference = visitorHelper.getFacade().solve(methodCallExpr);
-        } catch (RuntimeException re) {
-            ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = visitorHelper.getFacade().solveMethodAsUsage(methodCallExpr).getDeclaration();
-            if (resolvedInvokedMethodDeclaration != null) {
-                symbolReference = SymbolReference.solved(resolvedInvokedMethodDeclaration);
-            }
-        }
-        if (symbolReference.isSolved()) {
-            ResolvedMethodDeclaration resolvedInvokedMethodDeclaration = symbolReference.getCorrespondingDeclaration();
-            TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(resolvedInvokedMethodDeclaration.declaringType().getQualifiedName(),
-                    methodDescriptor.getDeclaringType());
-            MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(getMethodSignature(resolvedInvokedMethodDeclaration),
-                    invokedMethodParent);
-            methodCallExpr.getBegin().ifPresent((position) -> {
-                visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
-            });
-
-        }
+        TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(getQualifiedName(methodCallExpr), methodDescriptor.getDeclaringType());
+        MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(getQualifiedSignature(methodCallExpr), invokedMethodParent);
+        methodCallExpr.getBegin().ifPresent((position) -> {
+            visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
+        });
     }
 
     private void setVariables(VariableDeclarationExpr variableDeclarationExpr, MethodDescriptor methodDescriptor) {
@@ -116,7 +100,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
             if (variable.getType().isClassOrInterfaceType()) {
                 setTypeParameterDependency(variable.getType().asClassOrInterfaceType(), methodDescriptor.getDeclaringType());
             }
-    
+
         });
     }
 
