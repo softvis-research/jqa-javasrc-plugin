@@ -176,9 +176,11 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         if (expression.isBooleanLiteralExpr()) {
             return expression.asBooleanLiteralExpr().getValue();
         } else if (expression.isDoubleLiteralExpr()) {
-            return Double.parseDouble(expression.asDoubleLiteralExpr().getValue());
+            // remove d to avoid NumberFormatException
+            return Double.parseDouble(expression.asDoubleLiteralExpr().getValue().replace("d", ""));
         } else if (expression.isLongLiteralExpr()) {
-            return Long.parseLong(expression.asLongLiteralExpr().getValue());
+            // remove L to avoid NumberFormatException
+            return Long.parseLong(expression.asLongLiteralExpr().getValue().replace("L", ""));
         } else if (expression.isIntegerLiteralExpr()) {
             return Integer.parseInt(expression.asIntegerLiteralExpr().getValue());
         } else if (expression.isCharLiteralExpr()) {
@@ -189,8 +191,10 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             return expression.asLiteralStringValueExpr().getValue();
         } else if (expression.isNullLiteralExpr()) {
             return null;
+        } else if (expression.isObjectCreationExpr()) {
+            return expression.toString();
         } else {
-            throw new UnsolvedSymbolException("Expression value could not be resolved: " + expression);
+            throw new UnsolvedSymbolException("Expression value could not be resolved: " + expression + " " + expression.getClass());
         }
     }
 
