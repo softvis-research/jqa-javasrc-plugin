@@ -29,7 +29,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.VariableDescriptor;
  *
  */
 public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescriptor> {
-    private int anonymousInnerClassCounter = 0;
+    private static int anonymousInnerClassCounter = 0;
 
     public MethodBodyVisitor(VisitorHelper visitorHelper) {
         super(visitorHelper);
@@ -72,12 +72,13 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     }
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(getQualifiedName(methodCallExpr), methodDescriptor.getDeclaringType());
-        MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(getQualifiedSignature(methodCallExpr), invokedMethodParent);
+        String invokedMethodParentQualifiedName = getQualifiedName(methodCallExpr);
+        String invokedMethodQualifiedSignature = getQualifiedSignature(methodCallExpr);
+        TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(invokedMethodParentQualifiedName, methodDescriptor.getDeclaringType());
+        MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(invokedMethodQualifiedSignature, invokedMethodParent);
         methodCallExpr.getBegin().ifPresent((position) -> {
             visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
         });
-
     }
 
     private void setVariables(VariableDeclarationExpr variableDeclarationExpr, MethodDescriptor methodDescriptor) {
