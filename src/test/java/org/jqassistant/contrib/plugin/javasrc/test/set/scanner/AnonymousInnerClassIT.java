@@ -14,7 +14,6 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.innerclass.AnonymousInnerClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -39,14 +38,14 @@ public class AnonymousInnerClassIT extends AbstractPluginIT {
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query(
                 "MATCH (outerClass:Type)-[:DECLARES]->(innerClass:Type)<-[:DECLARES]-(method:Method)<-[:DECLARES]-(outerClass) RETURN outerClass, innerClass, method");
-        assertThat(testResult.getRows().size(), equalTo(1));
-        Map<String, Object> row = testResult.getRows().get(0);
+        assertThat(testResult.getRows().size(), equalTo(2));
+        Map<String, Object> row = testResult.getRows().get(1);
         TypeDescriptor outerClass = (TypeDescriptor) row.get("outerClass");
         assertThat(outerClass, typeDescriptor(AnonymousInnerClass.class));
         TypeDescriptor innerClass = (TypeDescriptor) row.get("innerClass");
         assertThat(innerClass, typeDescriptor(INNERCLASS_NAME));
         MethodDescriptor method = (MethodDescriptor) row.get("method");
-        assertThat(method, methodDescriptor(AnonymousInnerClass.class, "iterator"));
+        assertThat(method, methodDescriptor(AnonymousInnerClass.class, "iterator1"));
         store.commitTransaction();
     }
 
@@ -76,7 +75,6 @@ public class AnonymousInnerClassIT extends AbstractPluginIT {
     }
 
     @Test
-    @Ignore
     public void testTwoAnonymousClasses() throws NoSuchMethodException {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/innerclass/";
