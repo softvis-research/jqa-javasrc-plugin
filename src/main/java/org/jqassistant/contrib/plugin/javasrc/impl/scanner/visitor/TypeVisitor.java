@@ -69,8 +69,6 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     }
 
     private void createType(TypeDeclaration<?> typeDeclaration) {
-        // set counter for anonymous inner classes for every new type
-        visitorHelper.setAnonymousInnerClassCounter(1);
         if (typeDeclaration instanceof ClassOrInterfaceDeclaration) {
             if (typeDeclaration.asClassOrInterfaceDeclaration().isInterface()) {
                 descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), visitorHelper.getJavaSourceFileDescriptor(),
