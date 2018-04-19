@@ -28,7 +28,7 @@ public class JavaSourceDirectoryScannerPlugin extends AbstractDirectoryScannerPl
             jarDirName = (String) getProperties().get(JQASSISTANT_PLUGIN_JAVASRC_JAR_DIRNAME);
         }
 
-        LOGGER.info("Java Sourcecode Parser plugin looks for jar files in directory '{}'", jarDirName);
+        LOGGER.info("Java Source Parser plugin looks for jar files in directory '{}'", jarDirName);
     }
 
     @Override
