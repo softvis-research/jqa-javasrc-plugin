@@ -77,6 +77,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         methodCallExpr.getBegin().ifPresent((position) -> {
             visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
         });
+
     }
 
     private void setVariables(VariableDeclarationExpr variableDeclarationExpr, MethodDescriptor methodDescriptor) {
