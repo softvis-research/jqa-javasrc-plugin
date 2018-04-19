@@ -9,6 +9,7 @@ import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import org.apache.commons.lang.StringUtils;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ConstructorDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.InvokesDescriptor;
@@ -49,12 +50,20 @@ public class VisitorHelper {
         this.javaSourceFileDescriptor = javaSourceFileDescriptor;
         this.facade = getJavaTypeSolver().getFacade();
         this.typeSolver = getJavaTypeSolver().getTypeSolver();
-        this.anonymousInnerClassCounter = 0;
-
     }
 
     public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor, Class<T> type) {
+        // set anonymous inner class counter for every new type
+        this.anonymousInnerClassCounter = 1;
         return getTypeResolver().createType(fqn, javaSourcefileDescriptor, type);
+    }
+
+    public <T extends TypeDescriptor> T createAnonymousType(MethodDescriptor methodDescriptor) {
+        String fqn = methodDescriptor.getDeclaringType().getFullQualifiedName() + "$" + this.anonymousInnerClassCounter;
+        // increase anonymous inner class counter
+        this.anonymousInnerClassCounter++;
+        System.out.println(fqn);
+        return getTypeResolver().createType(fqn, getJavaSourceFileDescriptor(), (Class<T>) ClassTypeDescriptor.class);
     }
 
     public TypeDescriptor resolveDependency(String fqn, TypeDescriptor dependent) {
