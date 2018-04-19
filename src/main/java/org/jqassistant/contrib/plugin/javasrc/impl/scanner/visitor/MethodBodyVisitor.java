@@ -14,7 +14,6 @@ import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
-import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
@@ -95,12 +94,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
 
     private void setAnonymousInnerClasses(ObjectCreationExpr objectCreationExpr, MethodDescriptor methodDescriptor) {
         if (objectCreationExpr.getAnonymousClassBody().isPresent()) {
-            int anonymousInnerClassCounter = visitorHelper.getAnonymousInnerClassCounter();
-            visitorHelper.increaseAnonymousInnerClassCounter();
-            System.out.println(anonymousInnerClassCounter);
-            TypeDescriptor anonymousInnerClass = visitorHelper.createType(
-                    methodDescriptor.getDeclaringType().getFullQualifiedName() + "$" + anonymousInnerClassCounter, visitorHelper.getJavaSourceFileDescriptor(),
-                    ClassTypeDescriptor.class);
+            TypeDescriptor anonymousInnerClass = visitorHelper.createAnonymousType(methodDescriptor);
             methodDescriptor.getDeclaredInnerClasses().add(anonymousInnerClass);
             methodDescriptor.getDeclaringType().getDeclaredInnerClasses().add(anonymousInnerClass);
             NodeList<BodyDeclaration<?>> bodyDeclarations = objectCreationExpr.getAnonymousClassBody().get();
