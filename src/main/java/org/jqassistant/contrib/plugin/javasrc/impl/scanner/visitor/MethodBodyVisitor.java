@@ -70,10 +70,8 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     }
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        String invokedMethodParentQualifiedName = getQualifiedName(methodCallExpr);
-        String invokedMethodQualifiedSignature = getQualifiedSignature(methodCallExpr);
-        TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(invokedMethodParentQualifiedName, methodDescriptor.getDeclaringType());
-        MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(invokedMethodQualifiedSignature, invokedMethodParent);
+        TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(getQualifiedName(methodCallExpr), methodDescriptor.getDeclaringType());
+        MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(getQualifiedSignature(methodCallExpr), invokedMethodParent);
         methodCallExpr.getBegin().ifPresent((position) -> {
             visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
         });
