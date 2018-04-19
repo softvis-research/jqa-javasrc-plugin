@@ -34,8 +34,17 @@ public class JavaTypeResolver {
         TypeDescriptor resolvedTypeDescriptor = javaSourcefileDescriptor.resolveType(fqn);
         T typeDescriptor;
         if (requiredTypes.containsKey(fqn)) {
-            typeDescriptor = scannerContext.getStore().migrate(requiredTypes.get(fqn), type);
+            // TODO fix me
+            T oldTypeDescriptor = (T) requiredTypes.get(fqn);
+            // update dependencies
+            dependencies.forEach((dependent, dependencyMap) -> {
+                Integer oldWeight = dependencyMap.get(oldTypeDescriptor);
+                dependencyMap.remove(oldTypeDescriptor);
+                // dependencyMap.put(typeDescriptor, oldWeight);
+            });
+            typeDescriptor = scannerContext.getStore().migrate(oldTypeDescriptor, type);
             requiredTypes.remove(fqn);
+
         } else {
             typeDescriptor = scannerContext.getStore().addDescriptorType(resolvedTypeDescriptor, type);
             typeDescriptor.setFullQualifiedName(fqn);
