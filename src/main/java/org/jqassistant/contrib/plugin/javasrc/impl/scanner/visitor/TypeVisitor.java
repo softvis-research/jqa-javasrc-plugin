@@ -137,9 +137,9 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         });
     }
 
-    private void setInnerClasses(TypeDeclaration<?> typeDeclaration, TypeDescriptor parantType) {
-        if (typeDeclaration.isNestedType() && parantType != null) {
-            parantType.getDeclaredInnerClasses().add((TypeDescriptor) descriptor);
+    private void setInnerClasses(TypeDeclaration<?> typeDeclaration, TypeDescriptor parentType) {
+        if (typeDeclaration.isNestedType() && parentType != null) {
+            parentType.getDeclaredInnerClasses().add((TypeDescriptor) descriptor);
         }
         typeDeclaration.findAll(TypeDeclaration.class, isDirectChild(typeDeclaration)).forEach(innerType -> {
             innerType.accept(new TypeVisitor(visitorHelper), (TypeDescriptor) descriptor);
