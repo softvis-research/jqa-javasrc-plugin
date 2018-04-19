@@ -29,7 +29,6 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.VariableDescriptor;
  *
  */
 public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescriptor> {
-    private static int anonymousInnerClassCounter = 0;
 
     public MethodBodyVisitor(VisitorHelper visitorHelper) {
         super(visitorHelper);
@@ -96,7 +95,9 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
 
     private void setAnonymousInnerClasses(ObjectCreationExpr objectCreationExpr, MethodDescriptor methodDescriptor) {
         if (objectCreationExpr.getAnonymousClassBody().isPresent()) {
-            anonymousInnerClassCounter++;
+            int anonymousInnerClassCounter = visitorHelper.getAnonymousInnerClassCounter();
+            visitorHelper.increaseAnonymousInnerClassCounter();
+            System.out.println(anonymousInnerClassCounter);
             TypeDescriptor anonymousInnerClass = visitorHelper.createType(
                     methodDescriptor.getDeclaringType().getFullQualifiedName() + "$" + anonymousInnerClassCounter, visitorHelper.getJavaSourceFileDescriptor(),
                     ClassTypeDescriptor.class);

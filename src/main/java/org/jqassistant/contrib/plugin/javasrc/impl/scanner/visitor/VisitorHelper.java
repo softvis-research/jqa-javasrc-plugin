@@ -42,12 +42,14 @@ public class VisitorHelper {
     public final String ANNOTATION_MEMBER_SIGNATURE = "()";
     public final String ANNOTATION_MEMBER_DEFAULT_VALUE_NAME = "null";
     public final String SINGLE_MEMBER_ANNOTATION_NAME = "value";
+    private int anonymousInnerClassCounter;
 
     public VisitorHelper(ScannerContext scannerContext, JavaSourceFileDescriptor javaSourceFileDescriptor) {
         this.scannerContext = scannerContext;
         this.javaSourceFileDescriptor = javaSourceFileDescriptor;
         this.facade = getJavaTypeSolver().getFacade();
         this.typeSolver = getJavaTypeSolver().getTypeSolver();
+        this.anonymousInnerClassCounter = 0;
 
     }
 
@@ -168,6 +170,18 @@ public class VisitorHelper {
 
     public JavaSourceFileDescriptor getJavaSourceFileDescriptor() {
         return this.javaSourceFileDescriptor;
+    }
+
+    public void setAnonymousInnerClassCounter(int anonymousInnerClassCounter) {
+        this.anonymousInnerClassCounter = anonymousInnerClassCounter;
+    }
+
+    public void increaseAnonymousInnerClassCounter() {
+        this.anonymousInnerClassCounter++;
+    }
+
+    public int getAnonymousInnerClassCounter() {
+        return this.anonymousInnerClassCounter;
     }
 
     /**
