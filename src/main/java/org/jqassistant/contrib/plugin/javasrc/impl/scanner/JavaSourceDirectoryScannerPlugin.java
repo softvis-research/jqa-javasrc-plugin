@@ -11,6 +11,12 @@ import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Plugin that scans Java source directories.
+ * 
+ * @author Dirk Mahler, Richard Mueller
+ *
+ */
 public class JavaSourceDirectoryScannerPlugin extends AbstractDirectoryScannerPlugin<JavaSourceDirectoryDescriptor> {
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaSourceDirectoryScannerPlugin.class);
     private final String JQASSISTANT_PLUGIN_JAVASRC_JAR_DIRNAME = "jqassistant.plugin.javasrc.jar.dirname";

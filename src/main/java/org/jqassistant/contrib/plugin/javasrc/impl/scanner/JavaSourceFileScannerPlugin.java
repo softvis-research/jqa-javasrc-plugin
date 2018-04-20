@@ -20,6 +20,12 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.VisitorHelper
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Plugin that scans Java source files.
+ * 
+ * @author Dirk Mahler, Richard Mueller
+ *
+ */
 @Requires(FileDescriptor.class)
 public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResource, JavaSourceFileDescriptor> {
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaSourceFileScannerPlugin.class);
