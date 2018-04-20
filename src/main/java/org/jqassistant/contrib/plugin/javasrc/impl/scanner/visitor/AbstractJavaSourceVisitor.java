@@ -36,6 +36,7 @@ import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclara
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
+import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.resolution.types.ResolvedWildcard;
 import com.github.javaparser.symbolsolver.core.resolution.Context;
@@ -334,6 +335,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                     return fieldAccessExpr.getNameAsString();
                 }
             } else if (node instanceof MethodCallExpr) {
+                // method calls
                 MethodCallExpr methodCallExpr = (MethodCallExpr) node;
                 SymbolReference<ResolvedMethodDeclaration> symbolReference = SymbolReference.unsolved(ResolvedMethodDeclaration.class);
                 try {
@@ -351,6 +353,13 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                     // TODO show a warning
                     return methodCallExpr.getNameAsString();
                 }
+            } else if (node instanceof NameExpr) {
+                // field write, field read
+                ResolvedValueDeclaration solvedValueDeclaration = (ResolvedValueDeclaration) visitorHelper.getFacade().solve((NameExpr) node)
+                        .getCorrespondingDeclaration();
+                if (solvedValueDeclaration.isField()) {
+                    return getQualifiedName(solvedValueDeclaration.getType()) + " " + solvedValueDeclaration.getName();
+                } // TODO what else?
             }
             throw new JavaSourceException("Unexpected type of node for qualified signature: " + node + " " + node.getClass());
         } catch (UnsolvedSymbolException use) {

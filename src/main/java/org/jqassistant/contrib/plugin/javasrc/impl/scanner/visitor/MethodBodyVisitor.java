@@ -12,8 +12,6 @@ import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
-import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
@@ -107,7 +105,6 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         }
     }
 
-    // TODO move solving to super class
     private void setWrites(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
         Expression target = assignExpr.getTarget();
         if (target.isFieldAccessExpr()) {
@@ -120,21 +117,16 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
                 visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
             });
         } else if (target.isNameExpr()) {
-            // TODO extract in method
-            ResolvedValueDeclaration resolvedValueDeclaration = (ResolvedValueDeclaration) visitorHelper.getFacade().solve(target.asNameExpr())
-                    .getCorrespondingDeclaration();
-            if (resolvedValueDeclaration.isField()) {
-                // FIELD = VALUE;
-                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getFieldSignature(resolvedValueDeclaration.asField()),
-                        methodDescriptor.getDeclaringType());
-                assignExpr.getBegin().ifPresent((position) -> {
-                    visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
-                });
-            }
+            // FIELD = VALUE;
+            // TODO methodDescriptor.getDeclaringType()? might be better to get
+            // the parent of fieldAccessExpr?
+            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getQualifiedSignature(target.asNameExpr()), methodDescriptor.getDeclaringType());
+            assignExpr.getBegin().ifPresent((position) -> {
+                visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
+            });
         }
     }
 
-    // TODO move solving to super class
     private void setReads(Expression expression, MethodDescriptor methodDescriptor) {
         if (expression instanceof FieldAccessExpr) {
             // this.FIELD
@@ -146,22 +138,14 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
                 visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
             });
         } else if (expression instanceof NameExpr) {
-            // TODO extract in method
-            ResolvedValueDeclaration resolvedValueDeclaration = (ResolvedValueDeclaration) visitorHelper.getFacade().solve((NameExpr) expression)
-                    .getCorrespondingDeclaration();
-            if (resolvedValueDeclaration.isField()) {
-                // FIELD
-                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getFieldSignature(resolvedValueDeclaration.asField()),
-                        methodDescriptor.getDeclaringType());
-                expression.getBegin().ifPresent((position) -> {
-                    visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
-                });
-            }
+            // FIELD
+            // TODO methodDescriptor.getDeclaringType()? might be better to get
+            // the parent of fieldAccessExpr?
+            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getQualifiedSignature(expression.asNameExpr()),
+                    methodDescriptor.getDeclaringType());
+            expression.getBegin().ifPresent((position) -> {
+                visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
+            });
         }
-    }
-
-    // TODO remove
-    private String getFieldSignature(ResolvedFieldDeclaration resolvedFieldDeclaration) {
-        return getQualifiedName(resolvedFieldDeclaration.getType()) + " " + resolvedFieldDeclaration.getName();
     }
 }
