@@ -12,7 +12,6 @@ import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.resolution.UnsolvedSymbolException;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.TypeVisitor;
@@ -44,12 +43,8 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         try (InputStream in = item.createStream()) {
             CompilationUnit cu = JavaParser.parse(in);
             cu.getTypes().accept(new TypeVisitor(visitorHelper), null);
-        } catch (UnsolvedSymbolException use) {
-            LOGGER.warn(use.getClass().getSimpleName() + " " + use.getMessage() + " in " + javaSourceFileDescriptor.getFileName());
-        } catch (UnsupportedOperationException uoe) {
-            LOGGER.warn(uoe.getClass().getSimpleName() + " " + uoe.getMessage() + " in " + javaSourceFileDescriptor.getFileName());
-        } catch (RuntimeException re) {
-            LOGGER.warn(re.getClass().getSimpleName() + " " + re.getMessage() + " in " + javaSourceFileDescriptor.getFileName());
+        } catch (JavaSourceException jse) {
+            LOGGER.warn(jse.getClass().getSimpleName() + " " + jse.getMessage() + " in " + javaSourceFileDescriptor.getFileName());
         }
         visitorHelper.storeDependencies();
         return javaSourceFileDescriptor;

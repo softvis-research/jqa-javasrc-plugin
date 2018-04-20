@@ -17,6 +17,7 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.EnumTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.InterfaceTypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaSourceException;
 
 /**
  * This visitor handles parsed types, i.e. interfaces, classes, enums, and
@@ -68,7 +69,7 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setAnnotationMembers(annotationDeclaration);
     }
 
-    private void createType(TypeDeclaration<?> typeDeclaration) {
+    private void createType(TypeDeclaration<?> typeDeclaration) throws JavaSourceException {
         if (typeDeclaration instanceof ClassOrInterfaceDeclaration) {
             if (typeDeclaration.asClassOrInterfaceDeclaration().isInterface()) {
                 descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), InterfaceTypeDescriptor.class);
