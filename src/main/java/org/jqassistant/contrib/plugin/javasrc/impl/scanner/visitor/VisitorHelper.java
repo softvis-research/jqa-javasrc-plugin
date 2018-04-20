@@ -62,7 +62,6 @@ public class VisitorHelper {
         String fqn = methodDescriptor.getDeclaringType().getFullQualifiedName() + "$" + this.anonymousInnerClassCounter;
         // increase anonymous inner class counter
         this.anonymousInnerClassCounter++;
-        System.out.println(fqn);
         return getTypeResolver().createType(fqn, getJavaSourceFileDescriptor(), (Class<T>) ClassTypeDescriptor.class);
     }
 
