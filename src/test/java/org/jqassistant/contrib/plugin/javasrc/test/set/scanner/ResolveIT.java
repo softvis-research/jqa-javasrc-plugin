@@ -30,11 +30,14 @@ import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.resolve.ResolveMe
 import org.junit.Test;
 
 /**
+ * Contains tests to verify correct scanning of external dependencies, i.e.,
+ * types from external libraries.
+ * 
  * @author Richard Mueller
  *
  */
 public class ResolveIT extends AbstractPluginIT {
-    // TODO implement tests for external annotation, this, 2 x fieldaccess
+
     @Test
     public void testResolveExternalEnum() throws IOException, NoSuchFieldException, NoSuchMethodException {
         final String TEST_DIRECTORY_PATH = "src/test/java";

@@ -16,7 +16,7 @@ import org.junit.Test;
 /**
  * Contains tests to verify correct scanning static field values.
  * 
- * @author Richard Mueller
+ * @authors Dirk Mahler, Richard Mueller
  * 
  */
 public class FieldValueIT extends AbstractPluginIT {

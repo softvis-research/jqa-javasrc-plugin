@@ -16,7 +16,7 @@ import org.junit.Test;
 /**
  * Contains tests to verify correct scanning of enums.
  * 
- * @author Richard Mueller
+ * @authors Dirk Mahler, Richard Mueller
  * 
  */
 public class EnumerationIT extends AbstractPluginIT {

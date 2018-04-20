@@ -19,6 +19,8 @@ import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.wildcard.GenericT
 import org.junit.Test;
 
 /**
+ * Contains tests to verify correct scanning of wildcard types.
+ * 
  * @author Richard Mueller
  *
  */

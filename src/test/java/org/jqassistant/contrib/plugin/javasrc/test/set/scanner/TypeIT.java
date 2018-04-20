@@ -30,5 +30,4 @@ public class TypeIT extends AbstractPluginIT {
         assertThat(query("MATCH (t:Type) RETURN t").getColumn("t"), hasItem(typeDescriptor(Type.class)));
         store.commitTransaction();
     }
-
 }

@@ -38,7 +38,6 @@ public class LineCountIT extends AbstractPluginIT {
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         assertThat(query("MATCH (c:Method:Constructor) RETURN c.effectiveLineCount").getColumn("c.effectiveLineCount").get(0), equalTo(3));
-
         store.commitTransaction();
     }
 }

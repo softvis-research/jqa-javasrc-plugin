@@ -20,7 +20,7 @@ import org.junit.Test;
  * 
  * Contains tests to verify correct scanning of arrays.
  *
- * @author Richard Mueller
+ * @authors Dirk Mahler, Richard Mueller
  *
  */
 public class ArrayIT extends AbstractPluginIT {

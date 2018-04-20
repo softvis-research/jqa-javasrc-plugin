@@ -17,18 +17,14 @@ import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.innerclass.Anonym
 import org.junit.Test;
 
 /**
- * Contains test on relations between outer and inner classes.
+ * Contains tests on relations between outer and inner classes.
  * 
- * authors Dirk Mahler, Richard Mueller
+ * @authors Dirk Mahler, Richard Mueller
  */
 public class AnonymousInnerClassIT extends AbstractPluginIT {
 
     private static final String INNERCLASS_NAME = AnonymousInnerClass.class.getName() + "$1";
 
-    /**
-     * Asserts that the outer class can be fetched and contains a relation to
-     * the inner class.
-     */
     @Test
     public void testOuterClassContainsInnerClass() throws NoSuchMethodException {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
