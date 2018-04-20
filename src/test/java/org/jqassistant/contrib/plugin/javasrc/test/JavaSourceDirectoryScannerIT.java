@@ -7,6 +7,12 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescr
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.junit.Test;
 
+/**
+ * Contains test to verify correct scanning of java source directories.
+ * 
+ * @author Richard Mueller
+ *
+ */
 public class JavaSourceDirectoryScannerIT extends AbstractPluginIT {
 
     @Test
