@@ -30,6 +30,7 @@
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceCodeDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor</class>
         <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor</class>
+        <class>org.jqassistant.contrib.plugin.javasrc.api.model.JavaDescriptor</class>
     	<!-- added by DM -->
     </model>
     <scope>

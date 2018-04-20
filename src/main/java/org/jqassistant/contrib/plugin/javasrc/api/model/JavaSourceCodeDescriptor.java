@@ -8,5 +8,5 @@ import com.buschmais.xo.neo4j.api.annotation.Label;
  */
 @Abstract
 @Label("SourceCode")
-public interface JavaSourceCodeDescriptor extends JavaSourceDescriptor {
+public interface JavaSourceCodeDescriptor {
 }

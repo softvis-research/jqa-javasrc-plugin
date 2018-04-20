@@ -9,5 +9,5 @@ import com.buschmais.xo.neo4j.api.annotation.Label;
  * Describes a Java package.
  */
 @Label(value = "Package", usingIndexedPropertyOf = FullQualifiedNameDescriptor.class)
-public interface PackageDescriptor extends JavaSourceDescriptor, PackageMemberDescriptor, DirectoryDescriptor, FileContainerDescriptor {
+public interface PackageDescriptor extends JavaDescriptor, PackageMemberDescriptor, DirectoryDescriptor, FileContainerDescriptor {
 }
