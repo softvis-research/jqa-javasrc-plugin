@@ -52,16 +52,16 @@ public class VisitorHelper {
         this.typeSolver = getJavaTypeSolver().getTypeSolver();
     }
 
-    public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor, Class<T> type) {
+    public <T extends TypeDescriptor> T createType(String fqn, Class<T> type) {
         // set anonymous inner class counter for every new type
-        this.anonymousInnerClassCounter = 1;
-        return getTypeResolver().createType(fqn, javaSourcefileDescriptor, type);
+        setAnonymousInnerClassCounter(1);
+        return getTypeResolver().createType(fqn, getJavaSourceFileDescriptor(), type);
     }
 
     public <T extends TypeDescriptor> T createAnonymousType(MethodDescriptor methodDescriptor) {
-        String fqn = methodDescriptor.getDeclaringType().getFullQualifiedName() + "$" + this.anonymousInnerClassCounter;
+        String fqn = methodDescriptor.getDeclaringType().getFullQualifiedName() + "$" + getAnonymousInnerClassCounter();
         // increase anonymous inner class counter
-        this.anonymousInnerClassCounter++;
+        increaseAnonymousInnerClassCounter();
         return getTypeResolver().createType(fqn, getJavaSourceFileDescriptor(), (Class<T>) ClassTypeDescriptor.class);
     }
 
@@ -142,6 +142,13 @@ public class VisitorHelper {
         }
     }
 
+    public VariableDescriptor getVariableDescriptor(String name, String signature) {
+        VariableDescriptor variableDescriptor = scannerContext.getStore().create(VariableDescriptor.class);
+        variableDescriptor.setName(name);
+        variableDescriptor.setSignature(signature);
+        return variableDescriptor;
+    }
+
     public void addInvokes(MethodDescriptor methodDescriptor, final Integer lineNumber, MethodDescriptor invokedMethodDescriptor) {
         InvokesDescriptor invokesDescriptor = scannerContext.getStore().create(methodDescriptor, InvokesDescriptor.class, invokedMethodDescriptor);
         invokesDescriptor.setLineNumber(lineNumber);
@@ -157,14 +164,7 @@ public class VisitorHelper {
         readsDescriptor.setLineNumber(lineNumber);
     }
 
-    public VariableDescriptor getVariableDescriptor(String name, String signature) {
-        VariableDescriptor variableDescriptor = scannerContext.getStore().create(VariableDescriptor.class);
-        variableDescriptor.setName(name);
-        variableDescriptor.setSignature(signature);
-        return variableDescriptor;
-    }
-
-    public void addDependencies() {
+    public void storeDependencies() {
         getTypeResolver().addDependencies();
     }
 
@@ -174,22 +174,6 @@ public class VisitorHelper {
 
     public TypeSolver getTypeSolver() {
         return this.typeSolver;
-    }
-
-    public JavaSourceFileDescriptor getJavaSourceFileDescriptor() {
-        return this.javaSourceFileDescriptor;
-    }
-
-    public void setAnonymousInnerClassCounter(int anonymousInnerClassCounter) {
-        this.anonymousInnerClassCounter = anonymousInnerClassCounter;
-    }
-
-    public void increaseAnonymousInnerClassCounter() {
-        this.anonymousInnerClassCounter++;
-    }
-
-    public int getAnonymousInnerClassCounter() {
-        return this.anonymousInnerClassCounter;
     }
 
     /**
@@ -224,5 +208,21 @@ public class VisitorHelper {
             throw new IllegalStateException("Cannot find Java type resolver.");
         }
         return javaTypeResolver;
+    }
+
+    private JavaSourceFileDescriptor getJavaSourceFileDescriptor() {
+        return this.javaSourceFileDescriptor;
+    }
+
+    private void setAnonymousInnerClassCounter(int value) {
+        this.anonymousInnerClassCounter = value;
+    }
+
+    private int getAnonymousInnerClassCounter() {
+        return this.anonymousInnerClassCounter;
+    }
+
+    private void increaseAnonymousInnerClassCounter() {
+        this.anonymousInnerClassCounter++;
     }
 }

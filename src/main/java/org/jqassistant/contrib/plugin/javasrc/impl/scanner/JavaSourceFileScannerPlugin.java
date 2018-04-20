@@ -45,7 +45,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         } catch (RuntimeException re) {
             LOGGER.warn(re.getClass().getSimpleName() + " " + re.getMessage() + " in " + javaSourceFileDescriptor.getFileName());
         }
-        visitorHelper.addDependencies();
+        visitorHelper.storeDependencies();
         return javaSourceFileDescriptor;
     }
 }

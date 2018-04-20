@@ -71,17 +71,14 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void createType(TypeDeclaration<?> typeDeclaration) {
         if (typeDeclaration instanceof ClassOrInterfaceDeclaration) {
             if (typeDeclaration.asClassOrInterfaceDeclaration().isInterface()) {
-                descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), visitorHelper.getJavaSourceFileDescriptor(),
-                        InterfaceTypeDescriptor.class);
+                descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), InterfaceTypeDescriptor.class);
             } else {
-                descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), visitorHelper.getJavaSourceFileDescriptor(),
-                        ClassTypeDescriptor.class);
+                descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), ClassTypeDescriptor.class);
             }
         } else if (typeDeclaration instanceof EnumDeclaration) {
-            descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), visitorHelper.getJavaSourceFileDescriptor(), EnumTypeDescriptor.class);
+            descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), EnumTypeDescriptor.class);
         } else if (typeDeclaration instanceof AnnotationDeclaration) {
-            descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), visitorHelper.getJavaSourceFileDescriptor(),
-                    AnnotationTypeDescriptor.class);
+            descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), AnnotationTypeDescriptor.class);
         }
     }
 
