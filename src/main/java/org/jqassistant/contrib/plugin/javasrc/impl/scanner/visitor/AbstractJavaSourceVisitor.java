@@ -51,6 +51,15 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.VisibilityModifier;
 
+/**
+ * This abstract visitor contains all common fields and methods of the other
+ * visitors.
+ * 
+ * @author Richard Mueller
+ *
+ * @param <D>
+ *            The descriptor.
+ */
 public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends VoidVisitorAdapter<D> {
     protected VisitorHelper visitorHelper;
     protected Descriptor descriptor;

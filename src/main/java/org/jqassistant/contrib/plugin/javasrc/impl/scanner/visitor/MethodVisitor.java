@@ -103,8 +103,6 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
             ParameterDescriptor parameterDescriptor = visitorHelper.getParameterDescriptor(((MethodDescriptor) descriptor), i);
             parameterDescriptor.setType(parameterTypeDescriptor);
             if (parameters.get(i).getType().isClassOrInterfaceType()) {
-                // TODO are there other types?
-                // TODO use the solved type!
                 setTypeParameterDependency(parameters.get(i).getType().asClassOrInterfaceType(), ((MethodDescriptor) descriptor).getDeclaringType());
             }
             setAnnotations(parameters.get(i), parameterDescriptor);
@@ -117,7 +115,6 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         ((MethodDescriptor) descriptor)
                 .setReturns(visitorHelper.resolveDependency(getQualifiedName(solvedReturnType), ((MethodDescriptor) descriptor).getDeclaringType()));
         if (returnType.isClassOrInterfaceType()) {
-            // TODO are there other types?
             setTypeParameterDependency(returnType.asClassOrInterfaceType(), ((MethodDescriptor) descriptor).getDeclaringType());
         }
     }
@@ -186,6 +183,7 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
      * http://pmd.sourceforge.net/snapshot/pmd_java_metrics_index.html#cyclomatic-complexity-cyclo)
      * 
      * @param node
+     *            The parsed node.
      * @return cyclomatic complexity
      */
     @SuppressWarnings("unused")
@@ -247,7 +245,6 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
                 complexity++;
             }
         }
-
         return complexity;
     }
 }
