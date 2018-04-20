@@ -55,8 +55,8 @@ public class JavaTypeResolver {
                 // dependent type exists
                 Map<String, Integer> tmpDependencies = dependencies.get(dependent);
                 // dependency exists
-                if (tmpDependencies.containsKey(dependency)) {
-                    Integer weight = tmpDependencies.get(dependency);
+                if (tmpDependencies.containsKey(dependency.getFullQualifiedName())) {
+                    Integer weight = tmpDependencies.get(dependency.getFullQualifiedName());
                     weight++;
                     tmpDependencies.put(dependency.getFullQualifiedName(), weight);
                 } else {
