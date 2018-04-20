@@ -201,6 +201,10 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             return null;
         } else if (expression.isObjectCreationExpr()) {
             return expression.toString();
+        } else if (expression.isMethodCallExpr()) {
+            return expression.asMethodCallExpr().toString();
+        } else if (expression.isFieldAccessExpr()) {
+            return expression.asFieldAccessExpr().toString();
         }
         throw new UnsupportedOperationException("Unexpected expression value: " + expression + " " + expression.getClass());
     }
