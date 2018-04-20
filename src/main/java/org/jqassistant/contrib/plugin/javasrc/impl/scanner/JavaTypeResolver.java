@@ -22,7 +22,7 @@ public class JavaTypeResolver {
     private ScannerContext scannerContext;
     private Map<String, TypeDescriptor> containedTypes = new HashMap<>();
     private Map<String, TypeDescriptor> requiredTypes = new HashMap<>();
-    private Map<TypeDescriptor, Map<TypeDescriptor, Integer>> dependencies = new HashMap<>();
+    private Map<TypeDescriptor, Map<String, Integer>> dependencies = new HashMap<>();
 
     public JavaTypeResolver(ScannerContext scannerContext) {
         this.containedTypes = new HashMap<>();
@@ -34,17 +34,8 @@ public class JavaTypeResolver {
         TypeDescriptor resolvedTypeDescriptor = javaSourcefileDescriptor.resolveType(fqn);
         T typeDescriptor;
         if (requiredTypes.containsKey(fqn)) {
-            // TODO fix me
-            T oldTypeDescriptor = (T) requiredTypes.get(fqn);
-            // update dependencies
-            dependencies.forEach((dependent, dependencyMap) -> {
-                Integer oldWeight = dependencyMap.get(oldTypeDescriptor);
-                dependencyMap.remove(oldTypeDescriptor);
-                // dependencyMap.put(typeDescriptor, oldWeight);
-            });
-            typeDescriptor = scannerContext.getStore().migrate(oldTypeDescriptor, type);
+            typeDescriptor = scannerContext.getStore().migrate(requiredTypes.get(fqn), type);
             requiredTypes.remove(fqn);
-
         } else {
             typeDescriptor = scannerContext.getStore().addDescriptorType(resolvedTypeDescriptor, type);
             typeDescriptor.setFullQualifiedName(fqn);
@@ -62,20 +53,20 @@ public class JavaTypeResolver {
         } else if (dependent != null) {
             if (dependencies.containsKey(dependent)) {
                 // dependent type exists
-                Map<TypeDescriptor, Integer> tmpDependencies = dependencies.get(dependent);
+                Map<String, Integer> tmpDependencies = dependencies.get(dependent);
                 // dependency exists
                 if (tmpDependencies.containsKey(dependency)) {
                     Integer weight = tmpDependencies.get(dependency);
                     weight++;
-                    tmpDependencies.put(dependency, weight);
+                    tmpDependencies.put(dependency.getFullQualifiedName(), weight);
                 } else {
                     // dependency does not exist
-                    tmpDependencies.put(dependency, 1);
+                    tmpDependencies.put(dependency.getFullQualifiedName(), 1);
                 }
             } else {
                 // dependent type does not exist
-                Map<TypeDescriptor, Integer> tmpDependencies = new HashMap<>();
-                tmpDependencies.put(dependency, 1);
+                Map<String, Integer> tmpDependencies = new HashMap<>();
+                tmpDependencies.put(dependency.getFullQualifiedName(), 1);
                 dependencies.put(dependent, tmpDependencies);
             }
         }
@@ -83,9 +74,9 @@ public class JavaTypeResolver {
     }
 
     public void addDependencies() {
-        for (Entry<TypeDescriptor, Map<TypeDescriptor, Integer>> dependentEntry : dependencies.entrySet()) {
-            for (Map.Entry<TypeDescriptor, Integer> dependencyEntry : dependentEntry.getValue().entrySet()) {
-                TypeDescriptor dependency = dependencyEntry.getKey();
+        for (Entry<TypeDescriptor, Map<String, Integer>> dependentEntry : dependencies.entrySet()) {
+            for (Map.Entry<String, Integer> dependencyEntry : dependentEntry.getValue().entrySet()) {
+                TypeDescriptor dependency = resolveType(dependencyEntry.getKey());
                 final Integer weight = dependencyEntry.getValue();
                 TypeDescriptor dependent = dependentEntry.getKey();
                 TypeDependsOnDescriptor dependsOnDescriptor = scannerContext.getStore().create(dependent, TypeDependsOnDescriptor.class, dependency);
