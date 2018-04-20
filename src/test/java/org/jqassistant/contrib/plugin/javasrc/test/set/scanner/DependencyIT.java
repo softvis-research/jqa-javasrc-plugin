@@ -52,4 +52,21 @@ public class DependencyIT extends AbstractPluginIT {
                 .getColumn("dependency"), hasItem(typeDescriptor(ExternalClass.class)));
         store.commitTransaction();
     }
+
+    @Test
+    public void testMigratedDependency() {
+        final String TEST_DIRECTORY_PATH = "src/test/java/";
+        final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/dependency/";
+        File directory = new File(FILE_DIRECTORY_PATH);
+        store.beginTransaction();
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
+        assertThat(query("MATCH (dependent:Type)-[:DEPENDS_ON]->(dependency:Type) WHERE dependent.name = 'MigratedDependency' RETURN dependency")
+                .getColumn("dependency").size(), equalTo(2));
+        assertThat(
+                query("MATCH (dependent:Type)-[:DEPENDS_ON]->(dependency:Type) WHERE dependent.name = 'MigratedDependency' RETURN dependency")
+                        .getColumn("dependency"),
+                hasItems(typeDescriptor("org.jqassistant.contrib.plugin.javasrc.test.set.scanner.dependency.MigratedDependency.InnerClass"),
+                        typeDescriptor("void")));
+        store.commitTransaction();
+    }
 }
