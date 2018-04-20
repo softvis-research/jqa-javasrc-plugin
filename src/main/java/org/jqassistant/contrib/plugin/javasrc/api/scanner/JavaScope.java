@@ -3,7 +3,7 @@ package org.jqassistant.contrib.plugin.javasrc.api.scanner;
 import com.buschmais.jqassistant.core.scanner.api.Scope;
 
 /**
- * Defines the scopes for java.
+ * Defines the scopes for Java SourceParser Plugin.
  */
 public enum JavaScope implements Scope {
     SRC;
@@ -17,5 +17,4 @@ public enum JavaScope implements Scope {
     public String getName() {
         return name();
     }
-
 }
