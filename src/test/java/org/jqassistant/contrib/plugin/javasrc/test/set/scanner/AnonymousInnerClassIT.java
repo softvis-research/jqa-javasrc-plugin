@@ -37,15 +37,15 @@ public class AnonymousInnerClassIT extends AbstractPluginIT {
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query(
-                "MATCH (outerClass:Type)-[:DECLARES]->(innerClass:Type)<-[:DECLARES]-(method:Method)<-[:DECLARES]-(outerClass) RETURN outerClass, innerClass, method");
-        assertThat(testResult.getRows().size(), equalTo(2));
-        Map<String, Object> row = testResult.getRows().get(1);
+                "MATCH (outerClass:Class)-[:DECLARES]->(innerClass:Type)<-[:DECLARES]-(method:Method)<-[:DECLARES]-(outerClass) WHERE outerClass.name='AnonymousInnerClass' RETURN outerClass, innerClass, method");
+        assertThat(testResult.getRows().size(), equalTo(1));
+        Map<String, Object> row = testResult.getRows().get(0);
         TypeDescriptor outerClass = (TypeDescriptor) row.get("outerClass");
         assertThat(outerClass, typeDescriptor(AnonymousInnerClass.class));
         TypeDescriptor innerClass = (TypeDescriptor) row.get("innerClass");
         assertThat(innerClass, typeDescriptor(INNERCLASS_NAME));
         MethodDescriptor method = (MethodDescriptor) row.get("method");
-        assertThat(method, methodDescriptor(AnonymousInnerClass.class, "iterator1"));
+        assertThat(method, methodDescriptor(AnonymousInnerClass.class, "iterator"));
         store.commitTransaction();
     }
 
@@ -56,7 +56,8 @@ public class AnonymousInnerClassIT extends AbstractPluginIT {
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
-        TestResult testResult = query("MATCH (anonymousClass:Type)-[:DECLARES]->(field:Field) WHERE anonymousClass.fqn='" + INNERCLASS_NAME + "' RETURN field");
+        TestResult testResult = query(
+                "MATCH (anonymousClass:Class)-[:DECLARES]->(field:Field) WHERE anonymousClass.fqn='" + INNERCLASS_NAME + "' RETURN field");
         assertThat(testResult.getRows().size(), equalTo(1));
         store.commitTransaction();
     }
@@ -69,7 +70,7 @@ public class AnonymousInnerClassIT extends AbstractPluginIT {
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query(
-                "MATCH (anonymousClass:Type)-[:DECLARES]->(method:Method) WHERE anonymousClass.fqn='" + INNERCLASS_NAME + "' RETURN method");
+                "MATCH (anonymousClass:Class)-[:DECLARES]->(method:Method) WHERE anonymousClass.fqn='" + INNERCLASS_NAME + "' RETURN method");
         assertThat(testResult.getRows().size(), equalTo(3));
         store.commitTransaction();
     }
@@ -81,7 +82,8 @@ public class AnonymousInnerClassIT extends AbstractPluginIT {
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
-        TestResult testResult = query("MATCH (method:Method)-[:DECLARES]->(anonymousClass:Class) RETURN anonymousClass");
+        TestResult testResult = query(
+                "MATCH (outerClass:Class)-[:DECLARES]->(method:Method)-[:DECLARES]->(anonymousClass:Class) WHERE outerClass.name='AnonymousInnerClasses'  RETURN anonymousClass");
         assertThat(testResult.getRows().size(), equalTo(2));
         store.commitTransaction();
     }
