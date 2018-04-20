@@ -6,8 +6,7 @@ import com.buschmais.jqassistant.core.scanner.api.Scope;
  * Defines the scopes for java.
  */
 public enum JavaScope implements Scope {
-    // TODO remove CLASSPATH
-    CLASSPATH, SRC;
+    SRC;
 
     @Override
     public String getPrefix() {
