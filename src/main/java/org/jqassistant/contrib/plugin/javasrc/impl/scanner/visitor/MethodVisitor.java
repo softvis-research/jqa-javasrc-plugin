@@ -21,6 +21,7 @@ import com.github.javaparser.ast.stmt.ContinueStmt;
 import com.github.javaparser.ast.stmt.DoStmt;
 import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.SwitchEntryStmt;
 import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
@@ -58,6 +59,7 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setCyclomaticComplexity(methodDeclaration);
         setInvocations(methodDeclaration);
         setWrites(methodDeclaration);
+        setReads(methodDeclaration);
         setVariables(methodDeclaration);
         setAnonymousClasses(methodDeclaration);
     }
@@ -74,6 +76,7 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setCyclomaticComplexity(constructorDeclaration);
         setInvocations(constructorDeclaration);
         setWrites(constructorDeclaration);
+        setReads(constructorDeclaration);
         setVariables(constructorDeclaration);
         setAnonymousClasses(constructorDeclaration);
     }
@@ -145,6 +148,12 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
 
     private void setWrites(CallableDeclaration<?> callableDeclaration) {
         callableDeclaration.findAll(AssignExpr.class).forEach(methodCall -> {
+            methodCall.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
+        });
+    }
+
+    private void setReads(CallableDeclaration<?> callableDeclaration) {
+        callableDeclaration.findAll(ReturnStmt.class).forEach(methodCall -> {
             methodCall.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
         });
     }

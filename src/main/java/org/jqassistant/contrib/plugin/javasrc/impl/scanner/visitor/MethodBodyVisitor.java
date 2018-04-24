@@ -7,11 +7,10 @@ import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
@@ -65,18 +64,30 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
                 setWrites(target.asNameExpr(), methodDescriptor, position);
             });
         }
+
+        // field reads
+        Expression value = assignExpr.getValue();
+        if (value.isFieldAccessExpr()) {
+            // this.FIELD = this.FIELD;
+            assignExpr.getBegin().ifPresent(position -> {
+                setReads(target.asFieldAccessExpr(), methodDescriptor, position);
+            });
+        } else if (value.isNameExpr()) {
+            // FIELD = FIELD;
+            assignExpr.getBegin().ifPresent(position -> {
+                setReads(value.asNameExpr(), methodDescriptor, position);
+            });
+        }
     }
 
     @Override
-    public void visit(FieldAccessExpr fieldAccessExpr, MethodDescriptor methodDescriptor) {
+    public void visit(ReturnStmt returnStmt, MethodDescriptor methodDescriptor) {
         // field reads
-        // setReads(fieldAccessExpr, methodDescriptor);
-    }
-
-    @Override
-    public void visit(NameExpr nameExpr, MethodDescriptor methodDescriptor) {
-        // field reads
-        // setReads(nameExpr, methodDescriptor);
+        returnStmt.getExpression().ifPresent(returnExpression -> {
+            returnStmt.getBegin().ifPresent(position -> {
+                setReads(returnExpression, methodDescriptor, position);
+            });
+        });
     }
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
@@ -130,32 +141,14 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
             FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
             visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
         });
-
     }
 
-    private void setReads(Expression expression, MethodDescriptor methodDescriptor) {
-        if (expression instanceof FieldAccessExpr) {
-            // this.FIELD
-            FieldAccessExpr fieldAccessExpr = expression.asFieldAccessExpr();
+    private void setReads(Expression expression, MethodDescriptor methodDescriptor, Position position) {
+        getQualifiedSignature(expression).ifPresent(qualifiedFieldSignature -> {
             // TODO methodDescriptor.getDeclaringType()? might be better to get
             // the parent of fieldAccessExpr?
-            getQualifiedSignature(fieldAccessExpr).ifPresent(qualifiedFieldSignature -> {
-                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
-                expression.getBegin().ifPresent((position) -> {
-                    visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
-                });
-            });
-
-        } else if (expression instanceof NameExpr) {
-            // FIELD
-            // TODO methodDescriptor.getDeclaringType()? might be better to get
-            // the parent of fieldAccessExpr?
-            getQualifiedSignature(expression.asNameExpr()).ifPresent(qualifiedFieldSignature -> {
-                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
-                expression.getBegin().ifPresent((position) -> {
-                    visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
-                });
-            });
-        }
+            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
+            visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
+        });
     }
 }
