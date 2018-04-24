@@ -3,7 +3,6 @@ package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 import java.util.List;
 
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
@@ -27,15 +26,14 @@ import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.type.Type;
-import com.github.javaparser.resolution.types.ResolvedType;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 
 /**
- * This visitor handles parsed methods, i.e. methods, constructors, and
- * annotation members and creates corresponding descriptors.
+ * This visitor handles parsed methods and constructors and creates
+ * corresponding descriptors.
  * 
  * @author Richard Mueller
  *
@@ -80,17 +78,6 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setAnonymousClasses(constructorDeclaration);
     }
 
-    @Override
-    public void visit(AnnotationMemberDeclaration annotationMemberDeclaration, TypeDescriptor typeDescriptor) {
-        // annotation member
-        createMethod(annotationMemberDeclaration, typeDescriptor);
-        // name must be overwritten here as it is not in the signature
-        ((MethodDescriptor) descriptor).setName(annotationMemberDeclaration.getNameAsString());
-        setVisibility(annotationMemberDeclaration);
-        setAccessModifier(annotationMemberDeclaration);
-        setAnnotationMemberDefaultValue(annotationMemberDeclaration);
-    }
-
     private void createMethod(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
         getQualifiedSignature(bodyDeclaration).ifPresent(qualifiedMethodSignature -> {
             descriptor = visitorHelper.getMethodDescriptor(qualifiedMethodSignature, parent);
@@ -116,12 +103,13 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
 
     private void setReturnType(MethodDeclaration methodDeclaration) {
         Type returnType = methodDeclaration.getType();
-        ResolvedType solvedReturnType = visitorHelper.getFacade().convertToUsage(returnType, methodDeclaration);
-        ((MethodDescriptor) descriptor)
-                .setReturns(visitorHelper.resolveDependency(getQualifiedName(solvedReturnType), ((MethodDescriptor) descriptor).getDeclaringType()));
-        if (returnType.isClassOrInterfaceType()) {
-            setTypeParameterDependency(returnType.asClassOrInterfaceType(), ((MethodDescriptor) descriptor).getDeclaringType());
-        }
+        getQualifiedName(returnType).ifPresent(qualifiedReturnType -> {
+            ((MethodDescriptor) descriptor)
+                    .setReturns(visitorHelper.resolveDependency(qualifiedReturnType, ((MethodDescriptor) descriptor).getDeclaringType()));
+            if (returnType.isClassOrInterfaceType()) {
+                setTypeParameterDependency(returnType.asClassOrInterfaceType(), ((MethodDescriptor) descriptor).getDeclaringType());
+            }
+        });
     }
 
     private void setExceptions(CallableDeclaration<?> callableDeclaration) {
@@ -171,14 +159,6 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         callableDeclaration.findAll(VariableDeclarationExpr.class).forEach(variable -> {
             variable.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
         });
-    }
-
-    private void setAnnotationMemberDefaultValue(AnnotationMemberDeclaration annotationMemberDeclaration) {
-        annotationMemberDeclaration.getDefaultValue().ifPresent(value -> {
-            ((MethodDescriptor) descriptor).setHasDefault(
-                    createValueDescriptor(visitorHelper.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value, ((MethodDescriptor) descriptor).getDeclaringType()));
-        });
-
     }
 
     /**

@@ -136,49 +136,12 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 });
             });
             return enumValueDescriptor;
-            // } else if (value.isSingleMemberAnnotationExpr()) {
-            // SingleMemberAnnotationExpr singleMemberAnnotationExpr =
-            // value.asSingleMemberAnnotationExpr();
-            // AnnotationValueDescriptor annotationValueDescriptor;
-            // getQualifiedName(singleMemberAnnotationExpr).ifPresent(qualifiedSingleMemberAnnotationTypeName
-            // -> {
-            // annotationValueDescriptor =
-            // visitorHelper.getAnnotationValueDescriptor(qualifiedSingleMemberAnnotationTypeName,
-            // name, null);
-            // // TODO annotationValueDescriptor.setName(name);?
-            // annotationValueDescriptor.getValue()
-            // .add(createValueDescriptor(visitorHelper.SINGLE_MEMBER_ANNOTATION_NAME,
-            // singleMemberAnnotationExpr.getMemberValue(), typeDescriptor));
-            //
-            // });
-            // // TODO might be not empty and null
-            // return annotationValueDescriptor;
         } else if (value.isNameExpr()) {
             NameExpr nameExpr = value.asNameExpr();
             PrimitiveValueDescriptor primitiveValueDescriptor = visitorHelper.getValueDescriptor(PrimitiveValueDescriptor.class);
             primitiveValueDescriptor.setName(name);
             primitiveValueDescriptor.setValue(value.toString());
             return primitiveValueDescriptor;
-            // } else if (value.isNormalAnnotationExpr()) {
-            // AnnotationValueDescriptor annotationValueDescriptor = null;
-            // NormalAnnotationExpr normalAnnotationExpr =
-            // value.asNormalAnnotationExpr();
-            // getQualifiedName(normalAnnotationExpr).ifPresent(qualifiedNormalAnnotationTypeName
-            // -> {
-            // annotationValueDescriptor =
-            // visitorHelper.getAnnotationValueDescriptor(qualifiedNormalAnnotationTypeName,
-            // name, null);
-            // for (MemberValuePair memberValuePair :
-            // normalAnnotationExpr.getPairs()) {
-            // annotationValueDescriptor.getValue()
-            // .add(createValueDescriptor(memberValuePair.getNameAsString(),
-            // memberValuePair.getValue(),
-            // annotationValueDescriptor.getType()));
-            // }
-            // // TODO annotationValueDescriptor.setName(name);?
-            // });
-            // // TODO might be not empty and null
-            // return annotationValueDescriptor;
         } else
             throw new JavaSourceException("Type of annotation value is not supported: " + name + " " + value.getClass());
     }
@@ -234,28 +197,6 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             return expression.asFieldAccessExpr().toString();
         }
         throw new JavaSourceException("Unexpected expression value: " + expression + " " + expression.getClass());
-    }
-
-    protected String getQualifiedName(ResolvedType resolvedType) throws JavaSourceException {
-        if (resolvedType.isReferenceType()) {
-            return resolvedType.asReferenceType().getQualifiedName();
-        } else if (resolvedType.isPrimitive()) {
-            return resolvedType.asPrimitive().describe();
-        } else if (resolvedType.isVoid()) {
-            return resolvedType.describe();
-        } else if (resolvedType.isArray()) {
-            return resolvedType.asArrayType().describe();
-        } else if (resolvedType.isTypeVariable()) {
-            return resolvedType.asTypeVariable().qualifiedName();
-        } else if (resolvedType.isWildcard()) {
-            ResolvedWildcard wildcard = resolvedType.asWildcard();
-            if (wildcard.isBounded()) {
-                return wildcard.getBoundedType().describe();
-            } else {
-                return wildcard.describe();
-            }
-        }
-        throw new JavaSourceException("Unexpected type of resolved type for qualified name: " + resolvedType.getClass());
     }
 
     protected Optional<String> getQualifiedName(Node node) throws JavaSourceException {
@@ -399,5 +340,27 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             throw new JavaSourceException(
                     re.getClass().getSimpleName() + " " + re.getMessage() + "  Unsolved qualified signature of node: " + node + " " + node.getClass());
         }
+    }
+
+    private String getQualifiedName(ResolvedType resolvedType) throws JavaSourceException {
+        if (resolvedType.isReferenceType()) {
+            return resolvedType.asReferenceType().getQualifiedName();
+        } else if (resolvedType.isPrimitive()) {
+            return resolvedType.asPrimitive().describe();
+        } else if (resolvedType.isVoid()) {
+            return resolvedType.describe();
+        } else if (resolvedType.isArray()) {
+            return resolvedType.asArrayType().describe();
+        } else if (resolvedType.isTypeVariable()) {
+            return resolvedType.asTypeVariable().qualifiedName();
+        } else if (resolvedType.isWildcard()) {
+            ResolvedWildcard wildcard = resolvedType.asWildcard();
+            if (wildcard.isBounded()) {
+                return wildcard.getBoundedType().describe();
+            } else {
+                return wildcard.describe();
+            }
+        }
+        throw new JavaSourceException("Unexpected type of resolved type for qualified name: " + resolvedType.getClass());
     }
 }

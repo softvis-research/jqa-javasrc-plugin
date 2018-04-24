@@ -131,7 +131,7 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void setAnnotationMembers(AnnotationDeclaration annotationDeclaration) {
         annotationDeclaration.getMembers().forEach(member -> {
             if (member.isAnnotationMemberDeclaration()) {
-                member.accept(new MethodVisitor(visitorHelper), (TypeDescriptor) descriptor);
+                member.accept(new AnnotationVisitor(visitorHelper), (AnnotatedDescriptor) descriptor);
             }
         });
     }

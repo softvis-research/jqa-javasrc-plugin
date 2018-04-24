@@ -49,13 +49,14 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
 
     private void setFieldType(FieldDeclaration fieldDeclaration) {
         Type fieldType = fieldDeclaration.getVariables().get(0).getType();
-        TypeDescriptor fieldTypeDescriptor = visitorHelper.resolveDependency(getQualifiedName(fieldType.resolve()),
-                ((FieldDescriptor) descriptor).getDeclaringType());
-        ((FieldDescriptor) descriptor).setType(fieldTypeDescriptor);
-        if (fieldType.isClassOrInterfaceType()) {
-            // TODO are there other types?
-            setTypeParameterDependency(fieldType.asClassOrInterfaceType(), ((FieldDescriptor) descriptor).getDeclaringType());
-        }
+        getQualifiedName(fieldType).ifPresent(qualifiedFieldType -> {
+            TypeDescriptor fieldTypeDescriptor = visitorHelper.resolveDependency(qualifiedFieldType, ((FieldDescriptor) descriptor).getDeclaringType());
+            ((FieldDescriptor) descriptor).setType(fieldTypeDescriptor);
+            if (fieldType.isClassOrInterfaceType()) {
+                // TODO are there other types?
+                setTypeParameterDependency(fieldType.asClassOrInterfaceType(), ((FieldDescriptor) descriptor).getDeclaringType());
+            }
+        });
     }
 
     private void setFieldValue(FieldDeclaration fieldDeclaration) {
