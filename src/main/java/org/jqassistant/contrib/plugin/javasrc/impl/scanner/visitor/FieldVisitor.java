@@ -42,7 +42,9 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     }
 
     private void createField(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
-        descriptor = visitorHelper.getFieldDescriptor(getQualifiedSignature(bodyDeclaration), parent);
+        getQualifiedSignature(bodyDeclaration).ifPresent(qualifiedFieldSignature -> {
+            descriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, parent);
+        });
     }
 
     private void setFieldType(FieldDeclaration fieldDeclaration) {

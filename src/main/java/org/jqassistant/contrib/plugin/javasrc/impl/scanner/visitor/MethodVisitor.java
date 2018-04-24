@@ -92,7 +92,9 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     }
 
     private void createMethod(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
-        descriptor = visitorHelper.getMethodDescriptor(getQualifiedSignature(bodyDeclaration), parent);
+        getQualifiedSignature(bodyDeclaration).ifPresent(qualifiedMethodSignature -> {
+            descriptor = visitorHelper.getMethodDescriptor(qualifiedMethodSignature, parent);
+        });
     }
 
     private void setParamters(CallableDeclaration<?> callableDeclaration) {

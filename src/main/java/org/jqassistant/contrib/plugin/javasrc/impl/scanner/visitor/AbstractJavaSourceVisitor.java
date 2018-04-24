@@ -1,6 +1,7 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
 import java.util.EnumSet;
+import java.util.Optional;
 
 import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.ArrayValueDescriptor;
@@ -103,6 +104,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         });
     }
 
+    // TODO refactor
     protected ValueDescriptor<?> createValueDescriptor(String name, Expression value, TypeDescriptor typeDescriptor) throws JavaSourceException {
         if (value.isLiteralExpr()) {
             PrimitiveValueDescriptor primitiveValueDescriptor = visitorHelper.getValueDescriptor(PrimitiveValueDescriptor.class);
@@ -128,8 +130,10 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             EnumValueDescriptor enumValueDescriptor = visitorHelper.getValueDescriptor(EnumValueDescriptor.class);
             enumValueDescriptor.setName(name);
             TypeDescriptor parent = visitorHelper.resolveDependency(getQualifiedName(fieldAccessExpr), typeDescriptor);
-            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getQualifiedSignature(fieldAccessExpr), parent);
-            enumValueDescriptor.setValue(fieldDescriptor);
+            getQualifiedSignature(fieldAccessExpr).ifPresent(qualifiedFieldSignature -> {
+                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, parent);
+                enumValueDescriptor.setValue(fieldDescriptor);
+            });
             return enumValueDescriptor;
         } else if (value.isSingleMemberAnnotationExpr()) {
             SingleMemberAnnotationExpr singleMemberAnnotationExpr = value.asSingleMemberAnnotationExpr();
@@ -302,37 +306,38 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         }
     }
 
-    protected String getQualifiedSignature(Node node) throws JavaSourceException {
+    protected Optional<String> getQualifiedSignature(Node node) throws JavaSourceException {
         try {
             if (node instanceof MethodDeclaration) {
                 // method signature
                 ResolvedMethodDeclaration solvedMethod = ((MethodDeclaration) node).resolve();
-                return getQualifiedName(solvedMethod.getReturnType()) + " " + solvedMethod.getSignature();
+                return Optional.of(getQualifiedName(solvedMethod.getReturnType()) + " " + solvedMethod.getSignature());
             } else if (node instanceof ConstructorDeclaration) {
                 // constructor signature
                 ResolvedConstructorDeclaration solvedConstructor = ((ConstructorDeclaration) node).resolve();
-                return visitorHelper.CONSTRUCTOR_SIGNATURE + solvedConstructor.getSignature().replaceAll(solvedConstructor.getName(), "");
+                return Optional.of(visitorHelper.CONSTRUCTOR_SIGNATURE + solvedConstructor.getSignature().replaceAll(solvedConstructor.getName(), ""));
             } else if (node instanceof AnnotationMemberDeclaration) {
                 // annotation member signature
-                return getQualifiedName(((AnnotationMemberDeclaration) node).getType().resolve()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE;
+                return Optional
+                        .of(getQualifiedName(((AnnotationMemberDeclaration) node).getType().resolve()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE);
             } else if (node instanceof FieldDeclaration) {
                 // field signature
                 FieldDeclaration fieldDeclaration = ((FieldDeclaration) node);
-                return getQualifiedName(fieldDeclaration.getVariable(0).getType().resolve()) + " " + fieldDeclaration.getVariable(0).getName();
+                return Optional.of(getQualifiedName(fieldDeclaration.getVariable(0).getType().resolve()) + " " + fieldDeclaration.getVariable(0).getName());
             } else if (node instanceof EnumConstantDeclaration) {
                 // enum signature
                 EnumConstantDeclaration enumConstantDeclaration = ((EnumConstantDeclaration) node);
                 ResolvedEnumConstantDeclaration solvedEnum = enumConstantDeclaration.resolve();
-                return getQualifiedName(solvedEnum.getType()) + " " + enumConstantDeclaration.getName();
+                return Optional.of(getQualifiedName(solvedEnum.getType()) + " " + enumConstantDeclaration.getName());
             } else if (node instanceof FieldAccessExpr) {
                 // field signature
                 FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) node;
                 SymbolReference<ResolvedFieldDeclaration> symbolReference = visitorHelper.getFacade().solve(fieldAccessExpr);
                 if (symbolReference.isSolved()) {
-                    return getQualifiedName(symbolReference.getCorrespondingDeclaration().getType()) + " " + fieldAccessExpr.getNameAsString();
+                    return Optional.of(getQualifiedName(symbolReference.getCorrespondingDeclaration().getType()) + " " + fieldAccessExpr.getNameAsString());
                 } else {
                     // TODO show a warning
-                    return fieldAccessExpr.getNameAsString();
+                    return Optional.empty();
                 }
             } else if (node instanceof MethodCallExpr) {
                 // method calls
@@ -348,18 +353,20 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 }
                 if (symbolReference.isSolved()) {
                     ResolvedMethodDeclaration solvedInvokedMethod = symbolReference.getCorrespondingDeclaration();
-                    return getQualifiedName(solvedInvokedMethod.getReturnType()) + " " + solvedInvokedMethod.getSignature();
+                    return Optional.of(getQualifiedName(solvedInvokedMethod.getReturnType()) + " " + solvedInvokedMethod.getSignature());
                 } else {
                     // TODO show a warning
-                    return methodCallExpr.getNameAsString();
+                    return Optional.empty();
                 }
             } else if (node instanceof NameExpr) {
                 // field write, field read
                 ResolvedValueDeclaration solvedValueDeclaration = (ResolvedValueDeclaration) visitorHelper.getFacade().solve((NameExpr) node)
                         .getCorrespondingDeclaration();
                 if (solvedValueDeclaration.isField()) {
-                    return getQualifiedName(solvedValueDeclaration.getType()) + " " + solvedValueDeclaration.getName();
-                } // TODO what else?
+                    return Optional.of(getQualifiedName(solvedValueDeclaration.getType()) + " " + solvedValueDeclaration.getName());
+                } else {
+                    return Optional.empty();
+                }
             }
             throw new JavaSourceException("Unexpected type of node for qualified signature: " + node + " " + node.getClass());
         } catch (UnsolvedSymbolException use) {

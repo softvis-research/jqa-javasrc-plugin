@@ -69,9 +69,11 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
         TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(getQualifiedName(methodCallExpr), methodDescriptor.getDeclaringType());
-        MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(getQualifiedSignature(methodCallExpr), invokedMethodParent);
-        methodCallExpr.getBegin().ifPresent((position) -> {
-            visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
+        getQualifiedSignature(methodCallExpr).ifPresent(qualifiedMethodSignature -> {
+            MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(qualifiedMethodSignature, invokedMethodParent);
+            methodCallExpr.getBegin().ifPresent((position) -> {
+                visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
+            });
         });
     }
 
@@ -112,17 +114,22 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
             FieldAccessExpr fieldAccessExpr = target.asFieldAccessExpr();
             // TODO methodDescriptor.getDeclaringType()? might be better to get
             // the parent of fieldAccessExpr?
-            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getQualifiedSignature(fieldAccessExpr), methodDescriptor.getDeclaringType());
-            assignExpr.getBegin().ifPresent((position) -> {
-                visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
+            getQualifiedSignature(fieldAccessExpr).ifPresent(qualifiedFieldSignature -> {
+                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
+                assignExpr.getBegin().ifPresent((position) -> {
+                    visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
+                });
             });
+
         } else if (target.isNameExpr()) {
             // FIELD = VALUE;
             // TODO methodDescriptor.getDeclaringType()? might be better to get
             // the parent of fieldAccessExpr?
-            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getQualifiedSignature(target.asNameExpr()), methodDescriptor.getDeclaringType());
-            assignExpr.getBegin().ifPresent((position) -> {
-                visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
+            getQualifiedSignature(target.asNameExpr()).ifPresent(qualifiedFieldSignature -> {
+                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
+                assignExpr.getBegin().ifPresent((position) -> {
+                    visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
+                });
             });
         }
     }
@@ -133,18 +140,22 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
             FieldAccessExpr fieldAccessExpr = expression.asFieldAccessExpr();
             // TODO methodDescriptor.getDeclaringType()? might be better to get
             // the parent of fieldAccessExpr?
-            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getQualifiedSignature(fieldAccessExpr), methodDescriptor.getDeclaringType());
-            expression.getBegin().ifPresent((position) -> {
-                visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
+            getQualifiedSignature(fieldAccessExpr).ifPresent(qualifiedFieldSignature -> {
+                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
+                expression.getBegin().ifPresent((position) -> {
+                    visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
+                });
             });
+
         } else if (expression instanceof NameExpr) {
             // FIELD
             // TODO methodDescriptor.getDeclaringType()? might be better to get
             // the parent of fieldAccessExpr?
-            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(getQualifiedSignature(expression.asNameExpr()),
-                    methodDescriptor.getDeclaringType());
-            expression.getBegin().ifPresent((position) -> {
-                visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
+            getQualifiedSignature(expression.asNameExpr()).ifPresent(qualifiedFieldSignature -> {
+                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
+                expression.getBegin().ifPresent((position) -> {
+                    visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
+                });
             });
         }
     }
