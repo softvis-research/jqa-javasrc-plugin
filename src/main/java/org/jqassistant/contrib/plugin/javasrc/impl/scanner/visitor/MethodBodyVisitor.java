@@ -85,7 +85,9 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         // field reads
         returnStmt.getExpression().ifPresent(returnExpression -> {
             returnStmt.getBegin().ifPresent(position -> {
-                setReads(returnExpression, methodDescriptor, position);
+                if (returnExpression.isNameExpr() || returnExpression.isFieldAccessExpr()) {
+                    setReads(returnExpression, methodDescriptor, position);
+                }
             });
         });
     }
