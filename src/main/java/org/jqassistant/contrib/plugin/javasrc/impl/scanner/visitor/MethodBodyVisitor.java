@@ -70,7 +70,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         if (value.isFieldAccessExpr()) {
             // this.FIELD = this.FIELD;
             assignExpr.getBegin().ifPresent(position -> {
-                setReads(target.asFieldAccessExpr(), methodDescriptor, position);
+                setReads(value.asFieldAccessExpr(), methodDescriptor, position);
             });
         } else if (value.isNameExpr()) {
             // FIELD = FIELD;
