@@ -68,25 +68,29 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     }
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
-        TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(getQualifiedName(methodCallExpr), methodDescriptor.getDeclaringType());
-        getQualifiedSignature(methodCallExpr).ifPresent(qualifiedMethodSignature -> {
-            MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(qualifiedMethodSignature, invokedMethodParent);
-            methodCallExpr.getBegin().ifPresent((position) -> {
-                visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
+        getQualifiedName(methodCallExpr).ifPresent(qualifiedInvokedMethodParentName -> {
+            TypeDescriptor invokedMethodParent = visitorHelper.resolveDependency(qualifiedInvokedMethodParentName, methodDescriptor.getDeclaringType());
+            getQualifiedSignature(methodCallExpr).ifPresent(qualifiedMethodSignature -> {
+                MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(qualifiedMethodSignature, invokedMethodParent);
+                methodCallExpr.getBegin().ifPresent((position) -> {
+                    visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
+                });
             });
         });
     }
 
     private void setVariables(VariableDeclarationExpr variableDeclarationExpr, MethodDescriptor methodDescriptor) {
         variableDeclarationExpr.getVariables().forEach(variable -> {
-            VariableDescriptor variableDescriptor = visitorHelper.getVariableDescriptor(variable.getNameAsString(),
-                    getQualifiedName(variable) + " " + variable.getNameAsString());
-            variableDescriptor.setType(visitorHelper.resolveDependency(getQualifiedName(variable), methodDescriptor.getDeclaringType()));
-            methodDescriptor.getVariables().add(variableDescriptor);
-            // type parameters
-            if (variable.getType().isClassOrInterfaceType()) {
-                setTypeParameterDependency(variable.getType().asClassOrInterfaceType(), methodDescriptor.getDeclaringType());
-            }
+            getQualifiedName(variable).ifPresent(qualifiedVariableTypeName -> {
+                VariableDescriptor variableDescriptor = visitorHelper.getVariableDescriptor(variable.getNameAsString(),
+                        qualifiedVariableTypeName + " " + variable.getNameAsString());
+                variableDescriptor.setType(visitorHelper.resolveDependency(qualifiedVariableTypeName, methodDescriptor.getDeclaringType()));
+                methodDescriptor.getVariables().add(variableDescriptor);
+                // type parameters
+                if (variable.getType().isClassOrInterfaceType()) {
+                    setTypeParameterDependency(variable.getType().asClassOrInterfaceType(), methodDescriptor.getDeclaringType());
+                }
+            });
         });
     }
 

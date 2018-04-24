@@ -70,31 +70,38 @@ public class TypeVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     }
 
     private void createType(TypeDeclaration<?> typeDeclaration) throws JavaSourceException {
-        if (typeDeclaration instanceof ClassOrInterfaceDeclaration) {
-            if (typeDeclaration.asClassOrInterfaceDeclaration().isInterface()) {
-                descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), InterfaceTypeDescriptor.class);
-            } else {
-                descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), ClassTypeDescriptor.class);
+        getQualifiedName(typeDeclaration).ifPresent(qualifiedTypeName -> {
+            if (typeDeclaration instanceof ClassOrInterfaceDeclaration) {
+                if (typeDeclaration.asClassOrInterfaceDeclaration().isInterface()) {
+                    descriptor = visitorHelper.createType(qualifiedTypeName, InterfaceTypeDescriptor.class);
+                } else {
+                    descriptor = visitorHelper.createType(qualifiedTypeName, ClassTypeDescriptor.class);
+                }
+            } else if (typeDeclaration instanceof EnumDeclaration) {
+                descriptor = visitorHelper.createType(qualifiedTypeName, EnumTypeDescriptor.class);
+            } else if (typeDeclaration instanceof AnnotationDeclaration) {
+                descriptor = visitorHelper.createType(qualifiedTypeName, AnnotationTypeDescriptor.class);
             }
-        } else if (typeDeclaration instanceof EnumDeclaration) {
-            descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), EnumTypeDescriptor.class);
-        } else if (typeDeclaration instanceof AnnotationDeclaration) {
-            descriptor = visitorHelper.createType(getQualifiedName(typeDeclaration), AnnotationTypeDescriptor.class);
-        }
+        });
     }
 
     private void setSuperType(ClassOrInterfaceDeclaration classOrInterfaceDeclaration) {
         // TODO an interface might extend multiple interfaces
         classOrInterfaceDeclaration.getExtendedTypes().forEach(superType -> {
-            ((ClassFileDescriptor) descriptor).setSuperClass(visitorHelper.resolveDependency(getQualifiedName(superType), (TypeDescriptor) descriptor));
-            setTypeParameterDependency(superType, (TypeDescriptor) descriptor);
+            getQualifiedName(superType).ifPresent(qualifiedSuperTypeName -> {
+                ((ClassFileDescriptor) descriptor).setSuperClass(visitorHelper.resolveDependency(qualifiedSuperTypeName, (TypeDescriptor) descriptor));
+                setTypeParameterDependency(superType, (TypeDescriptor) descriptor);
+            });
         });
     }
 
     private void setImplementedInterfaces(ClassOrInterfaceDeclaration classOrInterfaceDeclaration) {
+
         classOrInterfaceDeclaration.getImplementedTypes().forEach(interfaces -> {
-            ((ClassFileDescriptor) descriptor).getInterfaces().add(visitorHelper.resolveDependency(getQualifiedName(interfaces), (TypeDescriptor) descriptor));
-            setTypeParameterDependency(interfaces, (TypeDescriptor) descriptor);
+            getQualifiedName(interfaces).ifPresent(qualifiedInterfaceName -> {
+                ((ClassFileDescriptor) descriptor).getInterfaces().add(visitorHelper.resolveDependency(qualifiedInterfaceName, (TypeDescriptor) descriptor));
+                setTypeParameterDependency(interfaces, (TypeDescriptor) descriptor);
+            });
         });
     }
 

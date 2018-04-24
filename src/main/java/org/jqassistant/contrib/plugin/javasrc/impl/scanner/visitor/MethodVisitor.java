@@ -100,14 +100,17 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void setParamters(CallableDeclaration<?> callableDeclaration) {
         List<Parameter> parameters = ((CallableDeclaration<?>) callableDeclaration).getParameters();
         for (int i = 0; i < parameters.size(); i++) {
-            TypeDescriptor parameterTypeDescriptor = visitorHelper.resolveDependency(getQualifiedName(parameters.get(i).getType()),
-                    ((MethodDescriptor) descriptor).getDeclaringType());
-            ParameterDescriptor parameterDescriptor = visitorHelper.getParameterDescriptor(((MethodDescriptor) descriptor), i);
-            parameterDescriptor.setType(parameterTypeDescriptor);
-            if (parameters.get(i).getType().isClassOrInterfaceType()) {
-                setTypeParameterDependency(parameters.get(i).getType().asClassOrInterfaceType(), ((MethodDescriptor) descriptor).getDeclaringType());
-            }
-            setAnnotations(parameters.get(i), parameterDescriptor);
+            final int position = i;
+            getQualifiedName(parameters.get(position).getType()).ifPresent(qualifiedParameterName -> {
+                TypeDescriptor parameterTypeDescriptor = visitorHelper.resolveDependency(qualifiedParameterName,
+                        ((MethodDescriptor) descriptor).getDeclaringType());
+                ParameterDescriptor parameterDescriptor = visitorHelper.getParameterDescriptor(((MethodDescriptor) descriptor), position);
+                parameterDescriptor.setType(parameterTypeDescriptor);
+                if (parameters.get(position).getType().isClassOrInterfaceType()) {
+                    setTypeParameterDependency(parameters.get(position).getType().asClassOrInterfaceType(), ((MethodDescriptor) descriptor).getDeclaringType());
+                }
+                setAnnotations(parameters.get(position), parameterDescriptor);
+            });
         }
     }
 
@@ -123,8 +126,10 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
 
     private void setExceptions(CallableDeclaration<?> callableDeclaration) {
         callableDeclaration.getThrownExceptions().forEach(exception -> {
-            ((MethodDescriptor) descriptor).getDeclaredThrowables()
-                    .add(visitorHelper.resolveDependency(getQualifiedName(exception), ((MethodDescriptor) descriptor).getDeclaringType()));
+            getQualifiedName(exception).ifPresent(qualifiedExceptionName -> {
+                ((MethodDescriptor) descriptor).getDeclaredThrowables()
+                        .add(visitorHelper.resolveDependency(qualifiedExceptionName, ((MethodDescriptor) descriptor).getDeclaringType()));
+            });
         });
     }
 
