@@ -19,8 +19,8 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.VariableDescriptor;
 
 /**
  * This visitor handles parsed method invocations, anonymous inner classes,
- * variables, field reads, and field writes and creates corresponding
- * descriptors.
+ * variables, field reads (parameter, return, and assign expression), and field
+ * writes (assign expression) and creates corresponding descriptors.
  * 
  * @author Richard Mueller
  *
@@ -35,6 +35,20 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) throws UnsolvedSymbolException {
         // method calls
         setInvokes(methodCallExpr, methodDescriptor);
+        // field reads
+        methodCallExpr.getArguments().forEach(argument -> {
+            if (argument.isFieldAccessExpr()) {
+                // method(this.field)
+                argument.getBegin().ifPresent(position -> {
+                    setReads(argument.asFieldAccessExpr(), methodDescriptor, position);
+                });
+            } else if (argument.isNameExpr()) {
+                // method(field)
+                argument.getBegin().ifPresent(position -> {
+                    setReads(argument.asNameExpr(), methodDescriptor, position);
+                });
+            }
+        });
     }
 
     @Override
@@ -54,12 +68,12 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         // field writes
         Expression target = assignExpr.getTarget();
         if (target.isFieldAccessExpr()) {
-            // this.FIELD = VALUE;
+            // this.field = ...;
             assignExpr.getBegin().ifPresent(position -> {
                 setWrites(target.asFieldAccessExpr(), methodDescriptor, position);
             });
         } else if (target.isNameExpr()) {
-            // FIELD = VALUE;
+            // field = ...;
             assignExpr.getBegin().ifPresent(position -> {
                 setWrites(target.asNameExpr(), methodDescriptor, position);
             });
@@ -68,12 +82,12 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         // field reads
         Expression value = assignExpr.getValue();
         if (value.isFieldAccessExpr()) {
-            // this.FIELD = this.FIELD;
+            // ... = this.field;
             assignExpr.getBegin().ifPresent(position -> {
                 setReads(value.asFieldAccessExpr(), methodDescriptor, position);
             });
         } else if (value.isNameExpr()) {
-            // FIELD = FIELD;
+            // ... = field;
             assignExpr.getBegin().ifPresent(position -> {
                 setReads(value.asNameExpr(), methodDescriptor, position);
             });
@@ -85,10 +99,12 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         // field reads
         returnStmt.getExpression().ifPresent(returnExpression -> {
             returnStmt.getBegin().ifPresent(position -> {
-                if (returnExpression.isNameExpr()) {
-                    setReads(returnExpression.asNameExpr(), methodDescriptor, position);
-                } else if (returnExpression.isFieldAccessExpr()) {
+                if (returnExpression.isFieldAccessExpr()) {
+                    // return this.field;
                     setReads(returnExpression.asFieldAccessExpr(), methodDescriptor, position);
+                } else if (returnExpression.isNameExpr()) {
+                    // return field;
+                    setReads(returnExpression.asNameExpr(), methodDescriptor, position);
                 }
             });
         });

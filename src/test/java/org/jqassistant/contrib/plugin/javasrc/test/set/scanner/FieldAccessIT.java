@@ -32,16 +32,18 @@ public class FieldAccessIT extends AbstractPluginIT {
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         TestResult testResult = query("MATCH (m:Method)-[:READS]->(f:Field) RETURN f, m");
         // verify methods
-        assertThat(testResult.getColumn("m").size(), equalTo(3));
+        assertThat(testResult.getColumn("m").size(), equalTo(5));
         assertThat(testResult.getColumn("m"), hasItems(methodDescriptor(FieldAccess.class, "getA"), methodDescriptor(FieldAccess.class, "getB"),
-                methodDescriptor(FieldAccess.class, "setC")));
+                methodDescriptor(FieldAccess.class, "setC"), methodDescriptor(FieldAccess.class, "setD"), methodDescriptor(FieldAccess.class, "setE")));
         // verify fields
-        assertThat(testResult.getColumn("f"),
-                hasItems(fieldDescriptor(FieldAccess.class, "a"), fieldDescriptor(FieldAccess.class, "b"), fieldDescriptor(FieldAccess.class, "d")));
+        assertThat(testResult.getColumn("f"), hasItems(fieldDescriptor(FieldAccess.class, "a"), fieldDescriptor(FieldAccess.class, "b"),
+                fieldDescriptor(FieldAccess.class, "d"), fieldDescriptor(FieldAccess.class, "c"), fieldDescriptor(FieldAccess.class, "e")));
         // verify line numbers
-        assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE field.name='a' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(10));
-        assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE field.name='b' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(19));
-        assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE field.name='d' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(27));
+        assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE field.name='a' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(11));
+        assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE field.name='b' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(20));
+        assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE field.name='d' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(28));
+        assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE field.name='c' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(36));
+        assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE field.name='e' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(32));
         store.commitTransaction();
     }
 
@@ -62,9 +64,9 @@ public class FieldAccessIT extends AbstractPluginIT {
         assertThat(testResult.getColumn("f"),
                 hasItems(fieldDescriptor(FieldAccess.class, "a"), fieldDescriptor(FieldAccess.class, "b"), fieldDescriptor(FieldAccess.class, "c")));
         // verify line numbers
-        assertThat(query("MATCH (:Method)-[w:WRITES]->(field:Field) WHERE field.name='a' RETURN w.lineNumber").getColumn("w.lineNumber").get(0), equalTo(14));
-        assertThat(query("MATCH (:Method)-[w:WRITES]->(field:Field) WHERE field.name='b' RETURN w.lineNumber").getColumn("w.lineNumber").get(0), equalTo(23));
-        assertThat(query("MATCH (:Method)-[w:WRITES]->(field:Field) WHERE field.name='c' RETURN w.lineNumber").getColumn("w.lineNumber").get(0), equalTo(27));
+        assertThat(query("MATCH (:Method)-[w:WRITES]->(field:Field) WHERE field.name='a' RETURN w.lineNumber").getColumn("w.lineNumber").get(0), equalTo(15));
+        assertThat(query("MATCH (:Method)-[w:WRITES]->(field:Field) WHERE field.name='b' RETURN w.lineNumber").getColumn("w.lineNumber").get(0), equalTo(24));
+        assertThat(query("MATCH (:Method)-[w:WRITES]->(field:Field) WHERE field.name='c' RETURN w.lineNumber").getColumn("w.lineNumber").get(0), equalTo(28));
         store.commitTransaction();
     }
 }
