@@ -1,5 +1,6 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
+import com.github.javaparser.Position;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
@@ -52,7 +53,18 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     @Override
     public void visit(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
         // field writes
-        setWrites(assignExpr, methodDescriptor);
+        Expression target = assignExpr.getTarget();
+        if (target.isFieldAccessExpr()) {
+            // this.FIELD = VALUE;
+            assignExpr.getBegin().ifPresent(position -> {
+                setWrites(target.asFieldAccessExpr(), methodDescriptor, position);
+            });
+        } else if (target.isNameExpr()) {
+            // FIELD = VALUE;
+            assignExpr.getBegin().ifPresent(position -> {
+                setWrites(target.asNameExpr(), methodDescriptor, position);
+            });
+        }
     }
 
     @Override
@@ -111,31 +123,14 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         }
     }
 
-    private void setWrites(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
-        Expression target = assignExpr.getTarget();
-        if (target.isFieldAccessExpr()) {
-            // this.FIELD = VALUE;
-            FieldAccessExpr fieldAccessExpr = target.asFieldAccessExpr();
+    private void setWrites(Expression expression, MethodDescriptor methodDescriptor, Position position) {
+        getQualifiedSignature(expression).ifPresent(qualifiedFieldSignature -> {
             // TODO methodDescriptor.getDeclaringType()? might be better to get
             // the parent of fieldAccessExpr?
-            getQualifiedSignature(fieldAccessExpr).ifPresent(qualifiedFieldSignature -> {
-                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
-                assignExpr.getBegin().ifPresent((position) -> {
-                    visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
-                });
-            });
+            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
+            visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
+        });
 
-        } else if (target.isNameExpr()) {
-            // FIELD = VALUE;
-            // TODO methodDescriptor.getDeclaringType()? might be better to get
-            // the parent of fieldAccessExpr?
-            getQualifiedSignature(target.asNameExpr()).ifPresent(qualifiedFieldSignature -> {
-                FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
-                assignExpr.getBegin().ifPresent((position) -> {
-                    visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
-                });
-            });
-        }
     }
 
     private void setReads(Expression expression, MethodDescriptor methodDescriptor) {
