@@ -1,15 +1,21 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
+import com.buschmais.jqassistant.plugin.common.api.model.ArrayValueDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.ClassValueDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.EnumValueDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaSourceException;
 
@@ -81,8 +87,7 @@ public class AnnotationVisitor extends AbstractJavaSourceVisitor<AnnotatedDescri
         });
     }
 
-    @Override
-    protected ValueDescriptor<?> createValueDescriptor(String name, Expression value, TypeDescriptor typeDescriptor) throws JavaSourceException {
+    private ValueDescriptor<?> createValueDescriptor(String name, Expression value, TypeDescriptor typeDescriptor) throws JavaSourceException {
         if (value.isNormalAnnotationExpr()) {
             NormalAnnotationExpr normalAnnotationExpr = value.asNormalAnnotationExpr();
             createAnnotation(normalAnnotationExpr, null);
@@ -93,7 +98,45 @@ public class AnnotationVisitor extends AbstractJavaSourceVisitor<AnnotatedDescri
             createAnnotation(singleMemberAnnotationExpr, null);
             setAnnotationValue(singleMemberAnnotationExpr);
             return (ValueDescriptor<?>) descriptor;
-        }
-        return super.createValueDescriptor(name, value, typeDescriptor);
+        } else if (value.isLiteralExpr()) {
+            PrimitiveValueDescriptor primitiveValueDescriptor = visitorHelper.getValueDescriptor(PrimitiveValueDescriptor.class);
+            primitiveValueDescriptor.setName(name);
+            primitiveValueDescriptor.setValue(getLiteralExpressionValue(value));
+            return primitiveValueDescriptor;
+        } else if (value.isClassExpr()) {
+            ClassValueDescriptor classValueDescriptor = visitorHelper.getValueDescriptor(ClassValueDescriptor.class);
+            classValueDescriptor.setName(name);
+            getQualifiedName(value.asClassExpr().getType()).ifPresent(qualifiedClassValueName -> {
+                classValueDescriptor.setValue(visitorHelper.resolveDependency(qualifiedClassValueName, typeDescriptor));
+            });
+            return classValueDescriptor;
+        } else if (value.isArrayInitializerExpr()) {
+            ArrayValueDescriptor arrayValueDescriptor = visitorHelper.getValueDescriptor(ArrayValueDescriptor.class);
+            arrayValueDescriptor.setName(name);
+            Object[] arrayValues = value.asArrayInitializerExpr().getValues().toArray();
+            for (int i = 0; i < arrayValues.length; i++) {
+                Object object = arrayValues[i];
+                arrayValueDescriptor.getValue().add(createValueDescriptor(("[" + i + "]"), (Expression) arrayValues[i], typeDescriptor));
+            }
+            return arrayValueDescriptor;
+        } else if (value.isFieldAccessExpr()) {
+            FieldAccessExpr fieldAccessExpr = value.asFieldAccessExpr();
+            EnumValueDescriptor enumValueDescriptor = visitorHelper.getValueDescriptor(EnumValueDescriptor.class);
+            enumValueDescriptor.setName(name);
+            getQualifiedName(fieldAccessExpr).ifPresent(qualifiedFieldTypeName -> {
+                TypeDescriptor parent = visitorHelper.resolveDependency(qualifiedFieldTypeName, typeDescriptor);
+                getQualifiedSignature(fieldAccessExpr).ifPresent(qualifiedFieldSignature -> {
+                    FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, parent);
+                    enumValueDescriptor.setValue(fieldDescriptor);
+                });
+            });
+            return enumValueDescriptor;
+        } else if (value.isNameExpr()) {
+            PrimitiveValueDescriptor primitiveValueDescriptor = visitorHelper.getValueDescriptor(PrimitiveValueDescriptor.class);
+            primitiveValueDescriptor.setName(name);
+            primitiveValueDescriptor.setValue(value.toString());
+            return primitiveValueDescriptor;
+        } else
+            throw new JavaSourceException("Type of annotation value is not supported: " + name + " " + value.getClass());
     }
 }

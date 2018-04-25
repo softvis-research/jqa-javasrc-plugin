@@ -4,8 +4,6 @@ import java.util.EnumSet;
 import java.util.Optional;
 
 import com.buschmais.jqassistant.core.store.api.model.Descriptor;
-import com.buschmais.jqassistant.plugin.common.api.model.ArrayValueDescriptor;
-import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
@@ -43,10 +41,6 @@ import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AbstractDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AccessModifierDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.ClassValueDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.EnumValueDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.PrimitiveValueDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.VisibilityModifier;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaSourceException;
@@ -101,56 +95,6 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         });
     }
 
-    protected ValueDescriptor<?> createValueDescriptor(String name, Expression value, TypeDescriptor typeDescriptor) throws JavaSourceException {
-        if (value.isLiteralExpr()) {
-            PrimitiveValueDescriptor primitiveValueDescriptor = visitorHelper.getValueDescriptor(PrimitiveValueDescriptor.class);
-            primitiveValueDescriptor.setName(name);
-            primitiveValueDescriptor.setValue(getLiteralExpressionValue(value));
-            return primitiveValueDescriptor;
-        } else if (value.isClassExpr()) {
-            ClassValueDescriptor classValueDescriptor = visitorHelper.getValueDescriptor(ClassValueDescriptor.class);
-            classValueDescriptor.setName(name);
-            getQualifiedName(value.asClassExpr().getType()).ifPresent(qualifiedClassValueName -> {
-                classValueDescriptor.setValue(visitorHelper.resolveDependency(qualifiedClassValueName, typeDescriptor));
-            });
-            return classValueDescriptor;
-        } else if (value.isArrayInitializerExpr()) {
-            ArrayValueDescriptor arrayValueDescriptor = visitorHelper.getValueDescriptor(ArrayValueDescriptor.class);
-            arrayValueDescriptor.setName(name);
-            Object[] arrayValues = value.asArrayInitializerExpr().getValues().toArray();
-            for (int i = 0; i < arrayValues.length; i++) {
-                Object object = arrayValues[i];
-                arrayValueDescriptor.getValue().add(createValueDescriptor(("[" + i + "]"), (Expression) arrayValues[i], typeDescriptor));
-            }
-            return arrayValueDescriptor;
-        } else if (value.isFieldAccessExpr()) {
-            FieldAccessExpr fieldAccessExpr = value.asFieldAccessExpr();
-            EnumValueDescriptor enumValueDescriptor = visitorHelper.getValueDescriptor(EnumValueDescriptor.class);
-            enumValueDescriptor.setName(name);
-            getQualifiedName(fieldAccessExpr).ifPresent(qualifiedFieldTypeName -> {
-                TypeDescriptor parent = visitorHelper.resolveDependency(qualifiedFieldTypeName, typeDescriptor);
-                getQualifiedSignature(fieldAccessExpr).ifPresent(qualifiedFieldSignature -> {
-                    FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, parent);
-                    enumValueDescriptor.setValue(fieldDescriptor);
-                });
-            });
-            return enumValueDescriptor;
-        } else if (value.isNameExpr()) {
-            NameExpr nameExpr = value.asNameExpr();
-            PrimitiveValueDescriptor primitiveValueDescriptor = visitorHelper.getValueDescriptor(PrimitiveValueDescriptor.class);
-            primitiveValueDescriptor.setName(name);
-            primitiveValueDescriptor.setValue(value.toString());
-            return primitiveValueDescriptor;
-        } else
-            throw new JavaSourceException("Type of annotation value is not supported: " + name + " " + value.getClass());
-    }
-
-    /**
-     * Returns the VisibilityModifier for an EnumSet<Modifier> from java parser.
-     *
-     * @param modifiers
-     * @return VisibilityModifier
-     */
     protected VisibilityModifier getAccessSpecifier(EnumSet<Modifier> modifiers) {
         if (modifiers.contains(Modifier.PUBLIC)) {
             return VisibilityModifier.PUBLIC;
@@ -163,12 +107,6 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         }
     }
 
-    /**
-     * Returns the value of a literal expression as Object.
-     *
-     * @param expression
-     * @return value as Object
-     */
     protected Object getLiteralExpressionValue(Expression expression) throws JavaSourceException {
         if (expression.isBooleanLiteralExpr()) {
             return expression.asBooleanLiteralExpr().getValue();
