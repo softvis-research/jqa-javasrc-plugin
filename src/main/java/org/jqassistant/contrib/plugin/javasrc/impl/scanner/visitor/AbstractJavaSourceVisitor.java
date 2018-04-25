@@ -219,10 +219,8 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                     throw new UnsolvedSymbolException("Unsolved qualified name of field type.");
                 }
             } else if (node instanceof AnnotationExpr) {
-                // TODO check type of annotation before!
                 // annotations
                 AnnotationExpr annotationExpr = (AnnotationExpr) node;
-                // try {
                 Context context = JavaParserFactory.getContext(annotationExpr, visitorHelper.getTypeSolver());
                 SymbolReference<ResolvedTypeDeclaration> symbolReference = context.solveType(annotationExpr.getNameAsString(), visitorHelper.getTypeSolver());
                 if (symbolReference.isSolved()) {
