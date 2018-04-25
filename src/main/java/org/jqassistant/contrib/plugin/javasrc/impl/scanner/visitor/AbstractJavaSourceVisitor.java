@@ -101,7 +101,6 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         });
     }
 
-    // TODO refactor
     protected ValueDescriptor<?> createValueDescriptor(String name, Expression value, TypeDescriptor typeDescriptor) throws JavaSourceException {
         if (value.isLiteralExpr()) {
             PrimitiveValueDescriptor primitiveValueDescriptor = visitorHelper.getValueDescriptor(PrimitiveValueDescriptor.class);
