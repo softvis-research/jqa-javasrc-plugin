@@ -49,7 +49,7 @@ public class JavaTypeSolver {
     }
 
     /**
-     * Get the java parser facade.
+     * Return the java parser facade.
      * 
      * @return The java parser facade.
      */
@@ -58,7 +58,7 @@ public class JavaTypeSolver {
     }
 
     /**
-     * Get the type solver.
+     * Return the type solver.
      * 
      * @return The type solver.
      */
