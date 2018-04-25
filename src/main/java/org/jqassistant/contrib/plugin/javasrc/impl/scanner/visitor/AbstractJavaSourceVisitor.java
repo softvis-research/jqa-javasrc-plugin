@@ -216,8 +216,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 if (symbolReference.isSolved()) {
                     return Optional.of(getQualifiedName(symbolReference.getCorrespondingDeclaration().getType()));
                 } else {
-                    // TODO show a warning
-                    return Optional.empty();
+                    throw new UnsolvedSymbolException("Unsolved qualified name of field type.");
                 }
             } else if (node instanceof AnnotationExpr) {
                 // TODO check type of annotation before!
@@ -229,8 +228,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 if (symbolReference.isSolved()) {
                     return Optional.of(symbolReference.getCorrespondingDeclaration().getQualifiedName());
                 } else {
-                    // TODO show a warning
-                    return Optional.empty();
+                    throw new UnsolvedSymbolException("Unsolved qualified name of annotation.");
                 }
             } else if (node instanceof MethodCallExpr) {
                 // method call
@@ -248,8 +246,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                     ResolvedMethodDeclaration solvedInvokedMethod = symbolReference.getCorrespondingDeclaration();
                     return Optional.of(solvedInvokedMethod.declaringType().getQualifiedName());
                 } else {
-                    // TODO show a warning
-                    return Optional.empty();
+                    throw new UnsolvedSymbolException("Unsolved qualified name of method call.");
                 }
             } else if (node instanceof VariableDeclarator) {
                 // method variable
@@ -299,8 +296,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 if (symbolReference.isSolved()) {
                     return Optional.of(getQualifiedName(symbolReference.getCorrespondingDeclaration().getType()) + " " + fieldAccessExpr.getNameAsString());
                 } else {
-                    // TODO show a warning
-                    return Optional.empty();
+                    throw new UnsolvedSymbolException("Unsolved qualified signature of field type.");
                 }
             } else if (node instanceof MethodCallExpr) {
                 // method calls
@@ -318,8 +314,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                     ResolvedMethodDeclaration solvedInvokedMethod = symbolReference.getCorrespondingDeclaration();
                     return Optional.of(getQualifiedName(solvedInvokedMethod.getReturnType()) + " " + solvedInvokedMethod.getSignature());
                 } else {
-                    // TODO show a warning
-                    return Optional.empty();
+                    throw new UnsolvedSymbolException("Unsolved qualified signature of method call.");
                 }
             } else if (node instanceof NameExpr) {
                 // field write, field read
@@ -328,7 +323,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 if (solvedValueDeclaration.isField()) {
                     return Optional.of(getQualifiedName(solvedValueDeclaration.getType()) + " " + solvedValueDeclaration.getName());
                 } else {
-                    return Optional.empty();
+                    Optional.empty();
                 }
             }
             throw new JavaSourceException("Unexpected type of node for qualified signature: " + node + " " + node.getClass());
