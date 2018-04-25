@@ -18,7 +18,6 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
  *
  */
 public class JavaTypeResolver {
-
     private ScannerContext scannerContext;
     private Map<String, TypeDescriptor> containedTypes = new HashMap<>();
     private Map<String, TypeDescriptor> requiredTypes = new HashMap<>();
@@ -30,6 +29,21 @@ public class JavaTypeResolver {
         this.scannerContext = scannerContext;
     }
 
+    /**
+     * Resolve or create the descriptor for a Java type name.
+     * <p>
+     * If a the descriptor already exists it will be used and migrated to the
+     * given type.
+     * </p>
+     * 
+     * @param fqn
+     *            The fully qualified type name, e.g. "java.lang.Object".
+     * @param javaSourcefileDescriptor
+     *            The Java source file descriptor.
+     * @param type
+     *            The expected type of the descriptor.
+     * @return The type descriptor.
+     */
     public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor, Class<T> type) {
         TypeDescriptor resolvedTypeDescriptor = javaSourcefileDescriptor.resolveType(fqn);
         T typeDescriptor;
@@ -45,6 +59,15 @@ public class JavaTypeResolver {
         return typeDescriptor;
     }
 
+    /**
+     * Resolve a type by its Java type name and add it to the dependency cache.
+     * 
+     * @param dependencyFQN
+     *            The fully qualified type name, e.g. "java.lang.Object".
+     * @param dependent
+     *            The dependent type.
+     * @return The type descriptor.
+     */
     public TypeDescriptor resolveDependency(String dependencyFQN, TypeDescriptor dependent) {
         TypeDescriptor dependency = resolveType(dependencyFQN);
         if (dependent != null && dependency.getFullQualifiedName().equals(dependent.getFullQualifiedName())) {
@@ -73,6 +96,9 @@ public class JavaTypeResolver {
         return dependency;
     }
 
+    /**
+     * Store all cached dependencies and clear it.
+     */
     public void addDependencies() {
         for (Entry<TypeDescriptor, Map<String, Integer>> dependentEntry : dependencies.entrySet()) {
             for (Map.Entry<String, Integer> dependencyEntry : dependentEntry.getValue().entrySet()) {
