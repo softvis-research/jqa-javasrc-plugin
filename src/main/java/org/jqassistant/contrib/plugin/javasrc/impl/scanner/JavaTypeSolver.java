@@ -48,10 +48,20 @@ public class JavaTypeSolver {
         JavaParser.getStaticConfiguration().setSymbolResolver(new JavaSymbolSolver(combinedTypeSolver));
     }
 
+    /**
+     * Get the java parser facade.
+     * 
+     * @return The java parser facade.
+     */
     public JavaParserFacade getFacade() {
         return JavaParserFacade.get(combinedTypeSolver);
     }
 
+    /**
+     * Get the type solver.
+     * 
+     * @return The type solver.
+     */
     public TypeSolver getTypeSolver() {
         return combinedTypeSolver;
     }
