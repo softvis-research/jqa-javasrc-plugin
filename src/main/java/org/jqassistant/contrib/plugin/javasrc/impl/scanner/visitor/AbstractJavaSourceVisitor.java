@@ -323,7 +323,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 if (solvedValueDeclaration.isField()) {
                     return Optional.of(getQualifiedName(solvedValueDeclaration.getType()) + " " + solvedValueDeclaration.getName());
                 } else {
-                    Optional.empty();
+                    return Optional.empty();
                 }
             }
             throw new JavaSourceException("Unexpected type of node for qualified signature: " + node + " " + node.getClass());
