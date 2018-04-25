@@ -29,24 +29,30 @@ public class AnnotationVisitor extends AbstractJavaSourceVisitor<AnnotatedDescri
     @Override
     public void visit(SingleMemberAnnotationExpr singleMemberAnnotationExpr, AnnotatedDescriptor annotatedDescriptor) {
         createAnnotation(singleMemberAnnotationExpr, annotatedDescriptor);
-        setAnnotationValue(singleMemberAnnotationExpr);
+        if (descriptor != null) {
+            setAnnotationValue(singleMemberAnnotationExpr);
+        }
     }
 
     @Override
     public void visit(NormalAnnotationExpr normalAnnotationExpr, AnnotatedDescriptor annotatedDescriptor) {
         createAnnotation(normalAnnotationExpr, annotatedDescriptor);
-        setAnnotationValue(normalAnnotationExpr);
+        if (descriptor != null) {
+            setAnnotationValue(normalAnnotationExpr);
+        }
     }
 
     @Override
     public void visit(AnnotationMemberDeclaration annotationMemberDeclaration, AnnotatedDescriptor annotatedDescriptor) {
         // annotation member
         createAnnotationMember(annotationMemberDeclaration, (TypeDescriptor) annotatedDescriptor);
-        // name must be overwritten here as it is not in the signature
-        ((MethodDescriptor) descriptor).setName(annotationMemberDeclaration.getNameAsString());
-        setVisibility(annotationMemberDeclaration);
-        setAccessModifier(annotationMemberDeclaration);
-        setAnnotationMemberDefaultValue(annotationMemberDeclaration);
+        if (descriptor != null) {
+            // name must be overwritten here as it is not in the signature
+            ((MethodDescriptor) descriptor).setName(annotationMemberDeclaration.getNameAsString());
+            setVisibility(annotationMemberDeclaration);
+            setAccessModifier(annotationMemberDeclaration);
+            setAnnotationMemberDefaultValue(annotationMemberDeclaration);
+        }
     }
 
     private void createAnnotation(AnnotationExpr annotationExpr, AnnotatedDescriptor annotatedDescriptor) {
