@@ -37,12 +37,12 @@ public class VisitorHelper {
     private JavaSourceFileDescriptor javaSourceFileDescriptor;
     private JavaParserFacade facade;
     private TypeSolver typeSolver;
-    public final String CONSTRUCTOR_NAME = "<init>";
-    public final String VOID = "void";
-    public final String CONSTRUCTOR_SIGNATURE = "void <init>";
-    public final String ANNOTATION_MEMBER_SIGNATURE = "()";
-    public final String ANNOTATION_MEMBER_DEFAULT_VALUE_NAME = "null";
-    public final String SINGLE_MEMBER_ANNOTATION_NAME = "value";
+    final String CONSTRUCTOR_NAME = "<init>";
+    final String VOID = "void";
+    final String CONSTRUCTOR_SIGNATURE = "void <init>";
+    final String ANNOTATION_MEMBER_SIGNATURE = "()";
+    final String ANNOTATION_MEMBER_DEFAULT_VALUE_NAME = "null";
+    final String SINGLE_MEMBER_ANNOTATION_NAME = "value";
     private int anonymousInnerClassCounter;
 
     public VisitorHelper(ScannerContext scannerContext, JavaSourceFileDescriptor javaSourceFileDescriptor) {
