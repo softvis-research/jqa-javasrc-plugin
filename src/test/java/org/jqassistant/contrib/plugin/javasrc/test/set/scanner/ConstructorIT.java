@@ -16,7 +16,7 @@ import org.junit.Test;
 /**
  * Contains tests to verify correct scanning of constructors.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  * 
  */
 public class ConstructorIT extends AbstractPluginIT {
@@ -27,7 +27,7 @@ public class ConstructorIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/constructor/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         assertThat(query("MATCH (c:Method:Constructor) RETURN c").getColumn("c"),
                 hasItems(constructorDescriptor(OverloadedConstructor.class), constructorDescriptor(OverloadedConstructor.class, String.class)));
         store.commitTransaction();

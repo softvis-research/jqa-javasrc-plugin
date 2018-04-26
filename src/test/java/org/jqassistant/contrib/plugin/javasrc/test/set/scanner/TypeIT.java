@@ -15,7 +15,7 @@ import org.junit.Test;
 /**
  * Contains tests to verify correct scanning of types.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class TypeIT extends AbstractPluginIT {
@@ -26,9 +26,8 @@ public class TypeIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/type/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         assertThat(query("MATCH (t:Type) RETURN t").getColumn("t"), hasItem(typeDescriptor(Type.class)));
         store.commitTransaction();
     }
-
 }

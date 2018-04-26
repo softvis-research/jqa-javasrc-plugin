@@ -8,13 +8,33 @@ import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractDirectoryScannerPlugin;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * Plugin that scans Java source directories.
+ * 
+ * @author Dirk Mahler, Richard Mueller
+ *
+ */
 public class JavaSourceDirectoryScannerPlugin extends AbstractDirectoryScannerPlugin<JavaSourceDirectoryDescriptor> {
-    // private static Resolver resolver = null;
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaSourceDirectoryScannerPlugin.class);
+    private final String JQASSISTANT_PLUGIN_JAVASRC_JAR_DIRNAME = "jqassistant.plugin.javasrc.jar.dirname";
+    private String jarDirName = "target";
 
     @Override
     protected Scope getRequiredScope() {
-        return JavaScope.CLASSPATH;
+        return JavaScope.SRC;
+    }
+
+    @Override
+    protected void configure() {
+        super.configure();
+        if (getProperties().containsKey(JQASSISTANT_PLUGIN_JAVASRC_JAR_DIRNAME)) {
+            jarDirName = (String) getProperties().get(JQASSISTANT_PLUGIN_JAVASRC_JAR_DIRNAME);
+        }
+
+        LOGGER.info("Java Source Parser plugin looks for jar files in directory '{}'", jarDirName);
     }
 
     @Override
@@ -24,16 +44,17 @@ public class JavaSourceDirectoryScannerPlugin extends AbstractDirectoryScannerPl
 
     @Override
     protected void enterContainer(File container, JavaSourceDirectoryDescriptor containerDescriptor, ScannerContext scannerContext) throws IOException {
-        if (scannerContext.peekOrDefault(TypeResolver.class, null) == null) {
-            // TODO find a solution for javasymbolsolver issue:
-            // https://github.com/javaparser/javasymbolsolver/issues/353
-            final String path = "src/test/java";
-            scannerContext.push(TypeResolver.class, new TypeResolver(path, scannerContext));
+        if (scannerContext.peekOrDefault(JavaTypeResolver.class, null) == null) {
+            scannerContext.push(JavaTypeResolver.class, new JavaTypeResolver(scannerContext));
+        }
+        if (scannerContext.peekOrDefault(JavaTypeSolver.class, null) == null) {
+            scannerContext.push(JavaTypeSolver.class, new JavaTypeSolver(containerDescriptor.getFileName(), this.jarDirName));
         }
     }
 
     @Override
     protected void leaveContainer(File container, JavaSourceDirectoryDescriptor containerDescriptor, ScannerContext scannerContext) throws IOException {
-        scannerContext.pop(TypeResolver.class);
+        scannerContext.pop(JavaTypeResolver.class);
+        scannerContext.pop(JavaTypeSolver.class);
     }
 }

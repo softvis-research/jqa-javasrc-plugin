@@ -15,27 +15,38 @@ import com.github.javaparser.ast.CompilationUnit;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.TypeVisitor;
+import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.VisitorHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * Plugin that scans Java source files.
+ * 
+ * @author Dirk Mahler, Richard Mueller
+ *
+ */
 @Requires(FileDescriptor.class)
 public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResource, JavaSourceFileDescriptor> {
-    private TypeResolver typeResolver;
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaSourceFileScannerPlugin.class);
 
     @Override
     public boolean accepts(FileResource item, String path, Scope scope) throws IOException {
-        return JavaScope.CLASSPATH.equals(scope) && path.toLowerCase().endsWith(".java");
+        return JavaScope.SRC.equals(scope) && path.toLowerCase().endsWith(".java");
     }
 
     @Override
     public JavaSourceFileDescriptor scan(FileResource item, String path, Scope scope, Scanner scanner) throws IOException {
-        ScannerContext context = scanner.getContext();
-        typeResolver = context.peek(TypeResolver.class);
-        FileDescriptor fileDescriptor = context.getCurrentDescriptor();
-        JavaSourceFileDescriptor javaSourceFileDescriptor = context.getStore().addDescriptorType(fileDescriptor, JavaSourceFileDescriptor.class);
+        ScannerContext scannerContext = scanner.getContext();
+        FileDescriptor fileDescriptor = scannerContext.getCurrentDescriptor();
+        JavaSourceFileDescriptor javaSourceFileDescriptor = scannerContext.getStore().addDescriptorType(fileDescriptor, JavaSourceFileDescriptor.class);
+        VisitorHelper visitorHelper = new VisitorHelper(scannerContext, javaSourceFileDescriptor);
         try (InputStream in = item.createStream()) {
             CompilationUnit cu = JavaParser.parse(in);
-            cu.accept(new TypeVisitor(typeResolver), javaSourceFileDescriptor);
+            cu.getTypes().accept(new TypeVisitor(visitorHelper), null);
+        } catch (JavaSourceException jse) {
+            LOGGER.warn(jse.getClass().getSimpleName() + " " + jse.getMessage() + " in " + javaSourceFileDescriptor.getFileName());
         }
-        typeResolver.addDependencies();
+        visitorHelper.storeDependencies();
         return javaSourceFileDescriptor;
     }
 }

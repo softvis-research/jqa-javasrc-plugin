@@ -1,79 +1,36 @@
 = jQAssistant Java Source Parser Plugin
 
-This is a java source parser of https://www.jqassistant.org[jQAssistant^].
+This is a java source parser of https://www.jqassistant.org[jQAssistant].
+It enables jQAssistant to scan and to analyze Java source code files.
 
-(Work in Progress)
+== Configuration Parameters for Maven
 
-== Implemented (+), not implemented (-)
-type (+ class, + interface, + inner class)
-+ name
-+ fqn
-+ visibility and access modifiers (public, protected, private, default, abstract, final, static)
-+ getDeclaredMethods(), getDeclaredMembers()
-+ getDeclaredFields(), getDeclaredMembers()
-+ extends
-+ implements
-+ annotation
-+ depends
-+ generics (extends, implements)
-
-type (enum)
-+ name
-+ fqn
-+ visibility and access modifiers (public, protected, private, default, static)
-+ getDeclaredFields(), getDeclaredMembers()
-+ enum constants (primitive type, reference type)
-+ annotation
-+ depends
-
-type (annotation)
-+ name
-+ fqn
-+ nested annotation
-+ annotation member with default values
-+ depends
-
-constructor (+ overloaded constructor)
-+ signature
-+ name
-+ visibility (public, protected, private, default)
-+ parameters (primitive type, reference type, array type, annotation, generics)
-+ annotation
-+ exceptions
-+ loc (firstLineNumber, lastLineNumber, effectiveLineCount)
-+ complexity
-
-method
-+ signature
-+ name
-+ visibility and access modifiers (public, protected, private, default, abstract, final, static)
-+ parameters (primitive type, reference type, annotation, generics)
-+ return type (void, primitive type, reference type, array type, generics)
-+ annotation
-+ calls
-+ writes
-+ reads
-+ exceptions
-+ loc (firstLineNumber, lastLineNumber, effectiveLineCount)
-+ complexity
-
-field
-+ signature
-+ name
-+ visibility and access modifiers (public, protected, private, default, final, static)
-+ type (primitive type, reference type, array type, generics)
-+ value (of first variable)
-+ annotation
+[source,xml]
+----
+<...
+<configuration>
+	<scanIncludes>
+		<scanInclude>
+			<scanInclude>
+				<path>[PATH TO SOURCE ROOT FOLDER]</path>
+				<scope>java:src</scope>
+			</scanInclude>
+	</scanIncludes>
+	<scanProperties>
+		<jqassistant.plugin.javasrc.jar.dirname>[PATH TO FOLDER WITH JAR DEPENDENCIES]</jqassistant.plugin.javasrc.jar.dirname>
+	<scanProperties>
+</configuration>
+...>          
+----
 
 == TODO
-- check effective line count (comments, empty methods)
-- add method variables
+
 - add implicit default constructor?
-- add enum constructor (in v0.6.3 not supported)
-- handle inner classes (inner classes' fqn are with . instead of $)
-- handle anonymous classes
-- extract reusable scan method for tests
+- add enum constructor (not supported in javaparser/symbolsolver v3.6.2)
 - add comments
+- check effective line count (comments, empty methods)
+- handle inner classes? (inner classes' fqn are with . instead of $)
+- extract reusable scan method for tests
 - Inheritance: Object is not set as super class
 - TypeDescriptor: Why does typeDescriptor.getDeclaredFields() return fields, methods, or classes (same for getDeclaredMethods)?
 - InterfaceTypeDescriptor: An interface might extend from multiple interfaces, currently there is only one super class possible.

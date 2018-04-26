@@ -16,7 +16,7 @@ import org.junit.Test;
 /**
  * Contains tests to verify correct scanning of enums.
  * 
- * @author Richard Müller
+ * @authors Dirk Mahler, Richard Mueller
  * 
  */
 public class EnumerationIT extends AbstractPluginIT {
@@ -27,7 +27,7 @@ public class EnumerationIT extends AbstractPluginIT {
         final String TYPE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/enumeration/";
         File directory = new File(TYPE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         assertThat(query("MATCH (e:Type:Enum) RETURN e").getColumn("e"), hasItem(typeDescriptor(EnumerationType.class)));
         assertThat(query("MATCH (e:Type:Enum)-[:DECLARES]->(f:Field) WHERE f.name = 'A' RETURN f").getColumn("f"),
                 hasItem(fieldDescriptor(EnumerationType.class, "A")));

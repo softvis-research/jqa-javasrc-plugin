@@ -20,7 +20,7 @@ import org.junit.Test;
 /**
  * Contains tests to verify correct scanning of complexity metrics of methods.
  * 
- * @authors Dirk Mahler, Richard Müller
+ * @authors Dirk Mahler, Richard Mueller
  *
  */
 public class CyclomaticComplexityIT extends AbstractPluginIT {
@@ -38,7 +38,7 @@ public class CyclomaticComplexityIT extends AbstractPluginIT {
         final String FILE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/metric/";
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
-        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.CLASSPATH);
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
         List<MethodDescriptor> methods = query("Match (:Class)-[:DECLARES]->(m:Method) return m").getColumn("m");
         assertThat(methods.size(), equalTo(6));
         for (MethodDescriptor methodDescriptor : methods) {

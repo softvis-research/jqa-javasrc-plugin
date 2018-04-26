@@ -3,179 +3,171 @@ package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 import java.util.List;
 
 import com.github.javaparser.ast.Node;
-import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
+import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
+import com.github.javaparser.ast.expr.AssignExpr;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.BinaryExpr.Operator;
 import com.github.javaparser.ast.expr.ConditionalExpr;
-import com.github.javaparser.ast.nodeTypes.NodeWithBlockStmt;
-import com.github.javaparser.ast.nodeTypes.NodeWithOptionalBlockStmt;
-import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.VariableDeclarationExpr;
 import com.github.javaparser.ast.stmt.BreakStmt;
 import com.github.javaparser.ast.stmt.CatchClause;
 import com.github.javaparser.ast.stmt.ContinueStmt;
 import com.github.javaparser.ast.stmt.DoStmt;
 import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.SwitchEntryStmt;
 import com.github.javaparser.ast.stmt.SwitchStmt;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
-import com.github.javaparser.resolution.Resolvable;
-import com.github.javaparser.resolution.declarations.ResolvedAnnotationMemberDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedMethodLikeDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaration;
-import com.github.javaparser.resolution.types.ResolvedType;
+import com.github.javaparser.ast.type.Type;
+import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolver;
-import org.jqassistant.contrib.plugin.javasrc.impl.scanner.TypeResolverUtils;
 
 /**
- * This visitor handles parsed methods, i.e. methods, constructors, and
- * annotation members and creates corresponding descriptors.
+ * This visitor handles parsed methods and constructors and creates
+ * corresponding descriptors.
  * 
- * @author Richard Müller
+ * @author Richard Mueller
  *
  */
 public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
 
-    public MethodVisitor(TypeResolver typeResolver) {
-        super(typeResolver);
+    public MethodVisitor(VisitorHelper visitorHelper) {
+        super(visitorHelper);
     }
 
     @Override
     public void visit(MethodDeclaration methodDeclaration, TypeDescriptor typeDescriptor) {
         // method
-        MethodDescriptor methodDescriptor = createMethod(methodDeclaration, typeDescriptor);
-        setVisibility(methodDeclaration, methodDescriptor);
-        setAccessModifier(methodDeclaration, methodDescriptor);
-        setParamters(methodDeclaration, methodDescriptor);
-        setReturnType(methodDeclaration, methodDescriptor);
-        setAnnotations(methodDeclaration, methodDescriptor);
-        setExceptions(methodDeclaration, methodDescriptor);
-        setLineCount(methodDeclaration, methodDescriptor);
-        setCyclomaticComplexity(methodDeclaration, methodDescriptor);
-        setInvokes(methodDeclaration, methodDescriptor);
-
-        super.visit(methodDeclaration, typeDescriptor);
+        createMethod(methodDeclaration, typeDescriptor);
+        setVisibility(methodDeclaration);
+        setAccessModifier(methodDeclaration);
+        setParamters(methodDeclaration);
+        setReturnType(methodDeclaration);
+        setAnnotations(methodDeclaration, (AnnotatedDescriptor) descriptor);
+        setExceptions(methodDeclaration);
+        setLineCount(methodDeclaration);
+        setCyclomaticComplexity(methodDeclaration);
+        setInvocations(methodDeclaration);
+        setWrites(methodDeclaration);
+        setReads(methodDeclaration);
+        setVariables(methodDeclaration);
+        setAnonymousClasses(methodDeclaration);
     }
 
     @Override
     public void visit(ConstructorDeclaration constructorDeclaration, TypeDescriptor typeDescriptor) {
         // constructor
-        MethodDescriptor methodDescriptor = createMethod(constructorDeclaration, typeDescriptor);
-        setVisibility(constructorDeclaration, methodDescriptor);
-        setParamters(constructorDeclaration, methodDescriptor);
-        setAnnotations(constructorDeclaration, methodDescriptor);
-        setExceptions(constructorDeclaration, methodDescriptor);
-        setLineCount(constructorDeclaration, methodDescriptor);
-        setCyclomaticComplexity(constructorDeclaration, methodDescriptor);
-        setInvokes(constructorDeclaration, methodDescriptor);
-
-        super.visit(constructorDeclaration, typeDescriptor);
+        createMethod(constructorDeclaration, typeDescriptor);
+        setVisibility(constructorDeclaration);
+        setParamters(constructorDeclaration);
+        setAnnotations(constructorDeclaration, (AnnotatedDescriptor) descriptor);
+        setExceptions(constructorDeclaration);
+        setLineCount(constructorDeclaration);
+        setCyclomaticComplexity(constructorDeclaration);
+        setInvocations(constructorDeclaration);
+        setWrites(constructorDeclaration);
+        setReads(constructorDeclaration);
+        setVariables(constructorDeclaration);
+        setAnonymousClasses(constructorDeclaration);
     }
 
-    @Override
-    public void visit(AnnotationMemberDeclaration annotationMemberDeclaration, TypeDescriptor typeDescriptor) {
-        // annotation member
-        MethodDescriptor methodDescriptor = createMethod(annotationMemberDeclaration, typeDescriptor);
-        setVisibility(annotationMemberDeclaration, methodDescriptor);
-        setAccessModifier(annotationMemberDeclaration, methodDescriptor);
-        setAnnotationMemberDefaultValue(annotationMemberDeclaration, methodDescriptor);
+    private void createMethod(BodyDeclaration<?> bodyDeclaration, TypeDescriptor parent) {
+        getQualifiedSignature(bodyDeclaration).ifPresent(qualifiedMethodSignature -> {
+            descriptor = visitorHelper.getMethodDescriptor(qualifiedMethodSignature, parent);
+        });
     }
 
-    private MethodDescriptor createMethod(Resolvable<?> resolvable, TypeDescriptor parent) {
-        Object method = resolvable.resolve();
-        if (method instanceof ResolvedMethodDeclaration) {
-            return typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedMethodDeclaration) method), parent);
-        } else if (method instanceof ResolvedConstructorDeclaration) {
-            return typeResolver.getMethodDescriptor(TypeResolverUtils.getMethodSignature((ResolvedConstructorDeclaration) method), parent);
-        } else if (method instanceof ResolvedAnnotationMemberDeclaration) {
-            // TODO ResolvedAnnotationMemberDeclaration.getType throws
-            // java.lang.UnsupportedOperationException
-            MethodDescriptor methodDescriptor = typeResolver.getMethodDescriptor(
-                    TypeResolverUtils.getAnnotationMemberSignature(((AnnotationMemberDeclaration) resolvable).getType().resolve()), parent);
-            // name must be overwritten here as it is not in the signature
-            methodDescriptor.setName(((AnnotationMemberDeclaration) resolvable).getNameAsString());
-            return methodDescriptor;
-        } else {
-            throw new RuntimeException("MethodDescriptor could not be created: " + resolvable + " " + resolvable.getClass());
-        }
-    }
-
-    private void setParamters(CallableDeclaration<?> callableDeclaration, MethodDescriptor methodDescriptor) {
+    private void setParamters(CallableDeclaration<?> callableDeclaration) {
         List<Parameter> parameters = ((CallableDeclaration<?>) callableDeclaration).getParameters();
         for (int i = 0; i < parameters.size(); i++) {
-            ResolvedParameterDeclaration resolvedParameterDeclaration = parameters.get(i).resolve();
-            TypeDescriptor parameterTypeDescriptor = typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedParameterDeclaration.getType()),
-                    methodDescriptor.getDeclaringType());
-            ParameterDescriptor parameterDescriptor = typeResolver.getParameterDescriptor(methodDescriptor, i);
-            parameterDescriptor.setType(parameterTypeDescriptor);
-            if (resolvedParameterDeclaration.getType().isReferenceType()) {
-                // TODO are there other types?
-                setTypeParameterDependency(resolvedParameterDeclaration.getType().asReferenceType(), methodDescriptor.getDeclaringType());
+            final int position = i;
+            getQualifiedName(parameters.get(position).getType()).ifPresent(qualifiedParameterName -> {
+                TypeDescriptor parameterTypeDescriptor = visitorHelper.resolveDependency(qualifiedParameterName,
+                        ((MethodDescriptor) descriptor).getDeclaringType());
+                ParameterDescriptor parameterDescriptor = visitorHelper.getParameterDescriptor(((MethodDescriptor) descriptor), position);
+                parameterDescriptor.setType(parameterTypeDescriptor);
+                if (parameters.get(position).getType().isClassOrInterfaceType()) {
+                    setTypeParameterDependency(parameters.get(position).getType().asClassOrInterfaceType(), ((MethodDescriptor) descriptor).getDeclaringType());
+                }
+                setAnnotations(parameters.get(position), parameterDescriptor);
+            });
+        }
+    }
+
+    private void setReturnType(MethodDeclaration methodDeclaration) {
+        Type returnType = methodDeclaration.getType();
+        getQualifiedName(returnType).ifPresent(qualifiedReturnType -> {
+            ((MethodDescriptor) descriptor)
+                    .setReturns(visitorHelper.resolveDependency(qualifiedReturnType, ((MethodDescriptor) descriptor).getDeclaringType()));
+            if (returnType.isClassOrInterfaceType()) {
+                setTypeParameterDependency(returnType.asClassOrInterfaceType(), ((MethodDescriptor) descriptor).getDeclaringType());
             }
-            setAnnotations(parameters.get(i), parameterDescriptor);
-        }
+        });
     }
 
-    private void setReturnType(MethodDeclaration methodDeclaration, MethodDescriptor methodDescriptor) {
-        ResolvedType resolvedReturnType = methodDeclaration.resolve().getReturnType();
-        methodDescriptor
-                .setReturns(typeResolver.resolveDependency(TypeResolverUtils.getQualifiedName(resolvedReturnType), methodDescriptor.getDeclaringType()));
-        if (resolvedReturnType.isReferenceType()) {
-            // TODO are there other types?
-            setTypeParameterDependency(resolvedReturnType.asReferenceType(), methodDescriptor.getDeclaringType());
-        }
+    private void setExceptions(CallableDeclaration<?> callableDeclaration) {
+        callableDeclaration.getThrownExceptions().forEach(exception -> {
+            getQualifiedName(exception).ifPresent(qualifiedExceptionName -> {
+                ((MethodDescriptor) descriptor).getDeclaredThrowables()
+                        .add(visitorHelper.resolveDependency(qualifiedExceptionName, ((MethodDescriptor) descriptor).getDeclaringType()));
+            });
+        });
     }
 
-    private void setExceptions(Resolvable<?> resolvable, MethodDescriptor methodDescriptor) {
-        ResolvedMethodLikeDeclaration resolvedMethodLikeDeclaration = (ResolvedMethodLikeDeclaration) resolvable.resolve();
-        for (ResolvedType exception : resolvedMethodLikeDeclaration.getSpecifiedExceptions()) {
-            methodDescriptor.getDeclaredThrowables()
-                    .add(typeResolver.resolveDependency(exception.asReferenceType().getQualifiedName(), methodDescriptor.getDeclaringType()));
-        }
-    }
-
-    private void setLineCount(Node node, MethodDescriptor methodDescriptor) {
+    private void setLineCount(Node node) {
         node.getBegin().ifPresent(position -> {
-            methodDescriptor.setFirstLineNumber(position.line);
+            ((MethodDescriptor) descriptor).setFirstLineNumber(position.line);
         });
         node.getEnd().ifPresent(position -> {
-            methodDescriptor.setLastLineNumber(position.line);
+            ((MethodDescriptor) descriptor).setLastLineNumber(position.line);
         });
         // TODO what is effective line count?
-        methodDescriptor.setEffectiveLineCount(methodDescriptor.getLastLineNumber() - methodDescriptor.getFirstLineNumber() + 1);
+        ((MethodDescriptor) descriptor)
+                .setEffectiveLineCount(((MethodDescriptor) descriptor).getLastLineNumber() - ((MethodDescriptor) descriptor).getFirstLineNumber() + 1);
     }
 
-    private void setCyclomaticComplexity(Node node, MethodDescriptor methodDescriptor) {
-        methodDescriptor.setCyclomaticComplexity(calculateCyclomaticComplexity(node));
+    private void setCyclomaticComplexity(Node node) {
+        ((MethodDescriptor) descriptor).setCyclomaticComplexity(calculateCyclomaticComplexity(node));
     }
 
-    private void setInvokes(NodeWithBlockStmt<?> nodeWithOptionalBlockStmt, MethodDescriptor methodDescriptor) {
-        BlockStmt body = nodeWithOptionalBlockStmt.getBody();
-        if (body != null) {
-            body.accept(new MethodBodyVisitor(typeResolver), methodDescriptor);
-        }
-    }
-
-    private void setInvokes(NodeWithOptionalBlockStmt<?> nodeWithOptionalBlockStmt, MethodDescriptor methodDescriptor) {
-        nodeWithOptionalBlockStmt.getBody().ifPresent(body -> body.accept(new MethodBodyVisitor(typeResolver), methodDescriptor));
-    }
-
-    private void setAnnotationMemberDefaultValue(AnnotationMemberDeclaration annotationMemberDeclaration, MethodDescriptor methodDescriptor) {
-        annotationMemberDeclaration.getDefaultValue().ifPresent(value -> {
-            methodDescriptor
-                    .setHasDefault(createValueDescriptor(TypeResolverUtils.ANNOTATION_MEMBER_DEFAULT_VALUE_NAME, value, methodDescriptor.getDeclaringType()));
+    private void setInvocations(CallableDeclaration<?> callableDeclaration) {
+        callableDeclaration.findAll(MethodCallExpr.class).forEach(methodCall -> {
+            methodCall.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
         });
+    }
 
+    private void setWrites(CallableDeclaration<?> callableDeclaration) {
+        callableDeclaration.findAll(AssignExpr.class).forEach(methodCall -> {
+            methodCall.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
+        });
+    }
+
+    private void setReads(CallableDeclaration<?> callableDeclaration) {
+        callableDeclaration.findAll(ReturnStmt.class).forEach(methodCall -> {
+            methodCall.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
+        });
+    }
+
+    private void setAnonymousClasses(CallableDeclaration<?> callableDeclaration) {
+        callableDeclaration.findAll(ObjectCreationExpr.class).forEach(methodCall -> {
+            methodCall.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
+        });
+    }
+
+    private void setVariables(CallableDeclaration<?> callableDeclaration) {
+        callableDeclaration.findAll(VariableDeclarationExpr.class).forEach(variable -> {
+            variable.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
+        });
     }
 
     /**
@@ -187,8 +179,10 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
      * http://pmd.sourceforge.net/snapshot/pmd_java_metrics_index.html#cyclomatic-complexity-cyclo)
      * 
      * @param node
+     *            The parsed node.
      * @return cyclomatic complexity
      */
+    @SuppressWarnings("unused")
     private int calculateCyclomaticComplexity(Node node) {
         // TODO ForEachStmt?
         int complexity = 1;
@@ -247,7 +241,6 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
                 complexity++;
             }
         }
-
         return complexity;
     }
 }
