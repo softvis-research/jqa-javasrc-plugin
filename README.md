@@ -1,13 +1,11 @@
-= jQAssistant Java Source Parser Plugin
+# jQAssistant Java Source Parser Plugin &middot; [![License: GPL v3] (https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/softvis-research/jqa-javasrc-plugin/blob/master/LICENSE) #
 
 This is a java source parser of https://www.jqassistant.org[jQAssistant].
 It enables jQAssistant to scan and to analyze Java source code files.
 
-== Configuration Parameters for Maven
+## Configuration Parameters for Maven ##
 
-[source,xml]
-----
-<...
+```
 <configuration>
 	<scanIncludes>
 		<scanInclude>
@@ -20,10 +18,9 @@ It enables jQAssistant to scan and to analyze Java source code files.
 		<jqassistant.plugin.javasrc.jar.dirname>[PATH TO FOLDER WITH JAR DEPENDENCIES]</jqassistant.plugin.javasrc.jar.dirname>
 	<scanProperties>
 </configuration>
-...>          
-----
+```
 
-== TODO
+## TODO ##
 
 - add implicit default constructor?
 - add enum constructor (not supported in javaparser/symbolsolver v3.6.2)
