@@ -1,6 +1,6 @@
-# jQAssistant Java Source Parser Plugin &middot; [![License: GPL v3] (https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/softvis-research/jqa-javasrc-plugin/blob/master/LICENSE) #
+# jQAssistant Java Source Parser Plugin &middot; [![GitHub license](https://img.shields.io/badge/License-GPL%20v3-blue.svg)] (https://github.com/softvis-research/jqa-javasrc-plugin/blob/master/LICENSE) #
 
-This is a java source parser of https://www.jqassistant.org[jQAssistant].
+This is a java source parser of [jQAssistant](https://www.jqassistant.org).
 It enables jQAssistant to scan and to analyze Java source code files.
 
 ## Configuration Parameters for Maven ##
