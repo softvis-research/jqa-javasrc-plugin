@@ -22,15 +22,3 @@ It enables jQAssistant to scan and to analyze Java source code files.
 	<scanProperties>
 </configuration>
 ```
-
-## TODO ##
-
-- add implicit default constructor?
-- add enum constructor (not supported in javaparser/symbolsolver v3.6.2)
-- add comments
-- check effective line count (comments, empty methods)
-- handle inner classes? (inner classes' fqn are with . instead of $)
-- extract reusable scan method for tests
-- Inheritance: Object is not set as super class
-- TypeDescriptor: Why does typeDescriptor.getDeclaredFields() return fields, methods, or classes (same for getDeclaredMethods)?
-- InterfaceTypeDescriptor: An interface might extend from multiple interfaces, currently there is only one super class possible.
