@@ -12,13 +12,12 @@ It enables jQAssistant to scan and to analyze Java source code files.
 <configuration>
 	<scanIncludes>
 		<scanInclude>
-			<scanInclude>
-				<path>[PATH TO SOURCE ROOT FOLDER]</path>
-				<scope>java:src</scope>
-			</scanInclude>
+			<path>[PATH TO SOURCE ROOT FOLDER]</path>
+			<scope>java:src</scope>
+		</scanInclude>
 	</scanIncludes>
 	<scanProperties>
 		<jqassistant.plugin.javasrc.jar.dirname>[PATH TO FOLDER WITH JAR DEPENDENCIES]</jqassistant.plugin.javasrc.jar.dirname>
-	<scanProperties>
+	</scanProperties>
 </configuration>
 ```
