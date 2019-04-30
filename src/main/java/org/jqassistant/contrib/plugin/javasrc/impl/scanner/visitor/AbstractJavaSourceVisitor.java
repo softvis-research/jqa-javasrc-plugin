@@ -149,7 +149,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             } else if (node instanceof FieldAccessExpr) {
                 // field e.g. in annotations
                 FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) node;
-                SymbolReference<ResolvedFieldDeclaration> symbolReference = visitorHelper.getFacade().solve(fieldAccessExpr);
+                SymbolReference<ResolvedValueDeclaration> symbolReference = visitorHelper.getFacade().solve(fieldAccessExpr);
                 if (symbolReference.isSolved()) {
                     return Optional.of(getQualifiedName(symbolReference.getCorrespondingDeclaration().getType()));
                 } else {
@@ -227,7 +227,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             } else if (node instanceof FieldAccessExpr) {
                 // field signature
                 FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) node;
-                SymbolReference<ResolvedFieldDeclaration> symbolReference = visitorHelper.getFacade().solve(fieldAccessExpr);
+                SymbolReference<ResolvedValueDeclaration> symbolReference = visitorHelper.getFacade().solve(fieldAccessExpr);
                 if (symbolReference.isSolved()) {
                     return Optional.of(getQualifiedName(symbolReference.getCorrespondingDeclaration().getType()) + " " + fieldAccessExpr.getNameAsString());
                 } else {

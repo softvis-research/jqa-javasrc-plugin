@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.jqassistant.contrib.common</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.5.0-SNAPSHOT</version>
+		<version>1.5.0</version>
 	</parent>
 
 	<groupId>org.jqassistant.contrib.plugin</groupId>
@@ -154,7 +154,7 @@
 		<dependency>
 			<groupId>com.github.javaparser</groupId>
 			<artifactId>javaparser-symbol-solver-core</artifactId>
-			<version>3.6.2</version>
+			<version>3.6.26</version>
 		</dependency>
 		<!-- Declared to detect ambiguities between data models of bytecode and src parser -->
         <dependency>
