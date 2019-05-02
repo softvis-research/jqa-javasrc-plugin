@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.EnumConstantDeclaration;
@@ -95,12 +96,12 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         });
     }
 
-    protected VisibilityModifier getAccessSpecifier(EnumSet<Modifier> modifiers) {
-        if (modifiers.contains(Modifier.PUBLIC)) {
+    protected VisibilityModifier getAccessSpecifier(NodeList<Modifier> modifiers) {
+        if (modifiers.contains(Modifier.publicModifier())) {
             return VisibilityModifier.PUBLIC;
-        } else if (modifiers.contains(Modifier.PROTECTED)) {
+        } else if (modifiers.contains(Modifier.protectedModifier())) {
             return VisibilityModifier.PROTECTED;
-        } else if (modifiers.contains(Modifier.PRIVATE)) {
+        } else if (modifiers.contains(Modifier.privateModifier())) {
             return VisibilityModifier.PRIVATE;
         } else {
             return VisibilityModifier.DEFAULT;
@@ -159,7 +160,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 // annotations
                 AnnotationExpr annotationExpr = (AnnotationExpr) node;
                 Context context = JavaParserFactory.getContext(annotationExpr, visitorHelper.getTypeSolver());
-                SymbolReference<ResolvedTypeDeclaration> symbolReference = context.solveType(annotationExpr.getNameAsString(), visitorHelper.getTypeSolver());
+                SymbolReference<ResolvedTypeDeclaration> symbolReference = context.solveType(annotationExpr.getNameAsString());
                 if (symbolReference.isSolved()) {
                     return Optional.of(symbolReference.getCorrespondingDeclaration().getQualifiedName());
                 } else {

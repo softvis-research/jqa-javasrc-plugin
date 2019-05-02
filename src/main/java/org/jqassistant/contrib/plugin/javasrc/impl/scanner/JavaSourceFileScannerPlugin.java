@@ -11,6 +11,7 @@ import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
@@ -41,7 +42,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
         JavaSourceFileDescriptor javaSourceFileDescriptor = scannerContext.getStore().addDescriptorType(fileDescriptor, JavaSourceFileDescriptor.class);
         VisitorHelper visitorHelper = new VisitorHelper(scannerContext, javaSourceFileDescriptor);
         try (InputStream in = item.createStream()) {
-            CompilationUnit cu = JavaParser.parse(in);
+            CompilationUnit cu = StaticJavaParser.parse(in);
             cu.getTypes().accept(new TypeVisitor(visitorHelper), null);
         } catch (JavaSourceException jse) {
             LOGGER.warn(jse.getClass().getSimpleName() + " " + jse.getMessage() + " in " + javaSourceFileDescriptor.getFileName());

@@ -15,17 +15,7 @@ import com.github.javaparser.ast.expr.ConditionalExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
-import com.github.javaparser.ast.stmt.BreakStmt;
-import com.github.javaparser.ast.stmt.CatchClause;
-import com.github.javaparser.ast.stmt.ContinueStmt;
-import com.github.javaparser.ast.stmt.DoStmt;
-import com.github.javaparser.ast.stmt.ForStmt;
-import com.github.javaparser.ast.stmt.IfStmt;
-import com.github.javaparser.ast.stmt.ReturnStmt;
-import com.github.javaparser.ast.stmt.SwitchEntryStmt;
-import com.github.javaparser.ast.stmt.SwitchStmt;
-import com.github.javaparser.ast.stmt.ThrowStmt;
-import com.github.javaparser.ast.stmt.WhileStmt;
+import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.type.Type;
 import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
@@ -192,9 +182,10 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         }
         // case
         for (SwitchStmt switchStmt : node.findAll(SwitchStmt.class)) {
-            for (SwitchEntryStmt switchEntryStmt : switchStmt.getEntries()) {
+            for (SwitchEntry switchEntry : switchStmt.getEntries()) {
                 // filter case as default has no label
-                if (switchEntryStmt.getLabel().isPresent()) {
+                // TODO check if this is still valid (formerly: switchEntryStmt.getLabel().isPresent())
+                if (switchEntry.getLabels().isNonEmpty()) {
                     complexity++;
                 }
             }

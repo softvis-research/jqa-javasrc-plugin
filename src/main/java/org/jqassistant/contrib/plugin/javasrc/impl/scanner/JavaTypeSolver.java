@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
@@ -45,7 +46,7 @@ public class JavaTypeSolver {
             LOGGER.info("Added " + jarCounter + " jar " + ((jarCounter == 1) ? "file" : "files") + " to solver from '{}'.", jarDirName);
         }
         // set created type solver globally
-        JavaParser.getStaticConfiguration().setSymbolResolver(new JavaSymbolSolver(combinedTypeSolver));
+        StaticJavaParser.getConfiguration().setSymbolResolver(new JavaSymbolSolver(combinedTypeSolver));
     }
 
     /**

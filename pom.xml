@@ -154,7 +154,7 @@
 		<dependency>
 			<groupId>com.github.javaparser</groupId>
 			<artifactId>javaparser-symbol-solver-core</artifactId>
-			<version>3.6.26</version>
+            <version>3.13.10</version>
 		</dependency>
 		<!-- Declared to detect ambiguities between data models of bytecode and src parser -->
         <dependency>
