@@ -45,12 +45,12 @@ public class JavaTypeResolver {
      * @return The type descriptor.
      */
     public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor, Class<T> type) {
-        TypeDescriptor resolvedTypeDescriptor = javaSourcefileDescriptor.resolveType(fqn);
         T typeDescriptor;
         if (requiredTypes.containsKey(fqn)) {
-            typeDescriptor = scannerContext.getStore().migrate(requiredTypes.get(fqn), type);
+            typeDescriptor = scannerContext.getStore().addDescriptorType(requiredTypes.get(fqn), type);
             requiredTypes.remove(fqn);
         } else {
+            TypeDescriptor resolvedTypeDescriptor = javaSourcefileDescriptor.resolveType(fqn);
             typeDescriptor = scannerContext.getStore().addDescriptorType(resolvedTypeDescriptor, type);
             typeDescriptor.setFullQualifiedName(fqn);
             typeDescriptor.setName(fqn.substring(fqn.lastIndexOf(".") + 1));
