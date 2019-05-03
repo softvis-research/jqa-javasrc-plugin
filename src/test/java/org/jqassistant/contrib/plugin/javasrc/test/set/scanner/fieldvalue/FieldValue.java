@@ -18,6 +18,8 @@ public class FieldValue {
 
     private static final long negativeLongValueWithL = -3455108052199995234L;
 
+    private static final long binaryValue = 1000 * 60 * 10;
+
     private static int nullValue;
 
 }

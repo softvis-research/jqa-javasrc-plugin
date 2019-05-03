@@ -127,6 +127,8 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
         } else if (expression.isUnaryExpr()) {
             // TODO handle -3455108052199995234L
             return expression.asUnaryExpr().toString();
+        } else if (expression.isBinaryExpr()) {
+            return expression.asBinaryExpr().toString();
         }
         throw new JavaSourceException("Unexpected expression value: " + expression + " " + expression.getClass());
     }
