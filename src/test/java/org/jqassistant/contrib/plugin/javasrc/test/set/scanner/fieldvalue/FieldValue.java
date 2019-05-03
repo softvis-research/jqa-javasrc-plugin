@@ -22,6 +22,8 @@ public class FieldValue {
 
     private static final long nameValue = binaryValue;
 
+    private Object arrayCreationValue = new Byte[0];
+
     private static int nullValue;
 
 }

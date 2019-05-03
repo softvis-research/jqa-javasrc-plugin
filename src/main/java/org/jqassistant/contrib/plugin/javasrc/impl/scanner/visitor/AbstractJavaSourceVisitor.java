@@ -124,6 +124,8 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             return expression.asFieldAccessExpr().toString();
         } else if (expression.isArrayInitializerExpr()) {
             return expression.asArrayInitializerExpr().getValues().toString();
+        } else if (expression.isArrayCreationExpr()) {
+            return expression.asArrayCreationExpr().toString();
         } else if (expression.isUnaryExpr()) {
             // TODO handle -3455108052199995234L
             return expression.asUnaryExpr().toString();
