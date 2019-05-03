@@ -36,6 +36,7 @@ public class FieldValueIT extends AbstractPluginIT {
         verifyValue("doubleValueWithd", 0.0);
         verifyValue("negativeLongValueWithL", "-3455108052199995234L");
         verifyValue("binaryValue", "1000 * 60 * 10");
+        verifyValue("nameValue", "binaryValue");
         store.commitTransaction();
     }
 
