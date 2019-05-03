@@ -6,6 +6,16 @@ public class FieldValue {
 
     private static final int intValue = 1;
 
+    private static final int intValueHex0x = 0x00efefef;
+
+    private static final int intValueHex0X = 0X00efefef;
+
+    private static final double doubleValueWithd = 0.0d;
+
+    private static final long longValueWithL = 0L;
+
+    private static final long longValueWithl = 0l;
+
     private static int nullValue;
 
 }

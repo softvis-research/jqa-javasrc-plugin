@@ -1,24 +1,11 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
-import java.util.EnumSet;
-import java.util.Optional;
-
 import com.buschmais.jqassistant.core.store.api.model.Descriptor;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.AnnotationMemberDeclaration;
-import com.github.javaparser.ast.body.ConstructorDeclaration;
-import com.github.javaparser.ast.body.EnumConstantDeclaration;
-import com.github.javaparser.ast.body.FieldDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.body.TypeDeclaration;
-import com.github.javaparser.ast.body.VariableDeclarator;
-import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.FieldAccessExpr;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
 import com.github.javaparser.ast.nodeTypes.NodeWithModifiers;
 import com.github.javaparser.ast.nodeTypes.modifiers.NodeWithAbstractModifier;
@@ -28,32 +15,23 @@ import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
-import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedEnumConstantDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
-import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
+import com.github.javaparser.resolution.declarations.*;
 import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.resolution.types.ResolvedWildcard;
 import com.github.javaparser.symbolsolver.core.resolution.Context;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFactory;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AbstractDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AccessModifierDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.VisibilityModifier;
+import org.jqassistant.contrib.plugin.javasrc.api.model.*;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaSourceException;
+
+import java.util.Optional;
 
 /**
  * This abstract visitor contains all common fields and methods of the other
  * visitors.
- * 
- * @author Richard Mueller
  *
- * @param <D>
- *            The descriptor.
+ * @param <D> The descriptor.
+ * @author Richard Mueller
  */
 public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends VoidVisitorAdapter<D> {
     protected VisitorHelper visitorHelper;
@@ -115,9 +93,20 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             // remove d to avoid NumberFormatException
             return Double.parseDouble(expression.asDoubleLiteralExpr().getValue().replace("d", ""));
         } else if (expression.isLongLiteralExpr()) {
-            // remove L to avoid NumberFormatException
-            return Long.parseLong(expression.asLongLiteralExpr().getValue().replace("L", ""));
+            // remove L or l to avoid NumberFormatException
+            String longLiteralExpr = expression.asLongLiteralExpr().getValue();
+            if (longLiteralExpr.contains("L")) {
+                return Long.parseLong(longLiteralExpr.replace("L", ""));
+            } else if (longLiteralExpr.contains("l")) {
+                return Long.parseLong(longLiteralExpr.replace("l", ""));
+            } else {
+                return Long.parseLong(expression.asLongLiteralExpr().getValue());
+            }
         } else if (expression.isIntegerLiteralExpr()) {
+            String integerLiteralExpr = expression.asIntegerLiteralExpr().getValue();
+            if (integerLiteralExpr.startsWith("0x") || integerLiteralExpr.startsWith("0X")) {
+                return Integer.decode(expression.asIntegerLiteralExpr().getValue());
+            }
             return Integer.parseInt(expression.asIntegerLiteralExpr().getValue());
         } else if (expression.isCharLiteralExpr()) {
             return expression.asCharLiteralExpr().getValue();
@@ -192,13 +181,13 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             throw new JavaSourceException("Unexpected type of node for qualified name: " + node + " " + node.getClass());
         } catch (UnsolvedSymbolException use) {
             throw new JavaSourceException(
-                    use.getClass().getSimpleName() + " " + use.getMessage() + "  Unsolved qualified name of node: " + node + " " + node.getClass());
+                use.getClass().getSimpleName() + " " + use.getMessage() + "  Unsolved qualified name of node: " + node + " " + node.getClass());
         } catch (UnsupportedOperationException uoe) {
             throw new JavaSourceException(
-                    uoe.getClass().getSimpleName() + " " + uoe.getMessage() + "  Unsolved qualified name of node: " + node + " " + node.getClass());
+                uoe.getClass().getSimpleName() + " " + uoe.getMessage() + "  Unsolved qualified name of node: " + node + " " + node.getClass());
         } catch (RuntimeException re) {
             throw new JavaSourceException(
-                    re.getClass().getSimpleName() + " " + re.getMessage() + "  Unsolved qualified name of node: " + node + " " + node.getClass());
+                re.getClass().getSimpleName() + " " + re.getMessage() + "  Unsolved qualified name of node: " + node + " " + node.getClass());
         }
     }
 
@@ -215,7 +204,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             } else if (node instanceof AnnotationMemberDeclaration) {
                 // annotation member signature
                 return Optional
-                        .of(getQualifiedName(((AnnotationMemberDeclaration) node).getType().resolve()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE);
+                    .of(getQualifiedName(((AnnotationMemberDeclaration) node).getType().resolve()) + " " + visitorHelper.ANNOTATION_MEMBER_SIGNATURE);
             } else if (node instanceof FieldDeclaration) {
                 // field signature
                 FieldDeclaration fieldDeclaration = ((FieldDeclaration) node);
@@ -255,7 +244,7 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             } else if (node instanceof NameExpr) {
                 // field write, field read
                 ResolvedValueDeclaration solvedValueDeclaration = (ResolvedValueDeclaration) visitorHelper.getFacade().solve((NameExpr) node)
-                        .getCorrespondingDeclaration();
+                    .getCorrespondingDeclaration();
                 if (solvedValueDeclaration.isField()) {
                     return Optional.of(getQualifiedName(solvedValueDeclaration.getType()) + " " + solvedValueDeclaration.getName());
                 } else {
@@ -265,13 +254,13 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
             throw new JavaSourceException("Unexpected type of node for qualified signature: " + node + " " + node.getClass());
         } catch (UnsolvedSymbolException use) {
             throw new JavaSourceException(
-                    use.getClass().getSimpleName() + " " + use.getMessage() + "  Unsolved qualified signature of node: " + node + " " + node.getClass());
+                use.getClass().getSimpleName() + " " + use.getMessage() + "  Unsolved qualified signature of node: " + node + " " + node.getClass());
         } catch (UnsupportedOperationException uoe) {
             throw new JavaSourceException(
-                    uoe.getClass().getSimpleName() + " " + uoe.getMessage() + "  Unsolved qualified signature of node: " + node + " " + node.getClass());
+                uoe.getClass().getSimpleName() + " " + uoe.getMessage() + "  Unsolved qualified signature of node: " + node + " " + node.getClass());
         } catch (RuntimeException re) {
             throw new JavaSourceException(
-                    re.getClass().getSimpleName() + " " + re.getMessage() + "  Unsolved qualified signature of node: " + node + " " + node.getClass());
+                re.getClass().getSimpleName() + " " + re.getMessage() + "  Unsolved qualified signature of node: " + node + " " + node.getClass());
         }
     }
 
