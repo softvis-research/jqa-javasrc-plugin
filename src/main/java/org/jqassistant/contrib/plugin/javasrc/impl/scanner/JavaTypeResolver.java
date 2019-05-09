@@ -1,21 +1,20 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.common.api.scanner.FileResolver;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDependsOnDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
 /**
  * The extended objects type resolver caches the parsed types, its dependencies
  * and provides descriptors.
- * 
- * @author Dirk Mahler, Richard Mueller
  *
+ * @author Dirk Mahler, Richard Mueller
  */
 public class JavaTypeResolver {
     private ScannerContext scannerContext;
@@ -35,13 +34,10 @@ public class JavaTypeResolver {
      * If a the descriptor already exists it will be used and migrated to the
      * given type.
      * </p>
-     * 
-     * @param fqn
-     *            The fully qualified type name, e.g. "java.lang.Object".
-     * @param javaSourcefileDescriptor
-     *            The Java source file descriptor.
-     * @param type
-     *            The expected type of the descriptor.
+     *
+     * @param fqn                      The fully qualified type name, e.g. "java.lang.Object".
+     * @param javaSourcefileDescriptor The Java source file descriptor.
+     * @param type                     The expected type of the descriptor.
      * @return The type descriptor.
      */
     public <T extends TypeDescriptor> T createType(String fqn, JavaSourceFileDescriptor javaSourcefileDescriptor, Class<T> type) {
@@ -61,11 +57,9 @@ public class JavaTypeResolver {
 
     /**
      * Resolve a type by its Java type name and add it to the dependency cache.
-     * 
-     * @param dependencyFQN
-     *            The fully qualified type name, e.g. "java.lang.Object".
-     * @param dependent
-     *            The dependent type.
+     *
+     * @param dependencyFQN The fully qualified type name, e.g. "java.lang.Object".
+     * @param dependent     The dependent type.
      * @return The type descriptor.
      */
     public TypeDescriptor resolveDependency(String dependencyFQN, TypeDescriptor dependent) {
