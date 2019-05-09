@@ -1,8 +1,5 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.buschmais.jqassistant.core.scanner.api.Scanner;
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.core.scanner.api.ScannerPlugin.Requires;
@@ -10,7 +7,6 @@ import com.buschmais.jqassistant.core.scanner.api.Scope;
 import com.buschmais.jqassistant.plugin.common.api.model.FileDescriptor;
 import com.buschmais.jqassistant.plugin.common.api.scanner.AbstractScannerPlugin;
 import com.buschmais.jqassistant.plugin.common.api.scanner.filesystem.FileResource;
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
@@ -20,11 +16,13 @@ import org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor.VisitorHelper
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
  * Plugin that scans Java source files.
- * 
- * @author Dirk Mahler, Richard Mueller
  *
+ * @author Dirk Mahler, Richard Mueller
  */
 @Requires(FileDescriptor.class)
 public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResource, JavaSourceFileDescriptor> {
@@ -45,7 +43,7 @@ public class JavaSourceFileScannerPlugin extends AbstractScannerPlugin<FileResou
             CompilationUnit cu = StaticJavaParser.parse(in);
             cu.getTypes().accept(new TypeVisitor(visitorHelper), null);
         } catch (JavaSourceException jse) {
-            LOGGER.warn(jse.getClass().getSimpleName() + " " + jse.getMessage() + " in " + javaSourceFileDescriptor.getFileName());
+            LOGGER.debug(jse.getClass().getSimpleName() + " " + jse.getMessage() + " in " + javaSourceFileDescriptor.getFileName());
         }
         visitorHelper.storeDependencies();
         return javaSourceFileDescriptor;
