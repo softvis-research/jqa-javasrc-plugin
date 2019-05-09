@@ -5,11 +5,7 @@ import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.AssignExpr;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.expr.ObjectCreationExpr;
-import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
 import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
@@ -17,13 +13,15 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.VariableDescriptor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This visitor handles parsed method invocations, anonymous inner classes,
  * variables, field reads (parameter, return, and assign expression), and field
  * writes (assign expression) and creates corresponding descriptors.
- * 
- * @author Richard Mueller
  *
+ * @author Richard Mueller
  */
 public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescriptor> {
 
@@ -116,7 +114,14 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
             getQualifiedSignature(methodCallExpr).ifPresent(qualifiedMethodSignature -> {
                 MethodDescriptor invokedMethodDescriptor = visitorHelper.getMethodDescriptor(qualifiedMethodSignature, invokedMethodParent);
                 methodCallExpr.getBegin().ifPresent((position) -> {
-                    visitorHelper.addInvokes(methodDescriptor, position.line, invokedMethodDescriptor);
+                    List<TypeDescriptor> argumentTypes = new ArrayList<TypeDescriptor>();
+                    methodCallExpr.getArguments().forEach(argument -> {
+                        getQualifiedName(argument).ifPresent(qualifiedName -> {
+                            TypeDescriptor argumentType = visitorHelper.resolveDependency(qualifiedName, methodDescriptor.getDeclaringType());
+                            argumentTypes.add(argumentType);
+                        });
+                    });
+                    visitorHelper.addInvokes(methodDescriptor, position.line, argumentTypes, invokedMethodDescriptor);
                 });
             });
         });
@@ -126,7 +131,7 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         variableDeclarationExpr.getVariables().forEach(variable -> {
             getQualifiedName(variable).ifPresent(qualifiedVariableTypeName -> {
                 VariableDescriptor variableDescriptor = visitorHelper.getVariableDescriptor(variable.getNameAsString(),
-                        qualifiedVariableTypeName + " " + variable.getNameAsString());
+                    qualifiedVariableTypeName + " " + variable.getNameAsString());
                 variableDescriptor.setType(visitorHelper.resolveDependency(qualifiedVariableTypeName, methodDescriptor.getDeclaringType()));
                 methodDescriptor.getVariables().add(variableDescriptor);
                 // type parameters

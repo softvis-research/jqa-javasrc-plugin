@@ -1,35 +1,23 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
-import java.util.Iterator;
-
 import com.buschmais.jqassistant.core.scanner.api.ScannerContext;
 import com.buschmais.jqassistant.plugin.common.api.model.ValueDescriptor;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import org.apache.commons.lang.StringUtils;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotatedDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.AnnotationValueDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.ClassTypeDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.ConstructorDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.InvokesDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceFileDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.ParameterDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.ReadsDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.VariableDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.model.WritesDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.model.*;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaTypeResolver;
 import org.jqassistant.contrib.plugin.javasrc.impl.scanner.JavaTypeSolver;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * The helper delegates creation and caching of types to the type resolver,
  * holds a reference of the type solver and its facade, and provides the
  * visitors with descriptors.
- * 
- * @author Richard Mueller
  *
+ * @author Richard Mueller
  */
 public class VisitorHelper {
 
@@ -54,11 +42,9 @@ public class VisitorHelper {
 
     /**
      * Return the type descriptor for the given type name.
-     * 
-     * @param fqn
-     *            The full qualified name of the type (e.g. java.lang.Object).
-     * @param type
-     *            The expected type.
+     *
+     * @param fqn  The full qualified name of the type (e.g. java.lang.Object).
+     * @param type The expected type.
      * @return The type descriptor.
      */
     <T extends TypeDescriptor> T createType(String fqn, Class<T> type) {
@@ -70,9 +56,8 @@ public class VisitorHelper {
     /**
      * Return the type descriptor of an anonymous inner class for the given
      * method descriptor.
-     * 
-     * @param methodDescriptor
-     *            The method descriptor.
+     *
+     * @param methodDescriptor The method descriptor.
      * @return The type descriptor.
      */
     <T extends TypeDescriptor> T createAnonymousType(MethodDescriptor methodDescriptor) {
@@ -85,11 +70,9 @@ public class VisitorHelper {
     /**
      * Return the type descriptor for the given type name and add it as
      * dependency to the dependent type descriptor.
-     * 
-     * @param fqn
-     *            The full qualified name of the type (e.g. java.lang.Object).
-     * @param dependent
-     *            The dependent type descriptor.
+     *
+     * @param fqn       The full qualified name of the type (e.g. java.lang.Object).
+     * @param dependent The dependent type descriptor.
      * @return The type descriptor.
      */
     TypeDescriptor resolveDependency(String fqn, TypeDescriptor dependent) {
@@ -99,16 +82,14 @@ public class VisitorHelper {
     /**
      * Return the method descriptor for the given method signature and type
      * descriptor.
-     * 
-     * @param signature
-     *            The method signature.
-     * @param parent
-     *            The parent type.
+     *
+     * @param signature The method signature.
+     * @param parent    The parent type.
      * @return The method descriptor.
      */
     MethodDescriptor getMethodDescriptor(String signature, TypeDescriptor parent) {
         MethodDescriptor methodDescriptor = null;
-        for (Iterator<MethodDescriptor> iterator = parent.getDeclaredMethods().iterator(); iterator.hasNext();) {
+        for (Iterator<MethodDescriptor> iterator = parent.getDeclaredMethods().iterator(); iterator.hasNext(); ) {
             Object member = iterator.next();
             if (member instanceof MethodDescriptor) {
                 MethodDescriptor existingMethodDescriptor = (MethodDescriptor) member;
@@ -135,16 +116,14 @@ public class VisitorHelper {
     /**
      * Return the field descriptor for the given field signature and type
      * descriptor.
-     * 
-     * @param signature
-     *            The field signature.
-     * @param parent
-     *            The parent type descriptor.
+     *
+     * @param signature The field signature.
+     * @param parent    The parent type descriptor.
      * @return The field descriptor.
      */
     FieldDescriptor getFieldDescriptor(String signature, TypeDescriptor parent) {
         FieldDescriptor fieldDescriptor = null;
-        for (Iterator<FieldDescriptor> iterator = parent.getDeclaredFields().iterator(); iterator.hasNext();) {
+        for (Iterator<FieldDescriptor> iterator = parent.getDeclaredFields().iterator(); iterator.hasNext(); ) {
             Object member = iterator.next();
             if (member instanceof FieldDescriptor) {
                 FieldDescriptor existingFieldDescriptor = (FieldDescriptor) member;
@@ -166,11 +145,9 @@ public class VisitorHelper {
     /**
      * Return the parameter descriptor for the given method descriptor and
      * position of the parameter.
-     * 
-     * @param methodDescriptor
-     *            The method descriptor.
-     * @param index
-     *            The position of the parameter.
+     *
+     * @param methodDescriptor The method descriptor.
+     * @param index            The position of the parameter.
      * @return The parameter descriptor.
      */
     ParameterDescriptor getParameterDescriptor(MethodDescriptor methodDescriptor, int index) {
@@ -182,9 +159,8 @@ public class VisitorHelper {
 
     /**
      * Return the value descriptor for the given type.
-     * 
-     * @param valueDescriptorType
-     *            The expected type.
+     *
+     * @param valueDescriptorType The expected type.
      * @return The value descriptor.
      */
     <T extends ValueDescriptor<?>> T getValueDescriptor(Class<T> valueDescriptorType) {
@@ -194,13 +170,10 @@ public class VisitorHelper {
     /**
      * Return the annotation value descriptor for a given fully qualified name,
      * name, and annotated descriptor.
-     * 
-     * @param fqn
-     *            The full qualified name of the type (e.g. java.lang.Object).
-     * @param name
-     *            The name.
-     * @param annotatedDescriptor
-     *            The annotated descriptor.
+     *
+     * @param fqn                 The full qualified name of the type (e.g. java.lang.Object).
+     * @param name                The name.
+     * @param annotatedDescriptor The annotated descriptor.
      * @return The annotation value descriptor.
      */
     AnnotationValueDescriptor getAnnotationValueDescriptor(String fqn, String name, AnnotatedDescriptor annotatedDescriptor) {
@@ -220,11 +193,9 @@ public class VisitorHelper {
 
     /**
      * Return the variable descriptor for a given name and the type signature.
-     * 
-     * @param name
-     *            The variable name.
-     * @param signature
-     *            The type signature.
+     *
+     * @param name      The variable name.
+     * @param signature The type signature.
      * @return The variable descriptor.
      */
     VariableDescriptor getVariableDescriptor(String name, String signature) {
@@ -236,28 +207,31 @@ public class VisitorHelper {
 
     /**
      * Add a invokes relation between two methods.
-     * 
-     * @param methodDescriptor
-     *            The invoking method.
-     * @param lineNumber
-     *            The line number.
-     * @param invokedMethodDescriptor
-     *            The invoked method.
+     *
+     * @param methodDescriptor        The invoking method.
+     * @param lineNumber              The line number.
+     * @param invokedMethodDescriptor The invoked method.
      */
-    void addInvokes(MethodDescriptor methodDescriptor, final Integer lineNumber, MethodDescriptor invokedMethodDescriptor) {
+    void addInvokes(MethodDescriptor methodDescriptor, final Integer lineNumber, List<TypeDescriptor> argumentTypes, MethodDescriptor invokedMethodDescriptor) {
         InvokesDescriptor invokesDescriptor = scannerContext.getStore().create(methodDescriptor, InvokesDescriptor.class, invokedMethodDescriptor);
         invokesDescriptor.setLineNumber(lineNumber);
+        StringBuffer arguments = new StringBuffer();
+        argumentTypes.forEach(argument -> {
+            arguments.append(argument.getFullQualifiedName() + ", ");
+        });
+        // remove last comma and space
+        if (!argumentTypes.isEmpty()) {
+            arguments.setLength(arguments.length() - 2);
+            invokesDescriptor.setArguments(arguments.toString());
+        }
     }
 
     /**
      * Add a writes relation between a method and a field.
      *
-     * @param methodDescriptor
-     *            The method.
-     * @param lineNumber
-     *            The line number.
-     * @param fieldDescriptor
-     *            The field.
+     * @param methodDescriptor The method.
+     * @param lineNumber       The line number.
+     * @param fieldDescriptor  The field.
      */
     void addWrites(MethodDescriptor methodDescriptor, final Integer lineNumber, FieldDescriptor fieldDescriptor) {
         WritesDescriptor writesDescriptor = scannerContext.getStore().create(methodDescriptor, WritesDescriptor.class, fieldDescriptor);
@@ -267,12 +241,9 @@ public class VisitorHelper {
     /**
      * Add a reads relation between a method and a field.
      *
-     * @param methodDescriptor
-     *            The method.
-     * @param lineNumber
-     *            The line number.
-     * @param fieldDescriptor
-     *            The field.
+     * @param methodDescriptor The method.
+     * @param lineNumber       The line number.
+     * @param fieldDescriptor  The field.
      */
     void addReads(MethodDescriptor methodDescriptor, final Integer lineNumber, FieldDescriptor fieldDescriptor) {
         ReadsDescriptor readsDescriptor = scannerContext.getStore().create(methodDescriptor, ReadsDescriptor.class, fieldDescriptor);
@@ -288,7 +259,7 @@ public class VisitorHelper {
 
     /**
      * Return the Java parser facade.
-     * 
+     *
      * @return The Java parser facade
      */
     JavaParserFacade getFacade() {
@@ -297,7 +268,7 @@ public class VisitorHelper {
 
     /**
      * Return the type solver.
-     * 
+     *
      * @return The type solver.
      */
     TypeSolver getTypeSolver() {
@@ -340,7 +311,7 @@ public class VisitorHelper {
 
     /**
      * Get the currently parsed Java source file.
-     * 
+     *
      * @return The Java source file.
      */
     private JavaSourceFileDescriptor getJavaSourceFileDescriptor() {
@@ -349,9 +320,8 @@ public class VisitorHelper {
 
     /**
      * Set the anonymous inner class counter with a value.
-     * 
-     * @param value
-     *            The value.
+     *
+     * @param value The value.
      */
     private void setAnonymousInnerClassCounter(int value) {
         this.anonymousInnerClassCounter = value;
@@ -359,7 +329,7 @@ public class VisitorHelper {
 
     /**
      * Return the anonymous inner class counter.
-     * 
+     *
      * @return The anonymous inner class counter.
      */
     private int getAnonymousInnerClassCounter() {

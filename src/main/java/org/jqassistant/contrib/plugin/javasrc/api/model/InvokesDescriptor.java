@@ -9,7 +9,7 @@ import com.buschmais.xo.neo4j.api.annotation.Relation.Outgoing;
  * Defines an INVOKES relation between two methods.
  */
 @Relation("INVOKES")
-public interface InvokesDescriptor extends Descriptor, LineNumberDescriptor {
+public interface InvokesDescriptor extends Descriptor, LineNumberDescriptor, ArgumentDescriptor {
 
     @Outgoing
     MethodDescriptor getInvokingMethod();

@@ -186,6 +186,10 @@ public abstract class AbstractJavaSourceVisitor<D extends Descriptor> extends Vo
                 // method variable
                 ResolvedType solvedVariable = visitorHelper.getFacade().convertToUsageVariableType((VariableDeclarator) node);
                 return Optional.of(getQualifiedName(solvedVariable));
+            } else if (node instanceof Expression) {
+                // parameter types
+                ResolvedType resolvedType = ((Expression) node).calculateResolvedType();
+                return Optional.of(getQualifiedName(resolvedType));
             }
             throw new JavaSourceException("Unexpected type of node for qualified name: " + node + " " + node.getClass());
         } catch (UnsolvedSymbolException use) {
