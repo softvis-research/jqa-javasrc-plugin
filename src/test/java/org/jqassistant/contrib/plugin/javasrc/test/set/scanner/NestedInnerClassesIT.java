@@ -1,15 +1,5 @@
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.jqassistant.contrib.plugin.javasrc.test.matcher.TypeDescriptorMatcher.typeDescriptor;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
 import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
 import org.hamcrest.Matcher;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
@@ -17,12 +7,21 @@ import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
 import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.innerclass.NestedInnerClasses;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.jqassistant.contrib.plugin.javasrc.test.matcher.TypeDescriptorMatcher.typeDescriptor;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
 /**
  * Contains tests to verify correct scanning of relations between outer and
  * inner classes.
- * 
- * @authors Dirk Mahler, Richard Mueller
  *
+ * @authors Dirk Mahler, Richard Mueller
  */
 public class NestedInnerClassesIT extends AbstractPluginIT {
 
@@ -49,8 +48,8 @@ public class NestedInnerClassesIT extends AbstractPluginIT {
         File directory = new File(FILE_DIRECTORY_PATH);
         store.beginTransaction();
         JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
-        assertEquals(query("MATCH (e:Enum)-[:DECLARES]->(innerClass:Class) RETURN innerClass.name").getColumn("innerClass.name").get(0).toString(),
-                "InnerClass");
+        assertEquals(query("MATCH (e:Enum)-[:DECLARES]->(innerClass:Class) WHERE innerClass.name='InnerClass' RETURN innerClass.name").getColumn("innerClass.name").get(0).toString(),
+            "InnerClass");
         store.commitTransaction();
     }
 }
