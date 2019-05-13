@@ -63,6 +63,19 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
 
     @Override
     public void visit(AssignExpr assignExpr, MethodDescriptor methodDescriptor) {
+        // variable inits
+        if (assignExpr.getTarget().isNameExpr() && assignExpr.getValue().isObjectCreationExpr()) {
+            String variableName = assignExpr.getTarget().asNameExpr().getName().asString();
+            methodDescriptor.getVariables().forEach(variableDescriptor -> {
+                if (variableDescriptor.getName().equals(variableName)) {
+                    getQualifiedName(assignExpr.getValue().asObjectCreationExpr()).ifPresent(classValue -> {
+                        TypeDescriptor classValueTypeDescriptor = visitorHelper.resolveDependency(classValue, methodDescriptor.getDeclaringType());
+                        variableDescriptor.setValue(classValueTypeDescriptor);
+                    });
+                }
+            });
+        }
+
         // field writes
         Expression target = assignExpr.getTarget();
         if (target.isFieldAccessExpr()) {

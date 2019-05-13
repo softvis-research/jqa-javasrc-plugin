@@ -31,6 +31,10 @@ public class VariableValueIT extends AbstractPluginIT {
             hasItems(typeDescriptor(SubClass.class)));
         assertThat(query("MATCH (method:Method)-[:DECLARES]->(variable:Variable)-[:OF_TYPE]->(staticType:Type) WHERE variable.name = 'variableWithDifferentStaticAndDynamicType' RETURN staticType").getColumn("staticType"),
             hasItems(typeDescriptor(SuperClass.class)));
+        assertThat(query("MATCH (method:Method)-[:DECLARES]->(variable:Variable)-[:IS]->(dynamicType:Type) WHERE variable.name = 'anotherVariableWithDifferentStaticAndDynamicType' RETURN dynamicType").getColumn("dynamicType"),
+            hasItems(typeDescriptor(SubClass.class)));
+        assertThat(query("MATCH (method:Method)-[:DECLARES]->(variable:Variable)-[:OF_TYPE]->(staticType:Type) WHERE variable.name = 'anotherVariableWithDifferentStaticAndDynamicType' RETURN staticType").getColumn("staticType"),
+            hasItems(typeDescriptor(SuperClass.class)));
         store.commitTransaction();
     }
 }
