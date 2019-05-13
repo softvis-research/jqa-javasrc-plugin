@@ -21,7 +21,7 @@ import static org.junit.Assert.assertThat;
 public class VariableValueIT extends AbstractPluginIT {
 
     @Test
-    public void testStaticanDynamicType() {
+    public void testStaticAndDynamicType() {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String TYPE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/variablevalue/";
         File directory = new File(TYPE_DIRECTORY_PATH);
