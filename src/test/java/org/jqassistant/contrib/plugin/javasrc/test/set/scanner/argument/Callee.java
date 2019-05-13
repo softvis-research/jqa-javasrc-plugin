@@ -5,4 +5,7 @@ public class Callee {
     public void calledMethodWithArgument(SuperClass superClass, String testString) {
 
     }
+
+    public void calledMethodWithNullArgument(Object o) {
+    }
 }
