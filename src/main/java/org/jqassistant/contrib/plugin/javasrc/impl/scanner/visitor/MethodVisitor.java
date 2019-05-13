@@ -38,10 +38,9 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setLineCount(methodDeclaration);
         setCyclomaticComplexity(methodDeclaration);
         setInvocations(methodDeclaration);
+        setVariables(methodDeclaration);
         setWrites(methodDeclaration);
         setReads(methodDeclaration);
-        setVariables(methodDeclaration);
-        setVariableValues(methodDeclaration);
         setAnonymousClasses(methodDeclaration);
     }
 
@@ -56,10 +55,9 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         setLineCount(constructorDeclaration);
         setCyclomaticComplexity(constructorDeclaration);
         setInvocations(constructorDeclaration);
+        setVariables(constructorDeclaration);
         setWrites(constructorDeclaration);
         setReads(constructorDeclaration);
-        setVariables(constructorDeclaration);
-        setVariableValues(constructorDeclaration);
         setAnonymousClasses(constructorDeclaration);
     }
 
@@ -149,12 +147,6 @@ public class MethodVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
     private void setVariables(CallableDeclaration<?> callableDeclaration) {
         callableDeclaration.findAll(VariableDeclarationExpr.class).forEach(variable -> {
             variable.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
-        });
-    }
-
-    private void setVariableValues(CallableDeclaration<?> callableDeclaration) {
-        callableDeclaration.findAll(AssignExpr.class).forEach(variableValue -> {
-            variableValue.accept(new MethodBodyVisitor(visitorHelper), (MethodDescriptor) descriptor);
         });
     }
 
