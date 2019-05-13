@@ -13,9 +13,8 @@ import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 /**
  * This visitor handles parsed fields and enum values and creates corresponding
  * descriptors.
- * 
- * @author Richard Mueller
  *
+ * @author Richard Mueller
  */
 public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
 
@@ -64,9 +63,17 @@ public class FieldVisitor extends AbstractJavaSourceVisitor<TypeDescriptor> {
         // TODO many variables for one field, type of values
         VariableDeclarator firstVariable = fieldDeclaration.getVariables().get(0);
         firstVariable.getInitializer().ifPresent(value -> {
-            PrimitiveValueDescriptor valueDescriptor = visitorHelper.getValueDescriptor(PrimitiveValueDescriptor.class);
-            valueDescriptor.setValue(getLiteralExpressionValue(value));
-            ((FieldDescriptor) descriptor).setValue(valueDescriptor);
+            // TODO check if there are further class value types
+            if (value.isObjectCreationExpr()) {
+                getQualifiedName(value).ifPresent(classValue -> {
+                    TypeDescriptor classValueTypeDescriptor = visitorHelper.resolveDependency(classValue, ((FieldDescriptor) descriptor).getDeclaringType());
+                    ((FieldDescriptor) descriptor).setValue(classValueTypeDescriptor);
+                });
+            } else {
+                PrimitiveValueDescriptor primitiveValueDescriptor = visitorHelper.getValueDescriptor(PrimitiveValueDescriptor.class);
+                primitiveValueDescriptor.setValue(getLiteralExpressionValue(value));
+                ((FieldDescriptor) descriptor).setPrimitiveValue(primitiveValueDescriptor);
+            }
         });
     }
 }

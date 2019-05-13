@@ -26,4 +26,6 @@ public class FieldValue {
 
     private static int nullValue;
 
+    private static SuperClass fieldWithDifferentStaticAndDynamicType = new SubClass();
+
 }

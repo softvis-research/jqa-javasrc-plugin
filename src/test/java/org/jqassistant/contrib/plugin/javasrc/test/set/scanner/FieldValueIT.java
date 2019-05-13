@@ -4,6 +4,8 @@ import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
 import com.buschmais.jqassistant.plugin.common.test.scanner.MapBuilder;
 import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.fieldvalue.SubClass;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.fieldvalue.SuperClass;
 import org.junit.Test;
 
 import java.io.File;
@@ -11,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.jqassistant.contrib.plugin.javasrc.test.matcher.TypeDescriptorMatcher.typeDescriptor;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -21,7 +25,7 @@ import static org.junit.Assert.assertThat;
 public class FieldValueIT extends AbstractPluginIT {
 
     @Test
-    public void testFieldValue() {
+    public void testPrimitiveFieldValue() {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
         final String TYPE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/fieldvalue/";
         File directory = new File(TYPE_DIRECTORY_PATH);
@@ -50,5 +54,19 @@ public class FieldValueIT extends AbstractPluginIT {
         Map<String, Object> row = rows.get(0);
         V value = (V) row.get("value");
         assertThat(value, equalTo(expectedValue));
+    }
+
+    @Test
+    public void testStaticAndDynamicType() {
+        final String TEST_DIRECTORY_PATH = "src/test/java/";
+        final String TYPE_DIRECTORY_PATH = "src/test/java/org/jqassistant/contrib/plugin/javasrc/test/set/scanner/fieldvalue/";
+        File directory = new File(TYPE_DIRECTORY_PATH);
+        store.beginTransaction();
+        JavaSourceDirectoryDescriptor javaSourceDirectoryDescriptor = getScanner().scan(directory, TEST_DIRECTORY_PATH, JavaScope.SRC);
+        assertThat(query("MATCH (:Type)-[:DECLARES]->(field:Field)-[:IS]->(dynamicType:Type) WHERE field.name = 'fieldWithDifferentStaticAndDynamicType' RETURN dynamicType").getColumn("dynamicType"),
+            hasItems(typeDescriptor(SubClass.class)));
+        assertThat(query("MATCH (:Type)-[:DECLARES]->(field:Field)-[:OF_TYPE]->(staticType:Type) WHERE field.name = 'fieldWithDifferentStaticAndDynamicType' RETURN staticType").getColumn("staticType"),
+            hasItems(typeDescriptor(SuperClass.class)));
+        store.commitTransaction();
     }
 }
