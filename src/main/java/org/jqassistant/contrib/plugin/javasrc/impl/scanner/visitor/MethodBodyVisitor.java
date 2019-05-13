@@ -116,10 +116,12 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
                 methodCallExpr.getBegin().ifPresent((position) -> {
                     List<TypeDescriptor> argumentTypes = new ArrayList<TypeDescriptor>();
                     methodCallExpr.getArguments().forEach(argument -> {
-                        getQualifiedName(argument).ifPresent(qualifiedName -> {
-                            TypeDescriptor argumentType = visitorHelper.resolveDependency(qualifiedName, methodDescriptor.getDeclaringType());
-                            argumentTypes.add(argumentType);
-                        });
+                        if (!(argument instanceof NullLiteralExpr)) {
+                            getQualifiedName(argument).ifPresent(qualifiedName -> {
+                                TypeDescriptor argumentType = visitorHelper.resolveDependency(qualifiedName, methodDescriptor.getDeclaringType());
+                                argumentTypes.add(argumentType);
+                            });
+                        }
                     });
                     visitorHelper.addInvokes(methodDescriptor, position.line, argumentTypes, invokedMethodDescriptor);
                 });
@@ -132,6 +134,14 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
             getQualifiedName(variable).ifPresent(qualifiedVariableTypeName -> {
                 VariableDescriptor variableDescriptor = visitorHelper.getVariableDescriptor(variable.getNameAsString(),
                     qualifiedVariableTypeName + " " + variable.getNameAsString());
+                variable.getInitializer().ifPresent(value -> {
+                    if (value.isObjectCreationExpr()) {
+                        getQualifiedName(value).ifPresent(classValue -> {
+                            TypeDescriptor classValueTypeDescriptor = visitorHelper.resolveDependency(classValue, methodDescriptor.getDeclaringType());
+                            variableDescriptor.setValue(classValueTypeDescriptor);
+                        });
+                    }
+                });
                 variableDescriptor.setType(visitorHelper.resolveDependency(qualifiedVariableTypeName, methodDescriptor.getDeclaringType()));
                 methodDescriptor.getVariables().add(variableDescriptor);
                 // type parameters

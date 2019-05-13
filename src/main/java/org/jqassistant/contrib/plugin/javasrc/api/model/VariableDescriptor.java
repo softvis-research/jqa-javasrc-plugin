@@ -8,7 +8,7 @@ import com.buschmais.xo.neo4j.api.annotation.Relation.Incoming;
  * Describes a field (i.e. static or instance variable) of a Java class.
  */
 @Label(value = "Variable")
-public interface VariableDescriptor extends JavaSourceCodeDescriptor, SignatureDescriptor, NamedDescriptor, TypedDescriptor {
+public interface VariableDescriptor extends JavaSourceCodeDescriptor, SignatureDescriptor, NamedDescriptor, TypedDescriptor, ClassValueDescriptor {
 
     @Declares
     @Incoming
