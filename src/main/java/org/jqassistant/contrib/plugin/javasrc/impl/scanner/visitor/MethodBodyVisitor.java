@@ -1,14 +1,11 @@
 package org.jqassistant.contrib.plugin.javasrc.impl.scanner.visitor;
 
-import com.github.javaparser.Position;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.*;
-import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
-import org.jqassistant.contrib.plugin.javasrc.api.model.FieldDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.MethodDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.TypeDescriptor;
 import org.jqassistant.contrib.plugin.javasrc.api.model.VariableDescriptor;
@@ -33,20 +30,20 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
     public void visit(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) throws UnsolvedSymbolException {
         // method calls
         setInvokes(methodCallExpr, methodDescriptor);
-        // field reads
-        methodCallExpr.getArguments().forEach(argument -> {
-            if (argument.isFieldAccessExpr()) {
-                // method(this.field)
-                argument.getBegin().ifPresent(position -> {
-                    setReads(argument.asFieldAccessExpr(), methodDescriptor, position);
-                });
-            } else if (argument.isNameExpr()) {
-                // method(field)
-                argument.getBegin().ifPresent(position -> {
-                    setReads(argument.asNameExpr(), methodDescriptor, position);
-                });
-            }
-        });
+//        // field reads
+//        methodCallExpr.getArguments().forEach(argument -> {
+//            if (argument.isFieldAccessExpr()) {
+//                // method(this.field)
+//                argument.getBegin().ifPresent(position -> {
+//                    setReads(argument.asFieldAccessExpr(), methodDescriptor, position);
+//                });
+//            } else if (argument.isNameExpr()) {
+//                // method(field)
+//                argument.getBegin().ifPresent(position -> {
+//                    setReads(argument.asNameExpr(), methodDescriptor, position);
+//                });
+//            }
+//        });
     }
 
     @Override
@@ -76,50 +73,50 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
             });
         }
 
-        // field writes
-        Expression target = assignExpr.getTarget();
-        if (target.isFieldAccessExpr()) {
-            // this.field = ...;
-            assignExpr.getBegin().ifPresent(position -> {
-                setWrites(target.asFieldAccessExpr(), methodDescriptor, position);
-            });
-        } else if (target.isNameExpr()) {
-            // field = ...;
-            assignExpr.getBegin().ifPresent(position -> {
-                setWrites(target.asNameExpr(), methodDescriptor, position);
-            });
-        }
-
-        // field reads
-        Expression value = assignExpr.getValue();
-        if (value.isFieldAccessExpr()) {
-            // ... = this.field;
-            assignExpr.getBegin().ifPresent(position -> {
-                setReads(value.asFieldAccessExpr(), methodDescriptor, position);
-            });
-        } else if (value.isNameExpr()) {
-            // ... = field;
-            assignExpr.getBegin().ifPresent(position -> {
-                setReads(value.asNameExpr(), methodDescriptor, position);
-            });
-        }
+//        // field writes
+//        Expression target = assignExpr.getTarget();
+//        if (target.isFieldAccessExpr()) {
+//            // this.field = ...;
+//            assignExpr.getBegin().ifPresent(position -> {
+//                setWrites(target.asFieldAccessExpr(), methodDescriptor, position);
+//            });
+//        } else if (target.isNameExpr()) {
+//            // field = ...;
+//            assignExpr.getBegin().ifPresent(position -> {
+//                setWrites(target.asNameExpr(), methodDescriptor, position);
+//            });
+//        }
+//
+//        // field reads
+//        Expression value = assignExpr.getValue();
+//        if (value.isFieldAccessExpr()) {
+//            // ... = this.field;
+//            assignExpr.getBegin().ifPresent(position -> {
+//                setReads(value.asFieldAccessExpr(), methodDescriptor, position);
+//            });
+//        } else if (value.isNameExpr()) {
+//            // ... = field;
+//            assignExpr.getBegin().ifPresent(position -> {
+//                setReads(value.asNameExpr(), methodDescriptor, position);
+//            });
+//        }
     }
 
-    @Override
-    public void visit(ReturnStmt returnStmt, MethodDescriptor methodDescriptor) {
-        // field reads
-        returnStmt.getExpression().ifPresent(returnExpression -> {
-            returnStmt.getBegin().ifPresent(position -> {
-                if (returnExpression.isFieldAccessExpr()) {
-                    // return this.field;
-                    setReads(returnExpression.asFieldAccessExpr(), methodDescriptor, position);
-                } else if (returnExpression.isNameExpr()) {
-                    // return field;
-                    setReads(returnExpression.asNameExpr(), methodDescriptor, position);
-                }
-            });
-        });
-    }
+//    @Override
+//    public void visit(ReturnStmt returnStmt, MethodDescriptor methodDescriptor) {
+//        // field reads
+//        returnStmt.getExpression().ifPresent(returnExpression -> {
+//            returnStmt.getBegin().ifPresent(position -> {
+//                if (returnExpression.isFieldAccessExpr()) {
+//                    // return this.field;
+//                    setReads(returnExpression.asFieldAccessExpr(), methodDescriptor, position);
+//                } else if (returnExpression.isNameExpr()) {
+//                    // return field;
+//                    setReads(returnExpression.asNameExpr(), methodDescriptor, position);
+//                }
+//            });
+//        });
+//    }
 
     private void setInvokes(MethodCallExpr methodCallExpr, MethodDescriptor methodDescriptor) {
         getQualifiedName(methodCallExpr).ifPresent(qualifiedInvokedMethodParentName -> {
@@ -182,21 +179,21 @@ public class MethodBodyVisitor extends AbstractJavaSourceVisitor<MethodDescripto
         }
     }
 
-    private void setWrites(Expression expression, MethodDescriptor methodDescriptor, Position position) {
-        getQualifiedSignature(expression).ifPresent(qualifiedFieldSignature -> {
-            // TODO methodDescriptor.getDeclaringType()? might be better to get
-            // the parent of fieldAccessExpr?
-            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
-            visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
-        });
-    }
+//    private void setWrites(Expression expression, MethodDescriptor methodDescriptor, Position position) {
+//        getQualifiedSignature(expression).ifPresent(qualifiedFieldSignature -> {
+//            // TODO methodDescriptor.getDeclaringType()? might be better to get
+//            // the parent of fieldAccessExpr?
+//            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
+//            visitorHelper.addWrites(methodDescriptor, position.line, fieldDescriptor);
+//        });
+//    }
 
-    private void setReads(Expression expression, MethodDescriptor methodDescriptor, Position position) {
-        getQualifiedSignature(expression).ifPresent(qualifiedFieldSignature -> {
-            // TODO methodDescriptor.getDeclaringType()? might be better to get
-            // the parent of fieldAccessExpr?
-            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
-            visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
-        });
-    }
+//    private void setReads(Expression expression, MethodDescriptor methodDescriptor, Position position) {
+//        getQualifiedSignature(expression).ifPresent(qualifiedFieldSignature -> {
+//            // TODO methodDescriptor.getDeclaringType()? might be better to get
+//            // the parent of fieldAccessExpr?
+//            FieldDescriptor fieldDescriptor = visitorHelper.getFieldDescriptor(qualifiedFieldSignature, methodDescriptor.getDeclaringType());
+//            visitorHelper.addReads(methodDescriptor, position.line, fieldDescriptor);
+//        });
+//    }
 }

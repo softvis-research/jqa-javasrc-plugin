@@ -1,28 +1,28 @@
 package org.jqassistant.contrib.plugin.javasrc.test.set.scanner;
 
+import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
+import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
+import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
+import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.access.FieldAccess;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.io.File;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.jqassistant.contrib.plugin.javasrc.test.matcher.FieldDescriptorMatcher.fieldDescriptor;
 import static org.jqassistant.contrib.plugin.javasrc.test.matcher.MethodDescriptorMatcher.methodDescriptor;
 import static org.junit.Assert.assertThat;
 
-import java.io.File;
-
-import com.buschmais.jqassistant.plugin.common.test.AbstractPluginIT;
-import org.jqassistant.contrib.plugin.javasrc.api.model.JavaSourceDirectoryDescriptor;
-import org.jqassistant.contrib.plugin.javasrc.api.scanner.JavaScope;
-import org.jqassistant.contrib.plugin.javasrc.test.set.scanner.access.FieldAccess;
-import org.junit.Test;
-
 /**
  * Contains tests to verify correct scanning of read and write access of a
  * field.
- * 
- * @author Richard Mueller
  *
+ * @author Richard Mueller
  */
 public class FieldAccessIT extends AbstractPluginIT {
-
+    @Ignore
     @Test
     public void testReadAccess() throws NoSuchMethodException, NoSuchFieldException {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
@@ -34,10 +34,10 @@ public class FieldAccessIT extends AbstractPluginIT {
         // verify methods
         assertThat(testResult.getColumn("m").size(), equalTo(5));
         assertThat(testResult.getColumn("m"), hasItems(methodDescriptor(FieldAccess.class, "getA"), methodDescriptor(FieldAccess.class, "getB"),
-                methodDescriptor(FieldAccess.class, "setC"), methodDescriptor(FieldAccess.class, "setD"), methodDescriptor(FieldAccess.class, "setE")));
+            methodDescriptor(FieldAccess.class, "setC"), methodDescriptor(FieldAccess.class, "setD"), methodDescriptor(FieldAccess.class, "setE")));
         // verify fields
         assertThat(testResult.getColumn("f"), hasItems(fieldDescriptor(FieldAccess.class, "a"), fieldDescriptor(FieldAccess.class, "b"),
-                fieldDescriptor(FieldAccess.class, "d"), fieldDescriptor(FieldAccess.class, "c"), fieldDescriptor(FieldAccess.class, "e")));
+            fieldDescriptor(FieldAccess.class, "d"), fieldDescriptor(FieldAccess.class, "c"), fieldDescriptor(FieldAccess.class, "e")));
         // verify line numbers
         assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE field.name='a' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(11));
         assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE field.name='b' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(20));
@@ -46,7 +46,8 @@ public class FieldAccessIT extends AbstractPluginIT {
         assertThat(query("MATCH (m:Method)-[r:READS]->(field:Field) WHERE field.name='e' RETURN r.lineNumber").getColumn("r.lineNumber").get(0), equalTo(32));
         store.commitTransaction();
     }
-
+    
+    @Ignore
     @Test
     public void testWriteAccess() throws NoSuchMethodException, NoSuchFieldException {
         final String TEST_DIRECTORY_PATH = "src/test/java/";
@@ -58,11 +59,11 @@ public class FieldAccessIT extends AbstractPluginIT {
         // verify methods
         assertThat(testResult.getColumn("m").size(), equalTo(3));
         assertThat(testResult.getColumn("m"), hasItems(methodDescriptor(FieldAccess.class, "setA", int.class),
-                methodDescriptor(FieldAccess.class, "setB", int.class), methodDescriptor(FieldAccess.class, "setC")));
+            methodDescriptor(FieldAccess.class, "setB", int.class), methodDescriptor(FieldAccess.class, "setC")));
         // verify fields
         assertThat(testResult.getColumn("f").size(), equalTo(3));
         assertThat(testResult.getColumn("f"),
-                hasItems(fieldDescriptor(FieldAccess.class, "a"), fieldDescriptor(FieldAccess.class, "b"), fieldDescriptor(FieldAccess.class, "c")));
+            hasItems(fieldDescriptor(FieldAccess.class, "a"), fieldDescriptor(FieldAccess.class, "b"), fieldDescriptor(FieldAccess.class, "c")));
         // verify line numbers
         assertThat(query("MATCH (:Method)-[w:WRITES]->(field:Field) WHERE field.name='a' RETURN w.lineNumber").getColumn("w.lineNumber").get(0), equalTo(15));
         assertThat(query("MATCH (:Method)-[w:WRITES]->(field:Field) WHERE field.name='b' RETURN w.lineNumber").getColumn("w.lineNumber").get(0), equalTo(24));
