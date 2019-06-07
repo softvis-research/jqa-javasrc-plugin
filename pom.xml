@@ -1,41 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://maven.apache.org/POM/4.0.0"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.jqassistant.contrib.common</groupId>
-		<artifactId>parent</artifactId>
-        <version>1.6.0</version>
-	</parent>
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jqassistant.contrib.common</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.7.0-MS3</version>
+    </parent>
 
-	<groupId>org.jqassistant.contrib.plugin</groupId>
-	<artifactId>jqassistant-javasrc-plugin</artifactId>
-	<version>0.0.9</version>
+    <groupId>org.jqassistant.contrib.plugin</groupId>
+    <artifactId>jqassistant-javasrc-plugin</artifactId>
+    <version>0.0.9</version>
 
-	<name>jQAssistant Java Source Plugin</name>
-	<description>The jQAssistant plugin to scan and to analyze java source code.</description>
-	<url>http://jqassistant.org/</url>
+    <name>jQAssistant Java Source Plugin</name>
+    <description>The jQAssistant plugin to scan and to analyze java source code.</description>
+    <url>http://jqassistant.org/</url>
 
-	<developers>
-		<developer>
-			<id>richard-mueller</id>
-			<name>Richard Mueller</name>
-			<email>rmueller@wifa.uni-leipzig.de</email>
-		</developer>
-		<developer>
-			<id>dirk-mahler</id>
-			<name>Dirk Mahler</name>
-			<email>dirk.mahler@buschmais.com</email>
-		</developer>
-	</developers>
+    <developers>
+        <developer>
+            <id>richard-mueller</id>
+            <name>Richard Mueller</name>
+            <email>rmueller@wifa.uni-leipzig.de</email>
+        </developer>
+        <developer>
+            <id>dirk-mahler</id>
+            <name>Dirk Mahler</name>
+            <email>dirk.mahler@buschmais.com</email>
+        </developer>
+    </developers>
 
-	<licenses>
-		<license>
-			<name>GNU General Public License, v3</name>
-			<url>http://www.gnu.org/licenses/gpl-3.0.html</url>
-		</license>
-	</licenses>
+    <licenses>
+        <license>
+            <name>GNU General Public License, v3</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+        </license>
+    </licenses>
 
     <pluginRepositories>
         <pluginRepository>
@@ -48,119 +48,119 @@
         </pluginRepository>
     </pluginRepositories>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<com.buschmais.xo.version>0.9.0</com.buschmais.xo.version>
-		<org.neo4j.version>3.3.4</org.neo4j.version>
-		<org.slf4j.version>1.7.12</org.slf4j.version>
-		<org.hamcrest.version>2.0.0.0</org.hamcrest.version>
-	</properties>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <com.buschmais.xo.version>0.9.0</com.buschmais.xo.version>
+        <org.neo4j.version>3.3.4</org.neo4j.version>
+        <org.slf4j.version>1.7.12</org.slf4j.version>
+        <org.hamcrest.version>2.0.0.0</org.hamcrest.version>
+    </properties>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-	<dependencyManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencyManagement>
 
-		<dependencies>
-			<!-- jQAssistant -->
-			<!-- unit tests -->
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>4.12</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-core</artifactId>
-				<version>1.10.19</version>
-				<scope>test</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-	<dependencies>
-		<dependency>
-			<groupId>com.buschmais.jqassistant.plugin</groupId>
-			<artifactId>common</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.buschmais.jqassistant.core</groupId>
-			<artifactId>shared</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.buschmais.jqassistant.core</groupId>
-			<artifactId>scanner</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.buschmais.jqassistant.core</groupId>
-			<artifactId>report</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.buschmais.jqassistant.core</groupId>
-			<artifactId>plugin</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.buschmais.jqassistant.plugin</groupId>
-			<artifactId>common</artifactId>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.buschmais.jqassistant.core</groupId>
-			<artifactId>store</artifactId>
-			<type>test-jar</type>
-		</dependency>
-		<dependency>
-			<groupId>com.buschmais.jqassistant.core</groupId>
-			<artifactId>analysis</artifactId>
-			<type>test-jar</type>
-		</dependency>
-		<dependency>
-			<groupId>com.buschmais.xo</groupId>
-			<artifactId>xo.neo4j.embedded</artifactId>
-			<scope>test</scope>
-		</dependency>
+        <dependencies>
+            <!-- jQAssistant -->
+            <!-- unit tests -->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>1.10.19</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.plugin</groupId>
+            <artifactId>common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>shared</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>scanner</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>report</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>plugin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.plugin</groupId>
+            <artifactId>common</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>store</artifactId>
+            <type>test-jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.jqassistant.core</groupId>
+            <artifactId>analysis</artifactId>
+            <type>test-jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.buschmais.xo</groupId>
+            <artifactId>xo.neo4j.embedded</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.buschmais.jqassistant.neo4jserver</groupId>
             <artifactId>neo4jv3</artifactId>
             <scope>test</scope>
         </dependency>
-		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>java-hamcrest</artifactId>
-			<version>${org.hamcrest.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.javaparser</groupId>
-			<artifactId>javaparser-symbol-solver-core</artifactId>
-            <version>3.13.10</version>
-		</dependency>
-		<!-- Declared to detect ambiguities between data models of bytecode and src parser -->
         <dependency>
-        	<groupId>com.buschmais.jqassistant.plugin</groupId>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>java-hamcrest</artifactId>
+            <version>${org.hamcrest.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.javaparser</groupId>
+            <artifactId>javaparser-symbol-solver-core</artifactId>
+            <version>3.13.10</version>
+        </dependency>
+        <!-- Declared to detect ambiguities between data models of bytecode and src parser -->
+        <dependency>
+            <groupId>com.buschmais.jqassistant.plugin</groupId>
             <artifactId>java</artifactId>
             <scope>test</scope>
         </dependency>
-	</dependencies>
+    </dependencies>
 </project>
